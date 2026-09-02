@@ -1,0 +1,15 @@
+{
+	"editor.insertSpaces": false,
+	"editor.tabSize": 2,
+
+	"oxc.enable": true,
+	"editor.defaultFormatter": "oxc.oxc-vscode",
+
+	"editor.codeActionsOnSave": {
+		"source.fixAll.oxc": "explicit"
+	},
+	"editor.formatOnSave": true,
+	"editor.formatOnSaveMode": "file",
+
+	"js/ts.tsdk.path": "node_modules/typescript/lib"
+}

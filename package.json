@@ -1,13 +1,28 @@
 {
-  "name": "nashtagroup-sandbox",
-  "private": true,
-  "version": "0.0.0",
-  "contributors": [
-    "Bildan Jauhary <bildanjauhary@gmail.com>",
-    "Muhammad Wahyu Pratama <muhammad123wahyu123@gmail.com>",
-    "Muhamad Rafli Shidiq <muhamadraflishidiq@gmail.com>",
-    "Ryan Suhartanto <suhartanto@kekkon.nexus>",
-    "Zacky Rafian Fawwauzy <zackyrafianfawwauzy@gmail.com>"
-  ],
-  "type": "module"
+	"name": "nashtagroup-sandbox",
+	"private": true,
+	"contributors": [
+		"Bildan Jauhary <bildanjauhary@gmail.com>",
+		"Muhammad Wahyu Pratama <muhammad123wahyu123@gmail.com>",
+		"Muhamad Rafli Shidiq <muhamadraflishidiq@gmail.com>",
+		"Ryan Suhartanto <suhartanto@kekkon.nexus>",
+		"Zacky Rafian Fawwauzy <zackyrafianfawwauzy@gmail.com>"
+	],
+	"type": "module",
+	"scripts": {
+		"prepare": "vp config"
+	},
+	"devDependencies": {
+		"@kekkon-nexus/config": "3.0.0",
+		"oxfmt": "0.64.0",
+		"oxlint": "1.79.0",
+		"vite-plus": "0.3.0"
+	},
+	"devEngines": {
+		"packageManager": {
+			"name": "npm",
+			"version": ">=11",
+			"onFail": "download"
+		}
+	}
 }

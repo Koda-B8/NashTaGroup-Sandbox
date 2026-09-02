@@ -8,6 +8,10 @@ export default defineConfig({
 	fmt: { ...oxfmt },
 	lint: {
 		extends: [oxlint, react, vp],
+		options: {
+			typeAware: true,
+			typeCheck: true,
+		},
 	},
 	staged: {
 		"*": "vp check --no-error-on-unmatched-pattern --fix",

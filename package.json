@@ -21,6 +21,8 @@
 		"@kekkon-nexus/config": "3.0.0",
 		"oxfmt": "0.64.0",
 		"oxlint": "1.79.0",
+		"oxlint-tsgolint": "^7.0.2001",
+		"typescript": "^7.0.2",
 		"vite-plus": "0.3.0"
 	},
 	"devEngines": {

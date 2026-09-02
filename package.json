@@ -8,6 +8,11 @@
 		"Ryan Suhartanto <suhartanto@kekkon.nexus>",
 		"Zacky Rafian Fawwauzy <zackyrafianfawwauzy@gmail.com>"
 	],
+	"workspaces": {
+		"packages": [
+			"apps/*"
+		]
+	},
 	"type": "module",
 	"scripts": {
 		"prepare": "vp config"

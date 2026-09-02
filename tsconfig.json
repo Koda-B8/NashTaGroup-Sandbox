@@ -1,5 +1,3 @@
 {
-	"extends": [
-		"@kekkon-nexus/config/ts"
-	]
+	"extends": ["@kekkon-nexus/config/ts"]
 }

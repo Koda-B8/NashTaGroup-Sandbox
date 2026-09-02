@@ -1,0 +1,13 @@
+{
+  "name": "nashtagroup-sandbox",
+  "private": true,
+  "version": "0.0.0",
+  "contributors": [
+    "Bildan Jauhary <bildanjauhary@gmail.com>",
+    "Muhammad Wahyu Pratama <muhammad123wahyu123@gmail.com>",
+    "Muhamad Rafli Shidiq <muhamadraflishidiq@gmail.com>",
+    "Ryan Suhartanto <suhartanto@kekkon.nexus>",
+    "Zacky Rafian Fawwauzy <zackyrafianfawwauzy@gmail.com>"
+  ],
+  "type": "module"
+}

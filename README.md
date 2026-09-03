@@ -1,6 +1,6 @@
 # NashTa Group Sandbox
 
-## ERD 
+## ERD
 
 ```mermaid
 erDiagram

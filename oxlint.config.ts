@@ -4,7 +4,12 @@ import { defineConfig } from "oxlint";
 
 export default defineConfig({
 	extends: [oxlint, react],
+
+	globals: {
+		document: "readonly",
+	},
 	rules: {
+		"typescript/no-non-null-assertion": "off",
 		"unicorn/filename-case": [
 			"warn",
 			{ cases: { kebabCase: true, pascalCase: true } },

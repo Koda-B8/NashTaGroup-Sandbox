@@ -2,10 +2,9 @@
 	"extends": ["@kekkon-nexus/config/ts"],
 	"compilerOptions": {
 		// Environment
-		"lib": ["esnext", "dom"],
-		"types": ["*", "vite-plus/client"],
+		"lib": ["esnext"],
+		"types": ["*"],
 
-		"noEmit": true,
 		"skipLibCheck": true,
 
 		// JavaScript

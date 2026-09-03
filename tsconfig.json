@@ -13,5 +13,6 @@
 		"checkJs": true,
 		"noImplicitAny": false,
 		"noUncheckedIndexedAccess": false
-	}
+	},
+	"references": [{ "path": "apps/backend" }, { "path": "apps/frontend" }]
 }

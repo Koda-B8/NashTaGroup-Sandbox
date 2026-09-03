@@ -3,9 +3,9 @@ pre-commit:
   jobs:
     - name: fmt
       glob: "*"
-      run: oxfmt --no-error-on-unmatched-pattern {staged_files}
+      run: npm run fmt -- --no-error-on-unmatched-pattern {staged_files}
       stage_fixed: true
     - name: lint
       glob: "*"
-      run: oxlint --no-error-on-unmatched-pattern --fix {staged_files}
+      run: npm run lint -- --no-error-on-unmatched-pattern {staged_files}
       stage_fixed: true

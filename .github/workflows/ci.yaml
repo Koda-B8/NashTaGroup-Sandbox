@@ -16,4 +16,5 @@ jobs:
           node-version: latest
       - run: npm ci
 
-      - run: npx vp check
+      - run: npx oxfmt --check
+      - run: npx oxlint

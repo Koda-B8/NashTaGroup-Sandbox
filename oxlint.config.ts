@@ -12,7 +12,10 @@ export default defineConfig({
 		"typescript/no-non-null-assertion": "off",
 		"unicorn/filename-case": [
 			"warn",
-			{ cases: { kebabCase: true, pascalCase: true } },
+			{
+				cases: { kebabCase: true, pascalCase: true },
+				ignore: [`^\\+[A-Z0-9]`],
+			},
 		],
 	},
 });

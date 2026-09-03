@@ -1,27 +1,18 @@
 import { Provider } from "react-redux";
-import {
-	createBrowserRouter,
-	Link,
-	Outlet,
-	RouterProvider,
-} from "react-router";
+import { createBrowserRouter, RouterProvider } from "react-router";
 
+import Home from "./pages";
+import NotFound from "./pages/+404";
+import Layout from "./pages/+Layout";
 import { store } from "./store";
 
 const router = createBrowserRouter([
 	{
 		path: "/",
-		element: (
-			<>
-				<nav>
-					<Link to="/">Home</Link>
-				</nav>
-				<Outlet />
-			</>
-		),
+		element: <Layout />,
 		children: [
-			{ index: true, element: <h1>Home</h1> },
-			{ path: "*", element: <h1>Not Found</h1> },
+			{ index: true, element: <Home /> },
+			{ path: "*", element: <NotFound /> },
 		],
 	},
 ]);

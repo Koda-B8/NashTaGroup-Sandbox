@@ -1,4 +1,12 @@
 {
 	"name": "backend",
-	"private": true
+	"private": true,
+	"dependencies": {
+		"argon2": "^0.45.1",
+		"cors": "^2.8.6",
+		"express": "^5.2.1",
+		"jsonwebtoken": "^9.0.3",
+		"pg": "^8.23.0",
+		"sequelize": "^6.37.8"
+	}
 }

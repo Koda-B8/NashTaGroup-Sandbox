@@ -10,7 +10,8 @@
 	],
 	"workspaces": {
 		"packages": [
-			"apps/*"
+			"apps/backend",
+			"apps/frontend"
 		]
 	},
 	"type": "module",

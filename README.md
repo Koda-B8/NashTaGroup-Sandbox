@@ -35,6 +35,7 @@ erDiagram
     Users {
         int id PK
         int role_id FK
+        varchar fullname
         varchar username UK
         varchar password_hash
         boolean is_active

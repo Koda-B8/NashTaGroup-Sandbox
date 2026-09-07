@@ -5,6 +5,15 @@
 ```mermaid
 erDiagram
     Roles ||--o{ Users : has
+
+    Categories ||--o{ Products : classifies
+    Brands ||--o{ Products : manufactures
+    Products ||--o{ ProductItems : has_variants
+    ProductItems ||--|| Inventories : has_stock
+
+    Users ||--o{ Transactions : processes
+    Customers o|--o{ Transactions : makes
+
     Categories ||--o{ Products : contains
     Products ||--o{ ProductItems : has
     ProductItems ||--|| Inventories : has_stock
@@ -25,6 +34,16 @@ erDiagram
     Users ||--o{ InventoryMovements : performs
 
     Roles {
+        uuid id PK
+        varchar name UK
+        timestamp created_at
+        timestamp updated_at
+        timestamp? deleted_at
+    }
+
+    Users {
+        uuid id PK
+        uuid role_id FK
         int id PK
         varchar name UK
         timestamp created_at
@@ -41,6 +60,29 @@ erDiagram
         boolean is_active
         timestamp created_at
         timestamp updated_at
+        timestamp? deleted_at
+    }
+
+    Customers {
+        uuid id PK
+        varchar? name
+        varchar phone UK
+        timestamp created_at
+        timestamp updated_at
+        timestamp? deleted_at
+    }
+
+    Categories {
+        uuid id PK
+        varchar name UK
+        boolean is_active
+        timestamp created_at
+        timestamp updated_at
+        timestamp? deleted_at
+    }
+
+    Brands {
+        uuid id PK
         timestamp deleted_at
     }
 
@@ -50,6 +92,24 @@ erDiagram
         boolean is_active
         timestamp created_at
         timestamp updated_at
+        timestamp? deleted_at
+    }
+
+    Products {
+        uuid id PK
+        uuid category_id FK
+        uuid brand_id FK
+        varchar name
+        text? description
+        boolean is_active
+        timestamp created_at
+        timestamp updated_at
+        timestamp? deleted_at
+    }
+
+    ProductItems {
+        uuid id PK
+        uuid product_id FK
         timestamp deleted_at
     }
 
@@ -73,6 +133,12 @@ erDiagram
         boolean is_active
         timestamp created_at
         timestamp updated_at
+        timestamp? deleted_at
+    }
+
+    Inventories {
+        uuid id PK
+        uuid product_item_id FK,UK
         timestamp deleted_at
     }
 
@@ -84,6 +150,11 @@ erDiagram
         timestamp updated_at
     }
 
+    Transactions {
+        uuid id PK
+        uuid user_id FK
+        uuid? customer_id FK
+        uuid idempotency_key UK
     Carts {
         int id PK
         int user_id FK
@@ -115,6 +186,9 @@ erDiagram
     }
 
     TransactionDetails {
+        uuid id PK
+        uuid transaction_id FK
+        uuid product_item_id FK
         int id PK
         int transaction_id FK
         int product_item_id FK
@@ -128,6 +202,7 @@ erDiagram
     }
 
     PaymentMethods {
+        uuid id PK
         int id PK
         varchar code UK
         varchar name
@@ -139,6 +214,10 @@ erDiagram
     }
 
     Payments {
+        uuid id PK
+        uuid transaction_id FK,UK
+        uuid payment_method_id FK
+        varchar? payment_reference UK
         int id PK
         int transaction_id FK,UK
         int payment_method_id FK
@@ -147,6 +226,8 @@ erDiagram
         decimal amount
         decimal paid_amount
         decimal change_amount
+        timestamp? expired_at
+        timestamp? paid_at
         timestamp expired_at
         timestamp paid_at
         timestamp created_at
@@ -154,6 +235,10 @@ erDiagram
     }
 
     InventoryMovements {
+        uuid id PK
+        uuid product_item_id FK
+        uuid? transaction_id FK
+        uuid user_id FK
         int id PK
         int product_item_id FK
         int transaction_id FK
@@ -162,6 +247,9 @@ erDiagram
         int quantity
         int stock_before
         int stock_after
+        text? note
+        timestamp created_at
+    }
         text note
         timestamp created_at
     }

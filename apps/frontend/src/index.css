@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+@theme {
+	--color-text: #94959f;
+	--color-text-h: #121215;
+	--color-primary: #3b82f6;
+	--color-primary-light: #ebeffe;
+	--color-deep-valid: #148552;
+	--color-valid: #e5f5eb;
+	--color-base: #f9f9fa;
+	--color-base-border: #ececee;
+}
+
+@layer base {
+	#root {
+		@apply text-text;
+	}
+
+	h1 {
+		@apply text-5xl;
+	}
+
+	h2 {
+		@apply text-4xl;
+	}
+
+	h3 {
+		@apply text-3xl;
+	}
+
+	h4 {
+		@apply text-2xl;
+	}
+
+	h5 {
+		@apply text-xl;
+	}
+
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6 {
+		@apply font-semibold text-text-h;
+	}
+}
+
+@layer components {
+	.centerized {
+		@apply flex justify-center items-center;
+	}
+}

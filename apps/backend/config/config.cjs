@@ -1,3 +1,16 @@
+const path = require("node:path");
+
+try {
+	process.loadEnvFile(path.resolve(__dirname, "../.env"));
+} catch (error) {
+	const errorCode =
+		error && typeof error === "object" && "code" in error
+			? error.code
+			: undefined;
+
+	if (errorCode !== "ENOENT") throw error;
+}
+
 const parsePort = (value, fallback) => {
 	const parsed = Math.trunc(Number(value));
 	return Number.isInteger(parsed) && parsed > 0 && parsed <= 65_535

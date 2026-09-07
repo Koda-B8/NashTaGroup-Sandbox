@@ -1,0 +1,23 @@
+/* eslint-disable no-undef */
+
+import app from "./app.js";
+import db from "./models/index.cjs";
+
+const { sequelize } = db;
+
+const port = Number(process.env.PORT ?? 3000);
+
+if (!process.env.JWT_SECRET) {
+	throw new Error("JWT_SECRET environment variable is required.");
+}
+
+try {
+	await sequelize.authenticate();
+	app.listen(port, () => {
+		console.info(`Backend listening on port ${port}.`);
+	});
+} catch (error) {
+	console.error("Unable to start backend:", error);
+	await sequelize.close();
+	process.exitCode = 1;
+}

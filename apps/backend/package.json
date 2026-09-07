@@ -1,6 +1,20 @@
 {
 	"name": "backend",
 	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "node --watch server.js",
+		"start": "node server.js",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"db:create": "sequelize-cli db:create",
+		"db:migrate": "sequelize-cli db:migrate",
+		"db:migrate:undo": "sequelize-cli db:migrate:undo",
+		"db:migrate:undo:all": "sequelize-cli db:migrate:undo:all",
+		"db:seed": "sequelize-cli db:seed:all",
+		"db:seed:undo": "sequelize-cli db:seed:undo:all",
+		"db:setup": "npm run db:create && npm run db:migrate && npm run db:seed"
+	},
 	"dependencies": {
 		"argon2": "^0.45.1",
 		"cloudinary": "^2.11.0",
@@ -14,6 +28,7 @@
 		"swagger-ui-express": "^5.0.1"
 	},
 	"devDependencies": {
-		"sequelize-cli": "^6.6.5"
+		"sequelize-cli": "^6.6.5",
+		"vitest": "^5.0.0"
 	}
 }

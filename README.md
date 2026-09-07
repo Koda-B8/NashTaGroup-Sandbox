@@ -155,6 +155,8 @@ erDiagram
         uuid user_id FK
         uuid? customer_id FK
         uuid idempotency_key UK
+    }
+
     Carts {
         int id PK
         int user_id FK

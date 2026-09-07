@@ -33,7 +33,11 @@ module.exports = {
 				defaultValue: "pending",
 			},
 			amount: { type: Sequelize.DECIMAL(15, 2), allowNull: false },
-			paid_amount: { type: Sequelize.DECIMAL(15, 2), allowNull: false },
+			paid_amount: {
+				type: Sequelize.DECIMAL(15, 2),
+				allowNull: false,
+				defaultValue: 0,
+			},
 			change_amount: {
 				type: Sequelize.DECIMAL(15, 2),
 				allowNull: false,

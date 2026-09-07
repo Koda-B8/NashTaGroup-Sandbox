@@ -4,27 +4,27 @@ module.exports = {
 	async up(queryInterface, Sequelize) {
 		await queryInterface.createTable("inventory_movements", {
 			id: {
-				type: Sequelize.INTEGER,
+				type: Sequelize.UUID,
 				allowNull: false,
-				autoIncrement: true,
+				defaultValue: Sequelize.literal("gen_random_uuid()"),
 				primaryKey: true,
 			},
 			product_item_id: {
-				type: Sequelize.INTEGER,
+				type: Sequelize.UUID,
 				allowNull: false,
 				references: { model: "product_items", key: "id" },
 				onUpdate: "CASCADE",
 				onDelete: "RESTRICT",
 			},
 			transaction_id: {
-				type: Sequelize.INTEGER,
+				type: Sequelize.UUID,
 				allowNull: true,
 				references: { model: "transactions", key: "id" },
 				onUpdate: "CASCADE",
 				onDelete: "SET NULL",
 			},
 			user_id: {
-				type: Sequelize.INTEGER,
+				type: Sequelize.UUID,
 				allowNull: false,
 				references: { model: "users", key: "id" },
 				onUpdate: "CASCADE",

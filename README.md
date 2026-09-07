@@ -14,6 +14,15 @@ erDiagram
     Users ||--o{ Transactions : processes
     Customers o|--o{ Transactions : makes
 
+    Categories ||--o{ Products : contains
+    Products ||--o{ ProductItems : has
+    ProductItems ||--|| Inventories : has_stock
+
+    Users ||--o{ Carts : owns
+    Carts ||--o{ CartItems : contains
+    ProductItems ||--o{ CartItems : selected_as
+
+    Users ||--o{ Transactions : processes
     Transactions ||--|{ TransactionDetails : contains
     ProductItems ||--o{ TransactionDetails : sold_as
 
@@ -35,6 +44,16 @@ erDiagram
     Users {
         uuid id PK
         uuid role_id FK
+        int id PK
+        varchar name UK
+        timestamp created_at
+        timestamp updated_at
+        timestamp deleted_at
+    }
+
+    Users {
+        int id PK
+        int role_id FK
         varchar fullname
         varchar username UK
         varchar password_hash
@@ -64,6 +83,11 @@ erDiagram
 
     Brands {
         uuid id PK
+        timestamp deleted_at
+    }
+
+    Categories {
+        int id PK
         varchar name UK
         boolean is_active
         timestamp created_at
@@ -86,6 +110,23 @@ erDiagram
     ProductItems {
         uuid id PK
         uuid product_id FK
+        timestamp deleted_at
+    }
+
+    Products {
+        int id PK
+        int category_id FK
+        varchar name
+        text description
+        boolean is_active
+        timestamp created_at
+        timestamp updated_at
+        timestamp deleted_at
+    }
+
+    ProductItems {
+        int id PK
+        int product_id FK
         varchar product_code UK
         varchar name
         decimal price
@@ -98,6 +139,12 @@ erDiagram
     Inventories {
         uuid id PK
         uuid product_item_id FK,UK
+        timestamp deleted_at
+    }
+
+    Inventories {
+        int id PK
+        int product_item_id FK,UK
         int stock
         timestamp created_at
         timestamp updated_at
@@ -108,6 +155,26 @@ erDiagram
         uuid user_id FK
         uuid? customer_id FK
         uuid idempotency_key UK
+    Carts {
+        int id PK
+        int user_id FK
+        varchar status
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    CartItems {
+        int id PK
+        int cart_id FK
+        int product_item_id FK
+        int qty
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    Transactions {
+        int id PK
+        int user_id FK
         varchar transaction_number UK
         varchar status
         decimal subtotal
@@ -122,6 +189,9 @@ erDiagram
         uuid id PK
         uuid transaction_id FK
         uuid product_item_id FK
+        int id PK
+        int transaction_id FK
+        int product_item_id FK
         varchar product_name
         varchar product_code
         decimal unit_price
@@ -133,6 +203,7 @@ erDiagram
 
     PaymentMethods {
         uuid id PK
+        int id PK
         varchar code UK
         varchar name
         varchar type
@@ -147,12 +218,18 @@ erDiagram
         uuid transaction_id FK,UK
         uuid payment_method_id FK
         varchar? payment_reference UK
+        int id PK
+        int transaction_id FK,UK
+        int payment_method_id FK
+        varchar payment_reference UK
         varchar status
         decimal amount
         decimal paid_amount
         decimal change_amount
         timestamp? expired_at
         timestamp? paid_at
+        timestamp expired_at
+        timestamp paid_at
         timestamp created_at
         timestamp updated_at
     }
@@ -162,6 +239,10 @@ erDiagram
         uuid product_item_id FK
         uuid? transaction_id FK
         uuid user_id FK
+        int id PK
+        int product_item_id FK
+        int transaction_id FK
+        int user_id FK
         varchar type
         int quantity
         int stock_before
@@ -169,4 +250,8 @@ erDiagram
         text? note
         timestamp created_at
     }
+        text note
+        timestamp created_at
+    }
+
 ```

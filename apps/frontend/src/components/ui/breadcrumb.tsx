@@ -22,7 +22,7 @@ export default function Breadcrumb({ items, className = "" }: BreadcrumbProps) {
 					const isLast = index === items.length - 1;
 
 					return (
-						<Fragment key={`${index}-${item.label}`}>
+						<Fragment key={item.label}>
 							{index > 0 && (
 								<li
 									aria-hidden

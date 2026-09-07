@@ -5,8 +5,10 @@ import { defineConfig } from "oxlint";
 export default defineConfig({
 	extends: [oxlint, react],
 
-	globals: {
-		document: "readonly",
+	env: {
+		builtin: true,
+		node: true,
+		browser: true,
 	},
 	rules: {
 		"typescript/no-non-null-assertion": "off",

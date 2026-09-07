@@ -5,15 +5,15 @@
 ```mermaid
 erDiagram
     Roles ||--o{ Users : has
-    Categories ||--o{ Products : contains
-    Products ||--o{ ProductItems : has
+
+    Categories ||--o{ Products : classifies
+    Brands ||--o{ Products : manufactures
+    Products ||--o{ ProductItems : has_variants
     ProductItems ||--|| Inventories : has_stock
 
-    Users ||--o{ Carts : owns
-    Carts ||--o{ CartItems : contains
-    ProductItems ||--o{ CartItems : selected_as
-
     Users ||--o{ Transactions : processes
+    Customers o|--o{ Transactions : makes
+
     Transactions ||--|{ TransactionDetails : contains
     ProductItems ||--o{ TransactionDetails : sold_as
 
@@ -25,7 +25,7 @@ erDiagram
     Users ||--o{ InventoryMovements : performs
 
     Roles {
-        int id PK
+        uuid id PK
         varchar name UK
         timestamp created_at
         timestamp updated_at
@@ -33,8 +33,9 @@ erDiagram
     }
 
     Users {
-        int id PK
-        int role_id FK
+        uuid id PK
+        uuid role_id FK
+        varchar fullname
         varchar username UK
         varchar password_hash
         boolean is_active
@@ -43,8 +44,26 @@ erDiagram
         timestamp deleted_at
     }
 
+    Customers {
+        uuid id PK
+        varchar name "nullable"
+        varchar phone UK
+        timestamp created_at
+        timestamp updated_at
+        timestamp deleted_at
+    }
+
     Categories {
-        int id PK
+        uuid id PK
+        varchar name UK
+        boolean is_active
+        timestamp created_at
+        timestamp updated_at
+        timestamp deleted_at
+    }
+
+    Brands {
+        uuid id PK
         varchar name UK
         boolean is_active
         timestamp created_at
@@ -53,8 +72,9 @@ erDiagram
     }
 
     Products {
-        int id PK
-        int category_id FK
+        uuid id PK
+        uuid category_id FK
+        uuid brand_id FK
         varchar name
         text description
         boolean is_active
@@ -64,8 +84,8 @@ erDiagram
     }
 
     ProductItems {
-        int id PK
-        int product_id FK
+        uuid id PK
+        uuid product_id FK
         varchar product_code UK
         varchar name
         decimal price
@@ -76,33 +96,18 @@ erDiagram
     }
 
     Inventories {
-        int id PK
-        int product_item_id FK,UK
+        uuid id PK
+        uuid product_item_id FK,UK
         int stock
         timestamp created_at
         timestamp updated_at
     }
 
-    Carts {
-        int id PK
-        int user_id FK
-        varchar status
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    CartItems {
-        int id PK
-        int cart_id FK
-        int product_item_id FK
-        int qty
-        timestamp created_at
-        timestamp updated_at
-    }
-
     Transactions {
-        int id PK
-        int user_id FK
+        uuid id PK
+        uuid user_id FK
+        uuid customer_id FK "nullable"
+        uuid idempotency_key UK
         varchar transaction_number UK
         varchar status
         decimal subtotal
@@ -114,9 +119,9 @@ erDiagram
     }
 
     TransactionDetails {
-        int id PK
-        int transaction_id FK
-        int product_item_id FK
+        uuid id PK
+        uuid transaction_id FK
+        uuid product_item_id FK
         varchar product_name
         varchar product_code
         decimal unit_price
@@ -127,7 +132,7 @@ erDiagram
     }
 
     PaymentMethods {
-        int id PK
+        uuid id PK
         varchar code UK
         varchar name
         varchar type
@@ -138,10 +143,10 @@ erDiagram
     }
 
     Payments {
-        int id PK
-        int transaction_id FK,UK
-        int payment_method_id FK
-        varchar payment_reference UK
+        uuid id PK
+        uuid transaction_id FK,UK
+        uuid payment_method_id FK
+        varchar payment_reference UK "nullable"
         varchar status
         decimal amount
         decimal paid_amount
@@ -153,10 +158,10 @@ erDiagram
     }
 
     InventoryMovements {
-        int id PK
-        int product_item_id FK
-        int transaction_id FK
-        int user_id FK
+        uuid id PK
+        uuid product_item_id FK
+        uuid transaction_id FK "nullable"
+        uuid user_id FK
         varchar type
         int quantity
         int stock_before
@@ -164,5 +169,4 @@ erDiagram
         text note
         timestamp created_at
     }
-
 ```

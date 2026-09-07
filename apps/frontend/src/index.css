@@ -1,30 +1,19 @@
 @import "tailwindcss";
 
-:root {
-	--text: #94959f;
-	--text-h: #121215;
-	--primary: #3b82f6;
-	--deep-valid: #148552;
-	--base: #f9f9fa;
-	--base-border: #ececee;
-	--valid: #e5f5eb;
-	--primary-light: #ebeffe;
-}
-
 @theme {
-	--color-text: var(--text);
-	--color-primary: var(--primary);
-	--color-text-h: var(--text-h);
-	--color-deep-valid: var(--deep-valid);
-	--color-base: var(--base);
-	--color-base-border: var(--base-border);
-	--color-valid: var(--valid);
-	--color-primary-light: var(--primary-light);
+	--color-text: #94959f;
+	--color-text-h: #121215;
+	--color-primary: #3b82f6;
+	--color-primary-light: #ebeffe;
+	--color-deep-valid: #148552;
+	--color-valid: #e5f5eb;
+	--color-base: #f9f9fa;
+	--color-base-border: #ececee;
 }
 
 @layer base {
 	#root {
-		color: var(--text);
+		@apply text-text;
 	}
 
 	h1 {
@@ -53,10 +42,12 @@
 	h4,
 	h5,
 	h6 {
-		@apply font-semibold text-(--text-h);
+		@apply font-semibold text-text-h;
 	}
 }
 
-.centerized {
-	@apply flex justify-center items-center;
+@layer components {
+	.centerized {
+		@apply flex justify-center items-center;
+	}
 }

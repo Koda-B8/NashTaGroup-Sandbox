@@ -1,9 +1,14 @@
-/* eslint-disable no-undef, unicorn/prefer-module */
+const parsePort = (value, fallback) => {
+	const parsed = Math.trunc(Number(value));
+	return Number.isInteger(parsed) && parsed > 0 && parsed <= 65_535
+		? parsed
+		: fallback;
+};
 
 const shared = {
 	dialect: "postgres",
 	host: process.env.DB_HOST ?? "127.0.0.1",
-	port: Number(process.env.DB_PORT ?? 5432),
+	port: parsePort(process.env.DB_PORT, 5432),
 	username: process.env.DB_USER ?? "postgres",
 	password: process.env.DB_PASSWORD ?? "postgres",
 	logging: false,

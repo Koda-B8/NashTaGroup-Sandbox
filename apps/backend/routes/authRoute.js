@@ -2,10 +2,22 @@
 /* eslint-disable jsdoc/check-tag-names */
 
 import express from "express";
+import { rateLimit } from "express-rate-limit";
 
 import { login } from "../controllers/auth.controller.js";
 
 const router = express.Router();
+
+const loginLimiter = rateLimit({
+	windowMs: 15 * 60 * 1000,
+	limit: 5,
+	standardHeaders: "draft-8",
+	legacyHeaders: false,
+	message: {
+		success: false,
+		message: "Terlalu banyak percobaan login. Coba lagi dalam 15 menit.",
+	},
+});
 
 /**
  * @openapi
@@ -36,6 +48,6 @@ const router = express.Router();
  *       401:
  *         description: Username atau password salah
  */
-router.post("/login", login);
+router.post("/login", loginLimiter, login);
 
 export default router;

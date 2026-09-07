@@ -4,13 +4,13 @@ module.exports = {
 	async up(queryInterface, Sequelize) {
 		await queryInterface.createTable("payments", {
 			id: {
-				type: Sequelize.INTEGER,
+				type: Sequelize.UUID,
 				allowNull: false,
-				autoIncrement: true,
+				defaultValue: Sequelize.literal("gen_random_uuid()"),
 				primaryKey: true,
 			},
 			transaction_id: {
-				type: Sequelize.INTEGER,
+				type: Sequelize.UUID,
 				allowNull: false,
 				unique: true,
 				references: { model: "transactions", key: "id" },
@@ -18,7 +18,7 @@ module.exports = {
 				onDelete: "CASCADE",
 			},
 			payment_method_id: {
-				type: Sequelize.INTEGER,
+				type: Sequelize.UUID,
 				allowNull: false,
 				references: { model: "payment_methods", key: "id" },
 				onUpdate: "CASCADE",

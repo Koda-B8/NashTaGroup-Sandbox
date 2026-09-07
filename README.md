@@ -46,7 +46,7 @@ erDiagram
 
     Customers {
         uuid id PK
-        varchar name "nullable"
+        varchar name "?"
         varchar phone UK
         timestamp created_at
         timestamp updated_at
@@ -106,7 +106,7 @@ erDiagram
     Transactions {
         uuid id PK
         uuid user_id FK
-        uuid customer_id FK "nullable"
+        uuid customer_id FK "?"
         uuid idempotency_key UK
         varchar transaction_number UK
         varchar status
@@ -146,7 +146,7 @@ erDiagram
         uuid id PK
         uuid transaction_id FK,UK
         uuid payment_method_id FK
-        varchar payment_reference UK "nullable"
+        varchar payment_reference UK "?"
         varchar status
         decimal amount
         decimal paid_amount
@@ -160,7 +160,7 @@ erDiagram
     InventoryMovements {
         uuid id PK
         uuid product_item_id FK
-        uuid transaction_id FK "nullable"
+        uuid transaction_id FK "?"
         uuid user_id FK
         varchar type
         int quantity

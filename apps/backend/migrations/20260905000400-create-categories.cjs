@@ -1,5 +1,3 @@
-/* eslint-disable no-undef, unicorn/prefer-module */
-
 module.exports = {
 	async up(queryInterface, Sequelize) {
 		await queryInterface.createTable("categories", {

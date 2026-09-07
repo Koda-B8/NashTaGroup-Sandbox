@@ -1,5 +1,3 @@
-/* eslint-disable no-undef, unicorn/prefer-module */
-
 module.exports = {
 	async up(queryInterface, Sequelize) {
 		await queryInterface.createTable("payments", {
@@ -35,7 +33,7 @@ module.exports = {
 				defaultValue: "pending",
 			},
 			amount: { type: Sequelize.DECIMAL(15, 2), allowNull: false },
-			paid_amount: { type: Sequelize.DECIMAL(15, 2), allowNull: true },
+			paid_amount: { type: Sequelize.DECIMAL(15, 2), allowNull: false },
 			change_amount: {
 				type: Sequelize.DECIMAL(15, 2),
 				allowNull: false,

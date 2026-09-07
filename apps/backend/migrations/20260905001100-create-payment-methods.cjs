@@ -1,23 +1,20 @@
-/* eslint-disable no-undef, unicorn/prefer-module */
-
 module.exports = {
 	async up(queryInterface, Sequelize) {
-		await queryInterface.createTable("products", {
+		await queryInterface.createTable("payment_methods", {
 			id: {
 				type: Sequelize.UUID,
 				allowNull: false,
 				defaultValue: Sequelize.literal("gen_random_uuid()"),
 				primaryKey: true,
 			},
-			category_id: {
-				type: Sequelize.UUID,
+			code: { type: Sequelize.STRING(30), allowNull: false, unique: true },
+			name: { type: Sequelize.STRING(100), allowNull: false },
+			type: { type: Sequelize.STRING(30), allowNull: false },
+			admin_fee: {
+				type: Sequelize.DECIMAL(15, 2),
 				allowNull: false,
-				references: { model: "categories", key: "id" },
-				onUpdate: "CASCADE",
-				onDelete: "RESTRICT",
+				defaultValue: 0,
 			},
-			name: { type: Sequelize.STRING(150), allowNull: false },
-			description: { type: Sequelize.TEXT, allowNull: true },
 			is_active: {
 				type: Sequelize.BOOLEAN,
 				allowNull: false,
@@ -33,14 +30,10 @@ module.exports = {
 				allowNull: false,
 				defaultValue: Sequelize.fn("NOW"),
 			},
-			deleted_at: { type: Sequelize.DATE, allowNull: true },
-		});
-		await queryInterface.addIndex("products", ["category_id"], {
-			name: "products_category_id_idx",
 		});
 	},
 
 	async down(queryInterface) {
-		await queryInterface.dropTable("products");
+		await queryInterface.dropTable("payment_methods");
 	},
 };

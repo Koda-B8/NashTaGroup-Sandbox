@@ -1,5 +1,3 @@
-/* eslint-disable no-undef, unicorn/prefer-module */
-
 module.exports = {
 	async up(queryInterface, Sequelize) {
 		await queryInterface.createTable("transactions", {
@@ -15,6 +13,18 @@ module.exports = {
 				references: { model: "users", key: "id" },
 				onUpdate: "CASCADE",
 				onDelete: "RESTRICT",
+			},
+			customer_id: {
+				type: Sequelize.UUID,
+				allowNull: true,
+				references: { model: "customers", key: "id" },
+				onUpdate: "CASCADE",
+				onDelete: "SET NULL",
+			},
+			idempotency_key: {
+				type: Sequelize.UUID,
+				allowNull: false,
+				unique: true,
 			},
 			transaction_number: {
 				type: Sequelize.STRING(50),
@@ -54,6 +64,9 @@ module.exports = {
 		});
 		await queryInterface.addIndex("transactions", ["user_id", "created_at"], {
 			name: "transactions_user_id_created_at_idx",
+		});
+		await queryInterface.addIndex("transactions", ["customer_id"], {
+			name: "transactions_customer_id_idx",
 		});
 		await queryInterface.addIndex("transactions", ["status"], {
 			name: "transactions_status_idx",

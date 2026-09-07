@@ -1,29 +1,21 @@
-/* eslint-disable no-undef, unicorn/prefer-module */
-
 module.exports = {
 	async up(queryInterface, Sequelize) {
-		await queryInterface.createTable("cart_items", {
+		await queryInterface.createTable("inventories", {
 			id: {
 				type: Sequelize.UUID,
 				allowNull: false,
 				defaultValue: Sequelize.literal("gen_random_uuid()"),
 				primaryKey: true,
 			},
-			cart_id: {
-				type: Sequelize.UUID,
-				allowNull: false,
-				references: { model: "carts", key: "id" },
-				onUpdate: "CASCADE",
-				onDelete: "CASCADE",
-			},
 			product_item_id: {
 				type: Sequelize.UUID,
 				allowNull: false,
+				unique: true,
 				references: { model: "product_items", key: "id" },
 				onUpdate: "CASCADE",
-				onDelete: "RESTRICT",
+				onDelete: "CASCADE",
 			},
-			qty: { type: Sequelize.INTEGER, allowNull: false },
+			stock: { type: Sequelize.INTEGER, allowNull: false, defaultValue: 0 },
 			created_at: {
 				type: Sequelize.DATE,
 				allowNull: false,
@@ -35,17 +27,9 @@ module.exports = {
 				defaultValue: Sequelize.fn("NOW"),
 			},
 		});
-		await queryInterface.addIndex(
-			"cart_items",
-			["cart_id", "product_item_id"],
-			{
-				name: "cart_items_cart_product_item_unique",
-				unique: true,
-			},
-		);
 	},
 
 	async down(queryInterface) {
-		await queryInterface.dropTable("cart_items");
+		await queryInterface.dropTable("inventories");
 	},
 };

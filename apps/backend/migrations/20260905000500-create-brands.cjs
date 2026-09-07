@@ -1,25 +1,17 @@
-/* eslint-disable no-undef, unicorn/prefer-module */
-
 module.exports = {
 	async up(queryInterface, Sequelize) {
-		await queryInterface.createTable("carts", {
+		await queryInterface.createTable("brands", {
 			id: {
 				type: Sequelize.UUID,
 				allowNull: false,
 				defaultValue: Sequelize.literal("gen_random_uuid()"),
 				primaryKey: true,
 			},
-			user_id: {
-				type: Sequelize.UUID,
+			name: { type: Sequelize.STRING(100), allowNull: false, unique: true },
+			is_active: {
+				type: Sequelize.BOOLEAN,
 				allowNull: false,
-				references: { model: "users", key: "id" },
-				onUpdate: "CASCADE",
-				onDelete: "RESTRICT",
-			},
-			status: {
-				type: Sequelize.STRING(30),
-				allowNull: false,
-				defaultValue: "active",
+				defaultValue: true,
 			},
 			created_at: {
 				type: Sequelize.DATE,
@@ -31,13 +23,11 @@ module.exports = {
 				allowNull: false,
 				defaultValue: Sequelize.fn("NOW"),
 			},
-		});
-		await queryInterface.addIndex("carts", ["user_id", "status"], {
-			name: "carts_user_id_status_idx",
+			deleted_at: { type: Sequelize.DATE, allowNull: true },
 		});
 	},
 
 	async down(queryInterface) {
-		await queryInterface.dropTable("carts");
+		await queryInterface.dropTable("brands");
 	},
 };

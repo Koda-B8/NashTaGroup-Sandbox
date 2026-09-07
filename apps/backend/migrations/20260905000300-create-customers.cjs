@@ -1,15 +1,18 @@
-/* eslint-disable no-undef, unicorn/prefer-module */
-
 module.exports = {
 	async up(queryInterface, Sequelize) {
-		await queryInterface.createTable("roles", {
+		await queryInterface.createTable("customers", {
 			id: {
 				type: Sequelize.UUID,
 				allowNull: false,
 				defaultValue: Sequelize.literal("gen_random_uuid()"),
 				primaryKey: true,
 			},
-			name: { type: Sequelize.STRING(50), allowNull: false, unique: true },
+			name: { type: Sequelize.STRING(150), allowNull: true },
+			phone: {
+				type: Sequelize.STRING(30),
+				allowNull: false,
+				unique: true,
+			},
 			created_at: {
 				type: Sequelize.DATE,
 				allowNull: false,
@@ -25,6 +28,6 @@ module.exports = {
 	},
 
 	async down(queryInterface) {
-		await queryInterface.dropTable("roles");
+		await queryInterface.dropTable("customers");
 	},
 };

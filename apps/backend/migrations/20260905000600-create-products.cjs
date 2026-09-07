@@ -1,28 +1,28 @@
-/* eslint-disable no-undef, unicorn/prefer-module */
-
 module.exports = {
 	async up(queryInterface, Sequelize) {
-		await queryInterface.createTable("product_items", {
+		await queryInterface.createTable("products", {
 			id: {
 				type: Sequelize.UUID,
 				allowNull: false,
 				defaultValue: Sequelize.literal("gen_random_uuid()"),
 				primaryKey: true,
 			},
-			product_id: {
+			category_id: {
 				type: Sequelize.UUID,
 				allowNull: false,
-				references: { model: "products", key: "id" },
+				references: { model: "categories", key: "id" },
 				onUpdate: "CASCADE",
 				onDelete: "RESTRICT",
 			},
-			product_code: {
-				type: Sequelize.STRING(50),
+			brand_id: {
+				type: Sequelize.UUID,
 				allowNull: false,
-				unique: true,
+				references: { model: "brands", key: "id" },
+				onUpdate: "CASCADE",
+				onDelete: "RESTRICT",
 			},
 			name: { type: Sequelize.STRING(150), allowNull: false },
-			price: { type: Sequelize.DECIMAL(15, 2), allowNull: false },
+			description: { type: Sequelize.TEXT, allowNull: true },
 			is_active: {
 				type: Sequelize.BOOLEAN,
 				allowNull: false,
@@ -40,12 +40,15 @@ module.exports = {
 			},
 			deleted_at: { type: Sequelize.DATE, allowNull: true },
 		});
-		await queryInterface.addIndex("product_items", ["product_id"], {
-			name: "product_items_product_id_idx",
+		await queryInterface.addIndex("products", ["category_id"], {
+			name: "products_category_id_idx",
+		});
+		await queryInterface.addIndex("products", ["brand_id"], {
+			name: "products_brand_id_idx",
 		});
 	},
 
 	async down(queryInterface) {
-		await queryInterface.dropTable("product_items");
+		await queryInterface.dropTable("products");
 	},
 };

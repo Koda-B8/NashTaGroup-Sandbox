@@ -1,5 +1,3 @@
-/* eslint-disable no-undef, typescript/no-require-imports, unicorn/prefer-module */
-
 const { Model } = require("sequelize");
 
 const defineRoles = (sequelize, DataTypes) => {

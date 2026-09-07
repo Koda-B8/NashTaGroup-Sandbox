@@ -1,5 +1,3 @@
-/* eslint-disable no-undef, typescript/no-require-imports, unicorn/prefer-module */
-
 const fs = require("node:fs");
 const path = require("node:path");
 const process = require("node:process");

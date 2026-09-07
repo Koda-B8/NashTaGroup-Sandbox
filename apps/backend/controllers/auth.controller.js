@@ -1,4 +1,3 @@
-import console from "node:console";
 import { constants } from "node:http2";
 
 import argon2 from "argon2";
@@ -57,8 +56,7 @@ export async function login(req, res) {
 				role,
 			},
 		});
-	} catch (error) {
-		console.error("LOGIN ERROR:", error);
+	} catch {
 		return res.status(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR).json({
 			success: false,
 			message: "Internal server error",

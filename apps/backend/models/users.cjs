@@ -1,5 +1,3 @@
-/* eslint-disable no-undef, typescript/no-require-imports, unicorn/prefer-module */
-
 const argon2 = require("argon2");
 const { Model } = require("sequelize");
 

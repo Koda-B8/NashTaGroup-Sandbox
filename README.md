@@ -252,8 +252,5 @@ erDiagram
         text? note
         timestamp created_at
     }
-        text note
-        timestamp created_at
-    }
 
 ```

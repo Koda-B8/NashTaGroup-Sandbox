@@ -4,13 +4,13 @@ module.exports = {
 	async up(queryInterface, Sequelize) {
 		await queryInterface.createTable("inventories", {
 			id: {
-				type: Sequelize.INTEGER,
+				type: Sequelize.UUID,
 				allowNull: false,
-				autoIncrement: true,
+				defaultValue: Sequelize.literal("gen_random_uuid()"),
 				primaryKey: true,
 			},
 			product_item_id: {
-				type: Sequelize.INTEGER,
+				type: Sequelize.UUID,
 				allowNull: false,
 				unique: true,
 				references: { model: "product_items", key: "id" },

@@ -19,15 +19,6 @@ const sequelize = new Sequelize(
 
 const app = express();
 app.disable("x-powered-by");
-app.get("/health", async (_req, res) => {
-	try {
-		await sequelize.authenticate();
-		return res.status(200).json({ success: true, database: "connected" });
-	} catch {
-		return res.status(503).json({ success: false, database: "unavailable" });
-	}
-});
-
 try {
 	await sequelize.authenticate();
 	const port = Number(process.env.PORT ?? 3000);

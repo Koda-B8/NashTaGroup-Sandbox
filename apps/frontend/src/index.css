@@ -11,39 +11,52 @@
 	--primary-light: #ebeffe;
 }
 
-#root {
-	color: var(--text);
+@theme {
+	--color-text: var(--text);
+	--color-primary: var(--primary);
+	--color-text-h: var(--text-h);
+	--color-deep-valid: var(--deep-valid);
+	--color-base: var(--base);
+	--color-base-border: var(--base-border);
+	--color-valid: var(--valid);
+	--color-primary-light: var(--primary-light);
 }
 
-.centerized-cont {
+@layer base {
+	#root {
+		color: var(--text);
+	}
+
+	h1 {
+		@apply text-5xl;
+	}
+
+	h2 {
+		@apply text-4xl;
+	}
+
+	h3 {
+		@apply text-3xl;
+	}
+
+	h4 {
+		@apply text-2xl;
+	}
+
+	h5 {
+		@apply text-xl;
+	}
+
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6 {
+		@apply font-semibold text-(--text-h);
+	}
+}
+
+.centerized {
 	@apply flex justify-center items-center;
-}
-
-h1 {
-	@apply text-5xl;
-}
-
-h2 {
-	@apply text-4xl;
-}
-
-h3 {
-	@apply text-3xl;
-}
-
-h4 {
-	@apply text-2xl;
-}
-
-h5 {
-	@apply text-xl;
-}
-
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-	@apply font-semibold text-(--text-h);
 }

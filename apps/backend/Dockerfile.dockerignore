@@ -1,8 +1,0 @@
-**/node_modules
-**/.git
-**/.env
-**/.env.*
-**/backups
-**/tests
-**/*.log
-**/*.tsbuildinfo

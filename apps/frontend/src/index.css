@@ -1,1 +1,49 @@
 @import "tailwindcss";
+
+:root {
+	--text: #94959f;
+	--text-h: #121215;
+	--primary: #3b82f6;
+	--deep-valid: #148552;
+	--base: #f9f9fa;
+	--base-border: #ececee;
+	--valid: #e5f5eb;
+	--primary-light: #ebeffe;
+}
+
+#root {
+	color: var(--text);
+}
+
+.centerized-cont {
+	@apply flex justify-center items-center;
+}
+
+h1 {
+	@apply text-5xl;
+}
+
+h2 {
+	@apply text-4xl;
+}
+
+h3 {
+	@apply text-3xl;
+}
+
+h4 {
+	@apply text-2xl;
+}
+
+h5 {
+	@apply text-xl;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	@apply font-semibold text-(--text-h);
+}

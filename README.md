@@ -29,7 +29,7 @@ erDiagram
         varchar name UK
         timestamp created_at
         timestamp updated_at
-        timestamp deleted_at
+        timestamp? deleted_at
     }
 
     Users {
@@ -41,16 +41,16 @@ erDiagram
         boolean is_active
         timestamp created_at
         timestamp updated_at
-        timestamp deleted_at
+        timestamp? deleted_at
     }
 
     Customers {
         uuid id PK
-        varchar name "?"
+        varchar? name
         varchar phone UK
         timestamp created_at
         timestamp updated_at
-        timestamp deleted_at
+        timestamp? deleted_at
     }
 
     Categories {
@@ -59,7 +59,7 @@ erDiagram
         boolean is_active
         timestamp created_at
         timestamp updated_at
-        timestamp deleted_at
+        timestamp? deleted_at
     }
 
     Brands {
@@ -68,7 +68,7 @@ erDiagram
         boolean is_active
         timestamp created_at
         timestamp updated_at
-        timestamp deleted_at
+        timestamp? deleted_at
     }
 
     Products {
@@ -76,11 +76,11 @@ erDiagram
         uuid category_id FK
         uuid brand_id FK
         varchar name
-        text description
+        text? description
         boolean is_active
         timestamp created_at
         timestamp updated_at
-        timestamp deleted_at
+        timestamp? deleted_at
     }
 
     ProductItems {
@@ -92,7 +92,7 @@ erDiagram
         boolean is_active
         timestamp created_at
         timestamp updated_at
-        timestamp deleted_at
+        timestamp? deleted_at
     }
 
     Inventories {
@@ -106,7 +106,7 @@ erDiagram
     Transactions {
         uuid id PK
         uuid user_id FK
-        uuid customer_id FK "?"
+        uuid? customer_id FK
         uuid idempotency_key UK
         varchar transaction_number UK
         varchar status
@@ -146,13 +146,13 @@ erDiagram
         uuid id PK
         uuid transaction_id FK,UK
         uuid payment_method_id FK
-        varchar payment_reference UK "?"
+        varchar? payment_reference UK
         varchar status
         decimal amount
         decimal paid_amount
         decimal change_amount
-        timestamp expired_at
-        timestamp paid_at
+        timestamp? expired_at
+        timestamp? paid_at
         timestamp created_at
         timestamp updated_at
     }
@@ -160,13 +160,13 @@ erDiagram
     InventoryMovements {
         uuid id PK
         uuid product_item_id FK
-        uuid transaction_id FK "?"
+        uuid? transaction_id FK
         uuid user_id FK
         varchar type
         int quantity
         int stock_before
         int stock_after
-        text note
+        text? note
         timestamp created_at
     }
 ```

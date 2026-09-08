@@ -50,7 +50,7 @@ export async function login(req, res) {
 			success: true,
 			message: "Login successfully",
 			token,
-			results: {
+			data: {
 				id: user.id,
 				fullname: user.fullname,
 				role,

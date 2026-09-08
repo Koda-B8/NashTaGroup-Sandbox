@@ -7,12 +7,12 @@
 		"start": "node server.js",
 		"test": "vitest run",
 		"test:watch": "vitest",
-		"db:create": "node --env-file=.env ../../node_modules/sequelize-cli/lib/sequelize db:create",
-		"db:migrate": "node --env-file=.env ../../node_modules/sequelize-cli/lib/sequelize db:migrate",
-		"db:migrate:undo": "node --env-file=.env ../../node_modules/sequelize-cli/lib/sequelize db:migrate:undo",
-		"db:migrate:undo:all": "node --env-file=.env ../../node_modules/sequelize-cli/lib/sequelize db:migrate:undo:all",
-		"db:seed": "node --env-file=.env ../../node_modules/sequelize-cli/lib/sequelize db:seed:all",
-		"db:seed:undo": "node --env-file=.env ../../node_modules/sequelize-cli/lib/sequelize db:seed:undo:all",
+		"db:create": "sequelize db:create",
+		"db:migrate": "sequelize db:migrate",
+		"db:migrate:undo": "sequelize db:migrate:undo",
+		"db:migrate:undo:all": "sequelize db:migrate:undo:all",
+		"db:seed": "sequelize db:seed:all",
+		"db:seed:undo": "sequelize db:seed:undo:all",
 		"db:setup": "npm run db:create && npm run db:migrate && npm run db:seed"
 	},
 	"dependencies": {
@@ -26,7 +26,8 @@
 		"redis": "^6.2.1",
 		"sequelize": "^6.37.8",
 		"swagger-jsdoc": "^6.3.0",
-		"swagger-ui-express": "^5.0.1"
+		"swagger-ui-express": "^5.0.1",
+		"sequelize-cli": "^6.6.5"
 	},
 	"devDependencies": {
 		"@types/cors": "^2.8.19",
@@ -35,7 +36,6 @@
 		"@types/node": "^26.5.0",
 		"@types/swagger-jsdoc": "^6.0.4",
 		"@types/swagger-ui-express": "^4.1.8",
-		"sequelize-cli": "^6.6.5",
 		"vitest": "^5.0.0"
 	}
 }

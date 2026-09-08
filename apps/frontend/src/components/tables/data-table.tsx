@@ -204,7 +204,6 @@ function TableRow<Row extends object>({
 			onClick={onRowClick ? handleClick : undefined}
 			onKeyDown={onRowClick ? handleKeyDown : undefined}
 			tabIndex={onRowClick ? 0 : undefined}
-			aria-selected={onRowClick ? active : undefined}
 			className={`border-b border-base-border last:border-b-0 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary ${
 				active ? "bg-primary-light/50" : "hover:bg-base"
 			} ${onRowClick ? "cursor-pointer" : ""}`}

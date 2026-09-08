@@ -21,7 +21,8 @@ export default function BarChart({
 	format,
 }: BarChartProps) {
 	const definition = useMemo(() => {
-		const peak = Math.max(...data.map((row) => row.value));
+		const peak =
+			data.length > 0 ? Math.max(...data.map((row) => row.value)) : 0;
 
 		return defineChart({
 			marks: [

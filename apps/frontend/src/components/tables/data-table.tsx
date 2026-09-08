@@ -6,7 +6,7 @@ import {
 	useTable,
 } from "@tanstack/react-table";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
-import { type ReactNode, useCallback } from "react";
+import { type MouseEvent, type ReactNode, useCallback } from "react";
 
 import Checkbox from "../ui/checkbox";
 
@@ -180,6 +180,10 @@ function TableRow<Row extends object>({
 		() => onRowClick?.(row.original, row.id),
 		[onRowClick, row],
 	);
+	// the checkbox sits inside the row, so selecting must not also open it
+	const stopPropagation = useCallback((event: MouseEvent) => {
+		event.stopPropagation();
+	}, []);
 
 	return (
 		<tr
@@ -189,7 +193,10 @@ function TableRow<Row extends object>({
 			} ${onRowClick ? "cursor-pointer" : ""}`}
 		>
 			{selectable && (
-				<td className="px-4 py-4">
+				<td
+					className="px-4 py-4"
+					onClick={stopPropagation}
+				>
 					<Checkbox
 						checked={row.getIsSelected()}
 						onCheckedChange={row.getToggleSelectedHandler()}

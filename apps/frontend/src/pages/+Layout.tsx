@@ -1,11 +1,14 @@
-import { Link, Outlet } from "react-router";
+import { lazy, Suspense } from "react";
+import { Outlet } from "react-router";
+const Navbar = lazy(() => import("../components/layouts/Navbar"));
+import NavSkeleton from "../components/skeletons/NavSkeleton";
 
 export default function Layout() {
 	return (
 		<>
-			<nav>
-				<Link to="/">Home</Link>
-			</nav>
+			<Suspense fallback={<NavSkeleton />}>
+				<Navbar />
+			</Suspense>
 			<Outlet />
 		</>
 	);

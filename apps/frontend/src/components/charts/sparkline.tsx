@@ -18,7 +18,8 @@ export default function Sparkline({
 	height = 56,
 }: SparklineProps) {
 	const definition = useMemo(() => {
-		const peak = Math.max(...data.map((row) => row.value));
+		const peak =
+			data.length > 0 ? Math.max(...data.map((row) => row.value)) : 0;
 		// labels repeat across a week (M T W T F S S), so the band keys off position
 		const rows = data.map((row, index) => ({ ...row, index }));
 
@@ -34,7 +35,7 @@ export default function Sparkline({
 			scales: {
 				x: { scale: () => scaleBand().padding(0.28), axis: false },
 				// bars must read against a zero baseline, not the data minimum
-				y: { scale: () => scaleLinear().domain([0, peak]), axis: false },
+				y: { scale: () => scaleLinear().domain([0, peak || 1]), axis: false },
 			},
 		});
 	}, [data]);

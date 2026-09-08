@@ -43,7 +43,8 @@ const tones = ["primary", "valid", "warn", "danger", "info"] as const;
 // keyed off the initial that is already on screen, so colour follows the person
 // and a filtered list never repaints whoever survives it
 function toneFor(name: string): (typeof tones)[number] {
-	return tones[(name.codePointAt(0) ?? 0) % tones.length]!;
+	// same character the initials are taken from, so colour and letter agree
+	return tones[(name.trim().codePointAt(0) ?? 0) % tones.length]!;
 }
 
 function getInitials(name: string): string {

@@ -1,6 +1,11 @@
 import { Select as BaseSelect } from "@base-ui/react/select";
 import { CheckIcon, ChevronDownIcon } from "lucide-react";
 import { useCallback } from "react";
+import { tv } from "tailwind-variants";
+
+const trigger = tv({
+	base: "flex h-10 min-w-40 items-center justify-between gap-3 rounded-lg border border-base-border bg-white px-3 text-sm text-text-h select-none hover:bg-base focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+});
 
 export interface SelectProps<Value extends string> {
 	items: { label: string; value: Value }[];
@@ -19,7 +24,7 @@ export default function Select<Value extends string>({
 	onValueChange,
 	placeholder,
 	label,
-	className = "",
+	className,
 }: SelectProps<Value>) {
 	const handleChange = useCallback(
 		(next: Value | null) => {
@@ -37,7 +42,7 @@ export default function Select<Value extends string>({
 		>
 			<BaseSelect.Trigger
 				aria-label={label}
-				className={`flex h-10 min-w-40 items-center justify-between gap-3 rounded-lg border border-base-border bg-white px-3 text-sm text-text-h select-none hover:bg-base focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${className}`}
+				className={trigger({ className })}
 			>
 				<BaseSelect.Value
 					placeholder={placeholder}

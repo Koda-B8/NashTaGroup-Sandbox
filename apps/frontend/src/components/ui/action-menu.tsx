@@ -1,6 +1,19 @@
 import { Menu } from "@base-ui/react/menu";
 import { EllipsisIcon } from "lucide-react";
 import type { ReactNode } from "react";
+import { tv } from "tailwind-variants";
+
+const trigger = tv({
+	base: "flex size-8 items-center justify-center rounded-lg text-text select-none hover:bg-base hover:text-text-h data-popup-open:bg-base focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+});
+
+const menuItem = tv({
+	base: "flex cursor-default items-center gap-2 px-3 py-2 text-sm outline-none select-none data-highlighted:bg-base data-disabled:opacity-50",
+	variants: {
+		danger: { true: "text-deep-danger", false: "text-text-h" },
+	},
+	defaultVariants: { danger: false },
+});
 
 export interface ActionMenuItem {
 	label: string;
@@ -19,13 +32,13 @@ export interface ActionMenuProps {
 export default function ActionMenu({
 	items,
 	label,
-	className = "",
+	className,
 }: ActionMenuProps) {
 	return (
 		<Menu.Root>
 			<Menu.Trigger
 				aria-label={label}
-				className={`flex size-8 items-center justify-center rounded-lg text-text select-none hover:bg-base hover:text-text-h data-popup-open:bg-base focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${className}`}
+				className={trigger({ className })}
 			>
 				<EllipsisIcon size={16} />
 			</Menu.Trigger>
@@ -42,9 +55,7 @@ export default function ActionMenu({
 								key={item.label}
 								disabled={item.disabled}
 								onClick={item.onSelect}
-								className={`flex cursor-default items-center gap-2 px-3 py-2 text-sm outline-none select-none data-highlighted:bg-base data-disabled:opacity-50 ${
-									item.danger ? "text-deep-danger" : "text-text-h"
-								}`}
+								className={menuItem({ danger: item.danger })}
 							>
 								{item.icon}
 								{item.label}

@@ -1,9 +1,9 @@
-/* eslint-disable no-undef */
-
 import cors from "cors";
 import express from "express";
+import swaggerUi from "swagger-ui-express";
 
-import authRoute from "./routes/authRoute.js";
+import swaggerSpecification from "./config/swagger.js";
+import authRoute from "./routes/AuthRoute.js";
 
 const app = express();
 
@@ -15,6 +15,15 @@ app.use(express.json({ limit: "100kb" }));
 app.get("/health", (_request, response) => {
 	return response.status(200).json({ success: true, message: "OK" });
 });
+
+app.get("/api-docs.json", (_request, response) => {
+	return response.json(swaggerSpecification);
+});
+app.use(
+	"/api/docs",
+	swaggerUi.serve,
+	swaggerUi.setup(swaggerSpecification, { explorer: true }),
+);
 
 app.use("/api/v1/auth", authRoute);
 app.use((_request, response) => {

@@ -1,6 +1,3 @@
-/* oxlint-disable unicorn/filename-case */
-/* eslint-disable jsdoc/check-tag-names */
-
 import express from "express";
 import { rateLimit } from "express-rate-limit";
 

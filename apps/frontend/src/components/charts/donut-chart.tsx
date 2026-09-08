@@ -5,6 +5,8 @@ import { useMemo } from "react";
 
 import { categorical } from "./palette";
 
+const swatchStyles = categorical.map((color) => ({ backgroundColor: color }));
+
 export interface DonutSlice {
 	label: string;
 	value: number;
@@ -70,9 +72,7 @@ export default function DonutChart({
 						<span
 							aria-hidden
 							className="size-2 shrink-0 rounded-full"
-							style={{
-								backgroundColor: categorical[index % categorical.length],
-							}}
+							style={swatchStyles[index % swatchStyles.length]}
 						/>
 						<span className="text-text-h">{slice.label}</span>
 						<span className="ml-auto font-medium text-text-h">

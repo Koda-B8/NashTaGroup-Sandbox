@@ -6,7 +6,12 @@ import {
 	useTable,
 } from "@tanstack/react-table";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
-import { type MouseEvent, type ReactNode, useCallback } from "react";
+import {
+	type KeyboardEvent,
+	type MouseEvent,
+	type ReactNode,
+	useCallback,
+} from "react";
 
 import Checkbox from "../ui/checkbox";
 
@@ -184,11 +189,23 @@ function TableRow<Row extends object>({
 	const stopPropagation = useCallback((event: MouseEvent) => {
 		event.stopPropagation();
 	}, []);
+	const handleKeyDown = useCallback(
+		(event: KeyboardEvent<HTMLTableRowElement>) => {
+			if (event.key !== "Enter" && event.key !== " ") return;
+			if (event.target !== event.currentTarget) return;
+			event.preventDefault();
+			onRowClick?.(row.original, row.id);
+		},
+		[onRowClick, row],
+	);
 
 	return (
 		<tr
-			onClick={handleClick}
-			className={`border-b border-base-border last:border-b-0 ${
+			onClick={onRowClick ? handleClick : undefined}
+			onKeyDown={onRowClick ? handleKeyDown : undefined}
+			tabIndex={onRowClick ? 0 : undefined}
+			aria-selected={onRowClick ? active : undefined}
+			className={`border-b border-base-border last:border-b-0 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary ${
 				active ? "bg-primary-light/50" : "hover:bg-base"
 			} ${onRowClick ? "cursor-pointer" : ""}`}
 		>

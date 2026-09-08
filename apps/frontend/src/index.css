@@ -7,6 +7,12 @@
 	--color-primary-light: #ebeffe;
 	--color-deep-valid: #148552;
 	--color-valid: #e5f5eb;
+	--color-deep-warn: #b45309;
+	--color-warn: #fef3c7;
+	--color-deep-danger: #b91c1c;
+	--color-danger: #fee2e2;
+	--color-deep-info: #6d28d9;
+	--color-info: #ede9fe;
 	--color-base: #f9f9fa;
 	--color-base-border: #ececee;
 }

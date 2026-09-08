@@ -39,9 +39,11 @@ export default function DonutChart({
 							key: "label",
 						}),
 					],
+					// oxlint-disable-next-line unicorn/no-null
 					scales: { angle: null, radius: null },
 				}),
 			],
+			// oxlint-disable-next-line unicorn/no-null
 			scales: { x: null, y: null },
 			color: {
 				domain: data.map((slice) => slice.label),

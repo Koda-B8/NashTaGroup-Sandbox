@@ -1,13 +1,26 @@
-/* eslint-disable no-undef */
+import process from "node:process";
 
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET;
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN ?? "70D";
+/**
+ * @param {string} name
+ * @returns {string}
+ */
+function getRequiredEnvironmentVariable(name) {
+	const value = process.env[name];
 
-if (!JWT_SECRET) {
-	throw new Error("JWT_SECRET environment variable is required.");
+	if (!value) {
+		throw new Error(`${name} environment variable is required.`);
+	}
+
+	return value;
 }
+
+const JWT_SECRET = getRequiredEnvironmentVariable("JWT_SECRET");
+const JWT_EXPIRES_IN =
+	/** @type {import("jsonwebtoken").SignOptions["expiresIn"]} */ (
+		process.env.JWT_EXPIRES_IN ?? "70D"
+	);
 
 export function signToken(payload) {
 	return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });

@@ -1,11 +1,11 @@
-/* eslint-disable no-undef */
+import process from "node:process";
 
 import app from "./app.js";
 import db from "./models/index.cjs";
 
 const { sequelize } = db;
 
-const port = Number(process.env.PORT ?? 3000);
+const port = Number(process.env.BACKEND_PORT ?? 8080);
 
 if (!process.env.JWT_SECRET) {
 	throw new Error("JWT_SECRET environment variable is required.");

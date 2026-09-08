@@ -6,7 +6,7 @@ import {
 	useTable,
 } from "@tanstack/react-table";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
-import type { ReactNode } from "react";
+import { type ReactNode, useCallback } from "react";
 
 import Checkbox from "../ui/checkbox";
 
@@ -56,6 +56,10 @@ export default function DataTable<Row extends object>({
 	const rows = table.getRowModel().rows;
 	const pageCount = table.getPageCount();
 	const { pageIndex } = table.state.pagination;
+	const goToPage = useCallback(
+		(page: number) => table.setPageIndex(page),
+		[table],
+	);
 
 	return (
 		<div className="overflow-hidden rounded-xl border border-base-border bg-white">
@@ -96,37 +100,16 @@ export default function DataTable<Row extends object>({
 					</thead>
 
 					<tbody>
-						{rows.map((row) => {
-							const isActive = activeRowId === row.id;
-
-							return (
-								<tr
-									key={row.id}
-									onClick={() => onRowClick?.(row.original, row.id)}
-									className={`border-b border-base-border last:border-b-0 ${
-										isActive ? "bg-primary-light/50" : "hover:bg-base"
-									} ${onRowClick ? "cursor-pointer" : ""}`}
-								>
-									{selectable && (
-										<td className="px-4 py-4">
-											<Checkbox
-												checked={row.getIsSelected()}
-												onCheckedChange={row.getToggleSelectedHandler()}
-												aria-label={`Select row ${row.id}`}
-											/>
-										</td>
-									)}
-									{row.getAllCells().map((cell) => (
-										<td
-											key={cell.id}
-											className="px-4 py-4 text-text-h"
-										>
-											<table.FlexRender cell={cell} />
-										</td>
-									))}
-								</tr>
-							);
-						})}
+						{rows.map((row) => (
+							<TableRow
+								key={row.id}
+								row={row}
+								table={table}
+								selectable={selectable}
+								active={activeRowId === row.id}
+								onRowClick={onRowClick}
+							/>
+						))}
 					</tbody>
 				</table>
 			</div>
@@ -139,8 +122,9 @@ export default function DataTable<Row extends object>({
 				<div className="flex items-center gap-1">
 					<PageButton
 						label="Previous page"
+						page={pageIndex - 1}
 						disabled={!table.getCanPreviousPage()}
-						onClick={() => table.previousPage()}
+						onSelect={goToPage}
 					>
 						<ChevronLeftIcon size={14} />
 					</PageButton>
@@ -149,8 +133,9 @@ export default function DataTable<Row extends object>({
 						<PageButton
 							key={page}
 							label={`Page ${page + 1}`}
+							page={page}
 							active={page === pageIndex}
-							onClick={() => table.setPageIndex(page)}
+							onSelect={goToPage}
 						>
 							{page + 1}
 						</PageButton>
@@ -158,8 +143,9 @@ export default function DataTable<Row extends object>({
 
 					<PageButton
 						label="Next page"
+						page={pageIndex + 1}
 						disabled={!table.getCanNextPage()}
-						onClick={() => table.nextPage()}
+						onSelect={goToPage}
 					>
 						<ChevronRightIcon size={14} />
 					</PageButton>
@@ -169,26 +155,84 @@ export default function DataTable<Row extends object>({
 	);
 }
 
+type TableInstance<Row extends object> = ReturnType<
+	typeof useTable<typeof dataTableFeatures, Row>
+>;
+
+type TableRowModel<Row extends object> = ReturnType<
+	TableInstance<Row>["getRowModel"]
+>["rows"][number];
+
+function TableRow<Row extends object>({
+	row,
+	table,
+	selectable,
+	active,
+	onRowClick,
+}: {
+	row: TableRowModel<Row>;
+	table: TableInstance<Row>;
+	selectable: boolean;
+	active: boolean;
+	onRowClick?: (row: Row, id: string) => void;
+}) {
+	const handleClick = useCallback(
+		() => onRowClick?.(row.original, row.id),
+		[onRowClick, row],
+	);
+
+	return (
+		<tr
+			onClick={handleClick}
+			className={`border-b border-base-border last:border-b-0 ${
+				active ? "bg-primary-light/50" : "hover:bg-base"
+			} ${onRowClick ? "cursor-pointer" : ""}`}
+		>
+			{selectable && (
+				<td className="px-4 py-4">
+					<Checkbox
+						checked={row.getIsSelected()}
+						onCheckedChange={row.getToggleSelectedHandler()}
+						aria-label={`Select row ${row.id}`}
+					/>
+				</td>
+			)}
+			{row.getAllCells().map((cell) => (
+				<td
+					key={cell.id}
+					className="px-4 py-4 text-text-h"
+				>
+					<table.FlexRender cell={cell} />
+				</td>
+			))}
+		</tr>
+	);
+}
+
 function PageButton({
 	children,
 	label,
+	page,
 	active,
 	disabled,
-	onClick,
+	onSelect,
 }: {
 	children: ReactNode;
 	label: string;
+	page: number;
 	active?: boolean;
 	disabled?: boolean;
-	onClick: () => void;
+	onSelect: (page: number) => void;
 }) {
+	const handleClick = useCallback(() => onSelect(page), [onSelect, page]);
+
 	return (
 		<button
 			type="button"
 			aria-label={label}
 			aria-current={active ? "page" : undefined}
 			disabled={disabled}
-			onClick={onClick}
+			onClick={handleClick}
 			className={`flex size-8 items-center justify-center rounded-lg border text-xs ${
 				active
 					? "border-primary bg-primary text-white"

@@ -1,12 +1,5 @@
-import { Link, Outlet } from "react-router";
+import MainLayout from "../components/layouts/CashierMainlayout";
 
 export default function Layout() {
-	return (
-		<>
-			<nav>
-				<Link to="/">Home</Link>
-			</nav>
-			<Outlet />
-		</>
-	);
+	return <MainLayout />;
 }

@@ -29,6 +29,12 @@
 		"swagger-ui-express": "^5.0.1"
 	},
 	"devDependencies": {
+		"@types/cors": "^2.8.19",
+		"@types/express": "^5.0.6",
+		"@types/jsonwebtoken": "^9.0.10",
+		"@types/node": "^26.5.0",
+		"@types/swagger-jsdoc": "^6.0.4",
+		"@types/swagger-ui-express": "^4.1.8",
 		"sequelize-cli": "^6.6.5",
 		"vitest": "^5.0.0"
 	}

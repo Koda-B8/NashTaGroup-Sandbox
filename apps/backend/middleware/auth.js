@@ -15,11 +15,24 @@ const unauthorized = (
 	});
 
 async function authMiddleware(req, res, next) {
-	const authHeader = req.header("Authorization");
-	const [scheme, token, ...extraParts] = authHeader?.trim().split(/\s+/) ?? [];
+	const cookieToken = req.cookies?.auth_token;
+	let token =
+		typeof cookieToken === "string" && cookieToken ? cookieToken : undefined;
 
-	if (scheme?.toLowerCase() !== "bearer" || !token || extraParts.length > 0) {
-		return unauthorized(res, "Unauthorized: token tidak ditemukan");
+	if (!token) {
+		const authHeader = req.header("Authorization");
+		const [scheme, bearerToken, ...extraParts] =
+			authHeader?.trim().split(/\s+/) ?? [];
+
+		if (
+			scheme?.toLowerCase() !== "bearer" ||
+			!bearerToken ||
+			extraParts.length > 0
+		) {
+			return unauthorized(res, "Unauthorized: token tidak ditemukan");
+		}
+
+		token = bearerToken;
 	}
 
 	let decoded;

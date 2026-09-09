@@ -25,7 +25,8 @@ const user = {
 	role: { name: "cashier" },
 };
 
-const createRequest = (authorization) => ({
+const createRequest = (authorization, cookies = {}) => ({
+	cookies,
 	header: vi.fn().mockReturnValue(authorization),
 });
 
@@ -121,6 +122,20 @@ describe("auth middleware", () => {
 		expect(response.status).not.toHaveBeenCalled();
 		expect(next).toHaveBeenCalledOnce();
 		expect(next).toHaveBeenCalledWith();
+	});
+
+	it("uses the authentication cookie before the authorization header", async () => {
+		const request = createRequest("Bearer header-token", {
+			auth_token: "cookie-token",
+		});
+		const response = createResponse();
+		const next = vi.fn();
+
+		await authMiddleware(request, response, next);
+
+		expect(verifyToken).toHaveBeenCalledWith("cookie-token");
+		expect(request.header).not.toHaveBeenCalled();
+		expect(next).toHaveBeenCalledOnce();
 	});
 
 	it.each([

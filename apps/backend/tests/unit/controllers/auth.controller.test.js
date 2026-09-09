@@ -31,6 +31,7 @@ const user = {
 };
 
 const createResponse = () => ({
+	cookie: vi.fn(),
 	status: vi.fn().mockReturnThis(),
 	json: vi.fn(),
 });
@@ -46,7 +47,7 @@ describe("auth controller login", () => {
 		vi.mocked(signToken).mockReturnValue("signed-access-token");
 	});
 
-	it("returns user data and token for valid credentials", async () => {
+	it("sets an HttpOnly cookie and returns user data for valid credentials", async () => {
 		const request = {
 			body: { username: " cashier ", password: "Cashier123!" },
 		};
@@ -66,11 +67,21 @@ describe("auth controller login", () => {
 			userId: user.id,
 			userRole: "cashier",
 		});
+		expect(response.cookie).toHaveBeenCalledWith(
+			"auth_token",
+			"signed-access-token",
+			{
+				httpOnly: true,
+				secure: false,
+				sameSite: "lax",
+				maxAge: 24 * 60 * 60 * 1000,
+				path: "/",
+			},
+		);
 		expect(response.status).toHaveBeenCalledWith(constants.HTTP_STATUS_OK);
 		expect(response.json).toHaveBeenCalledWith({
 			success: true,
 			message: "Login successfully",
-			token: "signed-access-token",
 			data: { id: user.id, fullname: user.fullname, role: "cashier" },
 		});
 	});

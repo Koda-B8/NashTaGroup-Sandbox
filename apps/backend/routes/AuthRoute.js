@@ -22,7 +22,7 @@ const router = express.Router();
  * /api/v1/auth/login:
  *   post:
  *     tags: [Auth]
- *     summary: Login dan mendapatkan JWT
+ *     summary: Login dan menyimpan JWT dalam cookie HttpOnly
  *     requestBody:
  *       required: true
  *       content:
@@ -41,11 +41,16 @@ const router = express.Router();
  *     responses:
  *       200:
  *         description: Login berhasil
+ *         headers:
+ *           Set-Cookie:
+ *             description: Cookie autentikasi HttpOnly
+ *             schema:
+ *               type: string
  *         content:
  *           application/json:
  *             schema:
  *               type: object
- *               required: [success, message, token, data]
+ *               required: [success, message, data]
  *               properties:
  *                 success:
  *                   type: boolean
@@ -53,9 +58,6 @@ const router = express.Router();
  *                 message:
  *                   type: string
  *                   example: Login successfully
- *                 token:
- *                   type: string
- *                   description: JWT dengan payload userId dan userRole
  *                 data:
  *                   type: object
  *                   required: [id, fullname, role]

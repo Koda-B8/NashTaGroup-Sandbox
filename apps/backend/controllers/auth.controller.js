@@ -1,4 +1,5 @@
 import { constants } from "node:http2";
+import process from "node:process";
 
 import argon2 from "argon2";
 
@@ -6,6 +7,7 @@ import { signToken } from "../lib/jwt.js";
 import db from "../models/index.cjs";
 
 const { Roles, Users } = db;
+const isProduction = process.env.NODE_ENV === "production";
 
 const unauthorized = (res) =>
 	res.status(constants.HTTP_STATUS_UNAUTHORIZED).json({
@@ -48,8 +50,8 @@ export async function login(req, res) {
 
 		res.cookie("auth_token", token, {
 			httpOnly: true,
-			secure: true,
-			sameSite: "none",
+			secure: isProduction,
+			sameSite: isProduction ? "none" : "lax",
 			maxAge: 24 * 60 * 60 * 1000,
 			path: "/",
 		});
@@ -57,7 +59,6 @@ export async function login(req, res) {
 		return res.status(constants.HTTP_STATUS_OK).json({
 			success: true,
 			message: "Login successfully",
-			token,
 			data: {
 				id: user.id,
 				fullname: user.fullname,

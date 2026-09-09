@@ -71,7 +71,7 @@ describe("auth controller login", () => {
 			success: true,
 			message: "Login successfully",
 			token: "signed-access-token",
-			results: { id: user.id, fullname: user.fullname, role: "cashier" },
+			data: { id: user.id, fullname: user.fullname, role: "cashier" },
 		});
 	});
 

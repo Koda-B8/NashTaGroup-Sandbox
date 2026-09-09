@@ -46,6 +46,14 @@ export async function login(req, res) {
 		const role = user.role.name;
 		const token = signToken({ userId: user.id, userRole: role });
 
+		res.cookie("auth_token", token, {
+			httpOnly: true,
+			secure: true,
+			sameSite: "lax",
+			maxAge: 24 * 60 * 60 * 1000,
+			path: "/",
+		});
+
 		return res.status(constants.HTTP_STATUS_OK).json({
 			success: true,
 			message: "Login successfully",

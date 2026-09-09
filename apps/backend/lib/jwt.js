@@ -2,10 +2,6 @@ import process from "node:process";
 
 import jwt from "jsonwebtoken";
 
-/**
- * @param {string} name
- * @returns {string}
- */
 function getRequiredEnvironmentVariable(name) {
 	const value = process.env[name];
 

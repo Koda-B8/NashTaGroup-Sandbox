@@ -1,4 +1,5 @@
 import express from "express";
+/* oxlint-disable jsdoc/check-tag-names -- @openapi is consumed by swagger-jsdoc. */
 import { rateLimit } from "express-rate-limit";
 
 import { login } from "../controllers/auth.controller.js";
@@ -40,6 +41,33 @@ const loginLimiter = rateLimit({
  *     responses:
  *       200:
  *         description: Login berhasil
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               required: [success, message, token, data]
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Login successfully
+ *                 token:
+ *                   type: string
+ *                   description: JWT dengan payload userId dan userRole
+ *                 data:
+ *                   type: object
+ *                   required: [id, fullname, role]
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       format: uuid
+ *                     fullname:
+ *                       type: string
+ *                     role:
+ *                       type: string
+ *                       enum: [admin, cashier]
  *       400:
  *         description: Username atau password kosong
  *       401:

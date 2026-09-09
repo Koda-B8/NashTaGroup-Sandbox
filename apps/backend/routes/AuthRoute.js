@@ -1,21 +1,21 @@
 import express from "express";
 /* oxlint-disable jsdoc/check-tag-names -- @openapi is consumed by swagger-jsdoc. */
-import { rateLimit } from "express-rate-limit";
+// import { rateLimit } from "express-rate-limit";
 
 import { login } from "../controllers/auth.controller.js";
 
 const router = express.Router();
 
-const loginLimiter = rateLimit({
-	windowMs: 15 * 60 * 1000,
-	limit: 5,
-	standardHeaders: "draft-8",
-	legacyHeaders: false,
-	message: {
-		success: false,
-		message: "Terlalu banyak percobaan login. Coba lagi dalam 15 menit.",
-	},
-});
+// const loginLimiter = rateLimit({
+// 	windowMs: 15 * 60 * 1000,
+// 	limit: 5,
+// 	standardHeaders: "draft-8",
+// 	legacyHeaders: false,
+// 	message: {
+// 		success: false,
+// 		message: "Terlalu banyak percobaan login. Coba lagi dalam 15 menit.",
+// 	},
+// });
 
 /**
  * @openapi
@@ -73,6 +73,6 @@ const loginLimiter = rateLimit({
  *       401:
  *         description: Username atau password salah
  */
-router.post("/login", loginLimiter, login);
+router.post("/login", /* loginLimiter, */ login);
 
 export default router;

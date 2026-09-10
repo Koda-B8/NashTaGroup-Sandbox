@@ -3,8 +3,8 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"dev": "node --env-file=.env --watch server.js",
-		"start": "node server.js",
+		"dev": "node --env-file=.env --watch src/server.js",
+		"start": "node src/server.js",
 		"test": "vitest run",
 		"test:watch": "vitest",
 		"db": "sequelize --options-path .sequelizerc.cjs",

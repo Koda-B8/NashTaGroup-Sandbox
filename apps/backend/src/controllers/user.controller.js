@@ -15,6 +15,39 @@ const ALLOWED_FIELDS = new Set([
 const sendError = (response, status, message) =>
 	response.status(status).json({ success: false, message });
 
+const toUserResponse = (user) => {
+	const value = typeof user?.toJSON === "function" ? user.toJSON() : user;
+
+	return {
+		...value,
+		cashierId: value.id,
+	};
+};
+
+export async function getUsers(_request, response, next) {
+	try {
+		const users = await Users.findAll({
+			attributes: ["id", "fullname", "username", "isActive", "createdAt"],
+			include: [
+				{
+					model: Roles,
+					as: "role",
+					attributes: ["id", "name"],
+				},
+			],
+			order: [["fullname", "ASC"]],
+		});
+
+		return response.status(constants.HTTP_STATUS_OK).json({
+			success: true,
+			message: "Users retrieved successfully",
+			data: users.map((user) => toUserResponse(user)),
+		});
+	} catch (error) {
+		return next(error);
+	}
+}
+
 function validateCreateUser(body) {
 	if (!body || typeof body !== "object" || Array.isArray(body)) {
 		return { error: "Request body must be an object" };

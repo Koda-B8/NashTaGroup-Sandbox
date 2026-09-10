@@ -1,7 +1,7 @@
+import { apiReference } from "@scalar/express-api-reference";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
-import swaggerUi from "swagger-ui-express";
 
 import swaggerSpecification from "../config/swagger.js";
 import apiRoutes from "./routes/index.js";
@@ -33,8 +33,9 @@ app.get("/api-docs.json", (_request, response) => {
 });
 app.use(
 	"/api/docs",
-	swaggerUi.serve,
-	swaggerUi.setup(swaggerSpecification, { explorer: true }),
+	apiReference({
+		url: "/api-docs.json",
+	}),
 );
 
 app.use("/api/v1", apiRoutes);

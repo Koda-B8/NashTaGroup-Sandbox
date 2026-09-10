@@ -8,7 +8,7 @@ const routesGlob = fileURLToPath(
 
 const swaggerSpecification = swaggerJsdoc({
 	definition: {
-		openapi: "3.0.3",
+		openapi: "3.1.0",
 		info: {
 			title: "NashTa Group API",
 			version: "1.0.0",

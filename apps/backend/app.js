@@ -5,6 +5,7 @@ import swaggerUi from "swagger-ui-express";
 
 import swaggerSpecification from "./config/swagger.js";
 import authRoute from "./routes/AuthRoute.js";
+import userRoute from "./routes/UserRoute.js";
 
 const app = express();
 
@@ -38,6 +39,7 @@ app.use(
 );
 
 app.use("/api/v1/auth", authRoute);
+app.use("/api/v1/users", userRoute);
 app.use((_request, response) => {
 	return response.status(404).json({
 		success: false,

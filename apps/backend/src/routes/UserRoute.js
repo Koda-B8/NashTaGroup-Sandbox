@@ -16,6 +16,7 @@ const router = express.Router();
  *     description: Only Admin can view the user list.
  *     security:
  *       - cookieAuth: []
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: User list retrieved successfully

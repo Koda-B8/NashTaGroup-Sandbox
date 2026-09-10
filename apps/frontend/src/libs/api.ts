@@ -1,59 +1,54 @@
-const STORAGE_KEY = "csrfToken";
+let csrfToken: string | null = null;
 
-function getCsrfFromCookie(): string | null {
-	for (const name of ["csrfToken", "csrf_token"]) {
-		const prefix = `${name}=`;
-		const row = document.cookie.split("; ").find((c) => c.startsWith(prefix));
-		if (row) {
-			const val = row.slice(prefix.length);
-			if (val) return decodeURIComponent(val);
+let pendingRefresh: Promise<string | null> | null = null;
+
+export async function refreshCsrfToken(): Promise<string | null> {
+	if (pendingRefresh) return pendingRefresh;
+
+	pendingRefresh = (async () => {
+		try {
+			const res = await fetch("/api/v1/auth/csrf-token", {
+				method: "GET",
+				credentials: "include",
+				headers: { Accept: "application/json" },
+			});
+
+			if (!res.ok) {
+				if (res.status === 401) clearCsrfCache();
+				return null;
+			}
+
+			const body = (await res.json().catch(() => ({}))) as {
+				data?: { csrfToken?: string };
+				csrfToken?: string;
+			};
+			const token = body?.data?.csrfToken ?? body?.csrfToken ?? null;
+			if (token) setCsrfToken(token);
+			return token;
+		} catch {
+			return null;
+		} finally {
+			pendingRefresh = null;
 		}
-	}
-	return null;
-}
+	})();
 
-function getCsrfFromStorage(): string | null {
-	try {
-		const v = localStorage.getItem(STORAGE_KEY);
-		if (v) return v;
-	} catch {}
-	return null;
+	return pendingRefresh;
 }
-
-let csrfToken: string | null = (() => {
-	const fromCookie = getCsrfFromCookie();
-	if (fromCookie) return fromCookie;
-	return getCsrfFromStorage();
-})();
 
 export async function getCsrfToken(): Promise<string | null> {
 	if (csrfToken) return csrfToken;
-	const fromCookie = getCsrfFromCookie();
-	if (fromCookie) {
-		csrfToken = fromCookie;
-		return csrfToken;
-	}
-	const fromStorage = getCsrfFromStorage();
-	if (fromStorage) {
-		csrfToken = fromStorage;
-		return csrfToken;
-	}
-	return null;
+	return refreshCsrfToken();
 }
+
+export const ensureCsrfToken = getCsrfToken;
+export const fetchCsrfToken = refreshCsrfToken;
 
 export function setCsrfToken(token: string | null) {
 	csrfToken = token;
-	try {
-		if (token) localStorage.setItem(STORAGE_KEY, token);
-		else localStorage.removeItem(STORAGE_KEY);
-	} catch {}
 }
 
 export function clearCsrfCache() {
 	csrfToken = null;
-	try {
-		localStorage.removeItem(STORAGE_KEY);
-	} catch {}
 }
 
 export async function apiFetch(
@@ -67,11 +62,8 @@ export async function apiFetch(
 	};
 
 	if (isMutating) {
-		const token =
-			csrfToken ??
-			getCsrfFromCookie() ??
-			getCsrfFromStorage() ??
-			(await getCsrfToken());
+		let token = csrfToken;
+		if (!token) token = await refreshCsrfToken();
 		if (token) headers["X-CSRF-Token"] = token;
 		if (!headers["Content-Type"] && !(init.body instanceof FormData)) {
 			headers["Content-Type"] = "application/json";
@@ -103,7 +95,7 @@ export async function apiFetch(
 			shouldRetry = true;
 		}
 		if (shouldRetry) {
-			const fresh = getCsrfFromCookie() ?? getCsrfFromStorage();
+			const fresh = await refreshCsrfToken();
 			if (fresh && fresh !== headers["X-CSRF-Token"]) {
 				csrfToken = fresh;
 				headers["X-CSRF-Token"] = fresh;

@@ -22,12 +22,18 @@ const swaggerSpecification = swaggerJsdoc({
 					name: "auth_token",
 					description: "HttpOnly authentication cookie.",
 				},
+				bearerAuth: {
+					type: "http",
+					scheme: "bearer",
+					bearerFormat: "JWT",
+					description: "Used when the auth_token cookie is absent.",
+				},
 				csrfToken: {
 					type: "apiKey",
 					in: "header",
 					name: "X-CSRF-Token",
 					description:
-						"Required for authenticated POST, PUT, PATCH, and DELETE requests.",
+						"Required for cookie-authenticated POST, PUT, PATCH, and DELETE requests.",
 				},
 			},
 		},

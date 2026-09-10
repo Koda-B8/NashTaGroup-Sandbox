@@ -21,6 +21,9 @@ router.use(authMiddleware);
  *   get:
  *     tags: [Products]
  *     summary: Retrieve products
+ *     security:
+ *       - cookieAuth: []
+ *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: search
@@ -52,6 +55,10 @@ router.use(authMiddleware);
  *   post:
  *     tags: [Products]
  *     summary: Create a product (admin only)
+ *     security:
+ *       - cookieAuth: []
+ *         csrfToken: []
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -95,6 +102,9 @@ router.post("/", requireRole("admin"), createProduct);
  *   get:
  *     tags: [Products]
  *     summary: Retrieve a product by id
+ *     security:
+ *       - cookieAuth: []
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -112,6 +122,10 @@ router.post("/", requireRole("admin"), createProduct);
  *   patch:
  *     tags: [Products]
  *     summary: Update a product (admin only)
+ *     security:
+ *       - cookieAuth: []
+ *         csrfToken: []
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -151,6 +165,10 @@ router.post("/", requireRole("admin"), createProduct);
  *   delete:
  *     tags: [Products]
  *     summary: Soft delete a product (admin only)
+ *     security:
+ *       - cookieAuth: []
+ *         csrfToken: []
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id

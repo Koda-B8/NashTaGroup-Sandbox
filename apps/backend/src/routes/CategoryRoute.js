@@ -20,25 +20,26 @@ router.use(authMiddleware);
  * /api/v1/categories:
  *   get:
  *     tags: [Categories]
- *     summary: Mengambil daftar category
+ *     summary: Retrieve category list
  *     security:
  *       - cookieAuth: []
+ *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: search
  *         schema:
  *           type: string
- *         description: Cari category berdasarkan nama
+ *         description: Search categories by name
  *       - in: query
  *         name: isActive
  *         schema:
  *           type: boolean
- *         description: Filter status aktif category
+ *         description: Filter category active status
  *     responses:
  *       200:
- *         description: Category berhasil diambil
+ *         description: Category retrieved successfully
  *       401:
- *         description: Token tidak valid atau tidak tersedia
+ *         description: Token is invalid or unavailable
  */
 router.get("/", getCategories);
 
@@ -47,9 +48,10 @@ router.get("/", getCategories);
  * /api/v1/categories/{id}:
  *   get:
  *     tags: [Categories]
- *     summary: Mengambil detail category berdasarkan ID
+ *     summary: Retrieve category details by ID
  *     security:
  *       - cookieAuth: []
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -59,11 +61,11 @@ router.get("/", getCategories);
  *           format: uuid
  *     responses:
  *       200:
- *         description: Detail category berhasil diambil
+ *         description: Category details retrieved successfully
  *       401:
- *         description: Token tidak valid atau tidak tersedia
+ *         description: Token is invalid or unavailable
  *       404:
- *         description: Category tidak ditemukan
+ *         description: Category not found
  */
 router.get("/:id", getCategoryById);
 
@@ -72,9 +74,11 @@ router.get("/:id", getCategoryById);
  * /api/v1/categories:
  *   post:
  *     tags: [Categories]
- *     summary: Membuat category baru
+ *     summary: Create a new category
  *     security:
  *       - cookieAuth: []
+ *         csrfToken: []
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -88,15 +92,15 @@ router.get("/:id", getCategoryById);
  *                 example: Gaming
  *     responses:
  *       201:
- *         description: Category berhasil dibuat
+ *         description: Category created successfully
  *       400:
- *         description: Nama category wajib diisi
+ *         description: Category name is required
  *       401:
- *         description: Token tidak valid atau tidak tersedia
+ *         description: Token is invalid or unavailable
  *       403:
- *         description: Hanya admin yang dapat membuat category
+ *         description: Only admins can create categories
  *       409:
- *         description: Nama category sudah ada
+ *         description: Category name already exists
  */
 router.post("/", requireRole("admin"), createCategory);
 
@@ -105,9 +109,11 @@ router.post("/", requireRole("admin"), createCategory);
  * /api/v1/categories/{id}:
  *   patch:
  *     tags: [Categories]
- *     summary: Memperbarui category
+ *     summary: Update a category
  *     security:
  *       - cookieAuth: []
+ *         csrfToken: []
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -130,17 +136,17 @@ router.post("/", requireRole("admin"), createCategory);
  *                 example: true
  *     responses:
  *       200:
- *         description: Category berhasil diperbarui
+ *         description: Category updated successfully
  *       400:
- *         description: Data update tidak valid
+ *         description: Invalid update data
  *       401:
- *         description: Token tidak valid atau tidak tersedia
+ *         description: Token is invalid or unavailable
  *       403:
- *         description: Hanya admin yang dapat memperbarui category
+ *         description: Only admins can update categories
  *       404:
- *         description: Category tidak ditemukan
+ *         description: Category not found
  *       409:
- *         description: Nama category sudah ada
+ *         description: Category name already exists
  */
 router.patch("/:id", requireRole("admin"), updateCategory);
 
@@ -149,9 +155,11 @@ router.patch("/:id", requireRole("admin"), updateCategory);
  * /api/v1/categories/{id}:
  *   delete:
  *     tags: [Categories]
- *     summary: Menghapus category secara soft delete
+ *     summary: Delete a category via soft delete
  *     security:
  *       - cookieAuth: []
+ *         csrfToken: []
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -161,13 +169,13 @@ router.patch("/:id", requireRole("admin"), updateCategory);
  *           format: uuid
  *     responses:
  *       200:
- *         description: Category berhasil dihapus
+ *         description: Category deleted successfully
  *       401:
- *         description: Token tidak valid atau tidak tersedia
+ *         description: Token is invalid or unavailable
  *       403:
- *         description: Hanya admin yang dapat menghapus category
+ *         description: Only admins can delete categories
  *       404:
- *         description: Category tidak ditemukan
+ *         description: Category not found
  */
 router.delete("/:id", requireRole("admin"), deleteCategory);
 

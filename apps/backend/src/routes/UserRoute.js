@@ -12,17 +12,17 @@ const router = express.Router();
  * /api/v1/users:
  *   get:
  *     tags: [Users]
- *     summary: Mengambil seluruh user
- *     description: Hanya Admin yang dapat melihat daftar user.
+ *     summary: Retrieve all users
+ *     description: Only Admin can view the user list.
  *     security:
  *       - cookieAuth: []
  *     responses:
  *       200:
- *         description: Daftar user berhasil diambil
+ *         description: User list retrieved successfully
  *       401:
- *         description: Token tidak tersedia atau tidak valid
+ *         description: Token is unavailable or invalid
  *       403:
- *         description: Pengguna bukan Admin
+ *         description: User is not an Admin
  */
 router.get("/", authMiddleware, requireRole("admin"), getUsers);
 

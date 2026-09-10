@@ -10,6 +10,20 @@ import db from "../models/index.cjs";
 const { Roles, Users } = db;
 const isProduction = process.env.NODE_ENV === "production";
 
+const cookieOptions = {
+	httpOnly: true,
+	secure: isProduction,
+	sameSite: isProduction ? "none" : "lax",
+	maxAge: 24 * 60 * 60 * 1000,
+	path: "/",
+};
+
+const createCsrfToken = () => randomBytes(32).toString("hex");
+
+const setCsrfCookie = (response, csrfToken) => {
+	response.cookie("csrf_token", csrfToken, cookieOptions);
+};
+
 const unauthorized = (res) =>
 	res.status(constants.HTTP_STATUS_UNAUTHORIZED).json({
 		success: false,
@@ -48,23 +62,10 @@ export async function login(req, res) {
 
 		const role = user.role.name;
 		const token = signToken({ userId: user.id, userRole: role });
-		const csrfToken = randomBytes(32).toString("hex");
+		const csrfToken = createCsrfToken();
 
-		res.cookie("auth_token", token, {
-			httpOnly: true,
-			secure: isProduction,
-			sameSite: isProduction ? "none" : "lax",
-			maxAge: 24 * 60 * 60 * 1000,
-			path: "/",
-		});
-
-		res.cookie("csrf_token", csrfToken, {
-			httpOnly: true,
-			secure: isProduction,
-			sameSite: isProduction ? "none" : "lax",
-			maxAge: 24 * 60 * 60 * 1000,
-			path: "/",
-		});
+		res.cookie("auth_token", token, cookieOptions);
+		setCsrfCookie(res, csrfToken);
 
 		return res.status(constants.HTTP_STATUS_OK).json({
 			success: true,
@@ -82,4 +83,18 @@ export async function login(req, res) {
 			message: "Internal server error",
 		});
 	}
+}
+
+export function getCsrfToken(_request, response) {
+	const csrfToken = createCsrfToken();
+
+	setCsrfCookie(response, csrfToken);
+
+	return response.status(constants.HTTP_STATUS_OK).json({
+		success: true,
+		message: "CSRF token retrieved successfully",
+		data: {
+			csrfToken,
+		},
+	});
 }

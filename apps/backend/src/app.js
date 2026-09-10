@@ -28,13 +28,13 @@ app.get("/health", (_request, response) => {
 	return response.status(200).json({ success: true, message: "OK" });
 });
 
-app.get("/api-docs.json", (_request, response) => {
+app.get("/openapi.json", (_request, response) => {
 	return response.json(swaggerSpecification);
 });
 app.use(
 	"/api/docs",
 	apiReference({
-		url: "/api-docs.json",
+		url: "/openapi.json",
 	}),
 );
 

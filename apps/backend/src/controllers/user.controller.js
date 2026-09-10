@@ -393,6 +393,13 @@ export async function updateUser(request, response, next) {
 			attributes: userAttributes,
 			include: userInclude(),
 		});
+		if (!updatedUser) {
+			return sendError(
+				response,
+				constants.HTTP_STATUS_NOT_FOUND,
+				"User not found",
+			);
+		}
 
 		return response.status(constants.HTTP_STATUS_OK).json({
 			success: true,

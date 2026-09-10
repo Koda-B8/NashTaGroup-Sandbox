@@ -36,6 +36,7 @@ router.get("/", authMiddleware, requireRole("admin"), getUsers);
  *     security:
  *       - cookieAuth: []
  *         csrfToken: []
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:

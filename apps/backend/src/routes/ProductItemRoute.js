@@ -23,6 +23,7 @@ router.use(authMiddleware);
  *     summary: Retrieve product items
  *     security:
  *       - cookieAuth: []
+ *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: search
@@ -51,6 +52,7 @@ router.use(authMiddleware);
  *     security:
  *       - cookieAuth: []
  *         csrfToken: []
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -98,6 +100,7 @@ router.post("/", requireRole("admin"), createProductItem);
  *     summary: Retrieve a product item by id
  *     security:
  *       - cookieAuth: []
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -118,6 +121,7 @@ router.post("/", requireRole("admin"), createProductItem);
  *     security:
  *       - cookieAuth: []
  *         csrfToken: []
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -163,6 +167,7 @@ router.post("/", requireRole("admin"), createProductItem);
  *     security:
  *       - cookieAuth: []
  *         csrfToken: []
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id

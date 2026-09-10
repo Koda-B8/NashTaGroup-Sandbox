@@ -23,6 +23,7 @@ router.use(authMiddleware);
  *     summary: Retrieve category list
  *     security:
  *       - cookieAuth: []
+ *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: search
@@ -50,6 +51,7 @@ router.get("/", getCategories);
  *     summary: Retrieve category details by ID
  *     security:
  *       - cookieAuth: []
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -76,6 +78,7 @@ router.get("/:id", getCategoryById);
  *     security:
  *       - cookieAuth: []
  *         csrfToken: []
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -110,6 +113,7 @@ router.post("/", requireRole("admin"), createCategory);
  *     security:
  *       - cookieAuth: []
  *         csrfToken: []
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -155,6 +159,7 @@ router.patch("/:id", requireRole("admin"), updateCategory);
  *     security:
  *       - cookieAuth: []
  *         csrfToken: []
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id

@@ -16,6 +16,7 @@ router.use(authMiddleware);
  *     summary: Retrieve brands
  *     security:
  *       - cookieAuth: []
+ *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: search
@@ -43,6 +44,7 @@ router.get("/", getBrands);
  *     summary: Retrieve a brand by id
  *     security:
  *       - cookieAuth: []
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id

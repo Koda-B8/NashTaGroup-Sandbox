@@ -1,5 +1,5 @@
 import { Plus } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import RegisterUserModal from "../../components/dashboard/users/RegisterUserModal";
 import UserDetailPanel from "../../components/dashboard/users/UserDetailPanel";
@@ -8,7 +8,10 @@ import UserTable from "../../components/dashboard/users/UserTable";
 import Button from "../../components/ui/button";
 import FilterPills from "../../components/ui/filter-pills";
 import Input from "../../components/ui/input";
-import { useUsersList } from "../../features/users/hooks/useUsersList";
+import {
+	useUsersList,
+	type RoleFilter,
+} from "../../features/users/hooks/useUsersList";
 import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 
 type StatusFilter = "All" | "Active" | "Inactive";
@@ -17,13 +20,14 @@ export default function UserManagementDashboard() {
 	const [search, setSearch] = useState("");
 	const debouncedSearch = useDebouncedValue(search.trim(), 350);
 	const [statusFilter, setStatusFilter] = useState<StatusFilter>("All");
+	const [roleFilter, setRoleFilter] = useState<RoleFilter>("All");
 	const [page, setPage] = useState(0);
 	const pageSize = 8;
 
-	const [selectedId, setSelectedId] = useState<string | null>(null);
+	const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
 	const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 	const [showRegister, setShowRegister] = useState(false);
-	const [toast, setToast] = useState<string | null>(null);
+	const [toast, setToast] = useState<string | undefined>(undefined);
 
 	const {
 		users,
@@ -40,13 +44,14 @@ export default function UserManagementDashboard() {
 	} = useUsersList({
 		debouncedSearch,
 		statusFilter,
+		roleFilter,
 		page,
 		pageSize,
 	});
 
 	useEffect(() => {
 		queueMicrotask(() => setPage(0));
-	}, [debouncedSearch, statusFilter]);
+	}, [debouncedSearch, statusFilter, roleFilter]);
 
 	useEffect(() => {
 		queueMicrotask(() => {
@@ -58,36 +63,92 @@ export default function UserManagementDashboard() {
 					prev.size > 0 ? prev : new Set([paged[0]!.id]),
 				);
 			} else if (users.length === 0) {
-				setSelectedId(null);
+				setSelectedId(undefined);
 			}
 		});
 	}, [paged, users.length]);
 
 	const selected = useMemo(() => {
-		if (!selectedId) return paged[0] ?? users[0] ?? null;
+		if (!selectedId) return paged[0] ?? users[0] ?? undefined;
 		return (
-			users.find((u) => u.id === selectedId) ?? paged[0] ?? users[0] ?? null
+			users.find((u) => u.id === selectedId) ??
+			paged[0] ??
+			users[0] ??
+			undefined
 		);
 	}, [selectedId, paged, users]);
 
-	const allPageSelected =
-		paged.length > 0 && paged.every((u) => selectedIds.has(u.id));
-	const somePageSelected =
-		paged.some((u) => selectedIds.has(u.id)) && !allPageSelected;
-	const toggleAllPage = (checked: boolean) =>
-		setSelectedIds((prev) => {
-			const n = new Set(prev);
-			if (checked) paged.forEach((u) => n.add(u.id));
-			else paged.forEach((u) => n.delete(u.id));
-			return n;
-		});
-	const toggleOne = (id: string, checked: boolean) =>
-		setSelectedIds((prev) => {
-			const n = new Set(prev);
-			if (checked) n.add(id);
-			else n.delete(id);
-			return n;
-		});
+	const allPageSelected = useMemo(
+		() => paged.length > 0 && paged.every((u) => selectedIds.has(u.id)),
+		[paged, selectedIds],
+	);
+	const somePageSelected = useMemo(
+		() => paged.some((u) => selectedIds.has(u.id)) && !allPageSelected,
+		[paged, selectedIds, allPageSelected],
+	);
+
+	const toggleAllPage = useCallback(
+		(checked: boolean) =>
+			setSelectedIds((prev) => {
+				const n = new Set(prev);
+				if (checked) paged.forEach((u) => n.add(u.id));
+				else paged.forEach((u) => n.delete(u.id));
+				return n;
+			}),
+		[paged],
+	);
+	const toggleOne = useCallback(
+		(id: string, checked: boolean) =>
+			setSelectedIds((prev) => {
+				const n = new Set(prev);
+				if (checked) n.add(id);
+				else n.delete(id);
+				return n;
+			}),
+		[],
+	);
+
+	const handleSearchChange = useCallback(
+		(e: React.ChangeEvent<HTMLInputElement>) =>
+			setSearch(e.currentTarget.value),
+		[],
+	);
+	const statusItems = useMemo(
+		() => [
+			{ label: "All", value: "All" },
+			{ label: "Active", value: "Active" },
+			{ label: "Inactive", value: "Inactive" },
+		],
+		[],
+	);
+	const roleItems = useMemo(
+		() => [
+			{ label: "All", value: "All" },
+			{ label: "Admin", value: "admin" },
+			{ label: "Cashier", value: "cashier" },
+		],
+		[],
+	);
+	const handleStatusChange = useCallback(
+		(v: string) => setStatusFilter(v as StatusFilter),
+		[],
+	);
+	const handleRoleChange = useCallback(
+		(v: string) => setRoleFilter(v as RoleFilter),
+		[],
+	);
+	const handleShowRegister = useCallback(() => setShowRegister(true), []);
+	const handlePageChange = useCallback((p: number) => setPage(p), []);
+	const handleRegisterSuccess = useCallback(() => {
+		setToast("User created successfully");
+		setTimeout(() => setToast(undefined), 3000);
+		fetchUsers();
+	}, [fetchUsers]);
+	const totalLabel = useMemo(
+		() =>
+			`Showing ${paged.length} of ${isServerPaginated ? server.totalItems : filtered.length} users`,
+		[paged.length, isServerPaginated, server.totalItems, filtered.length],
+	);
 
 	return (
 		<div className="flex flex-col gap-6">
@@ -137,24 +198,26 @@ export default function UserManagementDashboard() {
 							size="sm"
 							placeholder="Search user..."
 							value={search}
-							onChange={(e) => setSearch(e.currentTarget.value)}
+							onChange={handleSearchChange}
 							className="w-full sm:max-w-[240px]"
 							aria-label="Search user"
 						/>
 						<FilterPills
 							label="Filter user by status"
-							items={[
-								{ label: "All", value: "All" },
-								{ label: "Active", value: "Active" },
-								{ label: "Inactive", value: "Inactive" },
-							]}
+							items={statusItems}
 							value={statusFilter}
-							onValueChange={(v) => setStatusFilter(v as StatusFilter)}
+							onValueChange={handleStatusChange}
+						/>
+						<FilterPills
+							label="Filter user by role"
+							items={roleItems}
+							value={roleFilter}
+							onValueChange={handleRoleChange}
 						/>
 					</div>
 					<Button
 						size="sm"
-						onClick={() => setShowRegister(true)}
+						onClick={handleShowRegister}
 					>
 						<Plus size={14} />
 						Register Cashier
@@ -165,7 +228,7 @@ export default function UserManagementDashboard() {
 					<UserTable
 						loading={loading}
 						paged={paged}
-						selectedId={selected?.id ?? null}
+						selectedId={selected?.id}
 						selectedIds={selectedIds}
 						allPageSelected={allPageSelected}
 						somePageSelected={somePageSelected}
@@ -174,8 +237,8 @@ export default function UserManagementDashboard() {
 						onToggleOne={toggleOne}
 						pageCount={pageCount}
 						safePage={safePage}
-						onPageChange={setPage}
-						totalLabel={`Showing ${paged.length} of ${isServerPaginated ? server.totalItems : filtered.length} users`}
+						onPageChange={handlePageChange}
+						totalLabel={totalLabel}
 					/>
 					<UserDetailPanel user={selected} />
 				</div>
@@ -184,11 +247,7 @@ export default function UserManagementDashboard() {
 			<RegisterUserModal
 				open={showRegister}
 				onOpenChange={setShowRegister}
-				onSuccess={() => {
-					setToast("User created successfully");
-					setTimeout(() => setToast(null), 3000);
-					fetchUsers();
-				}}
+				onSuccess={handleRegisterSuccess}
 			/>
 		</div>
 	);

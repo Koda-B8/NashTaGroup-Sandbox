@@ -72,8 +72,10 @@ export function usePaginatedList<T, P extends Record<string, unknown>>(opts: {
 			});
 			setItems(data);
 			setMeta(m);
-		} catch (e) {
-			setError(e instanceof Error ? e.message : "Terjadi kesalahan jaringan");
+		} catch (error) {
+			setError(
+				error instanceof Error ? error.message : "Terjadi kesalahan jaringan",
+			);
 		} finally {
 			setLoading(false);
 		}

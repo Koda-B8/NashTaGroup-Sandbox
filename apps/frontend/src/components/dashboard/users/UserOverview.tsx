@@ -1,4 +1,4 @@
-import { getRoleName } from "../../../lib/format";
+import { getRoleName } from "../../../libs/format";
 import type { User } from "../../../services/users";
 import type { ApiMeta } from "../../../types/pagination";
 import Card from "../../ui/card";

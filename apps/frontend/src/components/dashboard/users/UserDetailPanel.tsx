@@ -1,11 +1,11 @@
-import { formatDate, getRoleName } from "../../../lib/format";
+import { formatDate, getRoleName } from "../../../libs/format";
 import type { User } from "../../../services/users";
 import Avatar from "../../ui/avatar";
 import Badge from "../../ui/badge";
 import Button from "../../ui/button";
 import Card from "../../ui/card";
 
-export default function UserDetailPanel({ user }: { user: User | null }) {
+export default function UserDetailPanel({ user }: { user: User | undefined }) {
 	if (!user)
 		return (
 			<Card

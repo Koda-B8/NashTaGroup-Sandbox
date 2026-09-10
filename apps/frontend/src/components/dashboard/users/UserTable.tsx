@@ -1,4 +1,4 @@
-import { formatDate, getRoleName } from "../../../lib/format";
+import { formatDate, getRoleName } from "../../../libs/format";
 import type { User } from "../../../services/users";
 import ActionMenu from "../../ui/action-menu";
 import Avatar from "../../ui/avatar";
@@ -10,7 +10,7 @@ import PaginationControls from "../shared/PaginationControls";
 interface Props {
 	loading: boolean;
 	paged: User[];
-	selectedId: string | null;
+	selectedId: string | undefined;
 	selectedIds: Set<string>;
 	allPageSelected: boolean;
 	somePageSelected: boolean;

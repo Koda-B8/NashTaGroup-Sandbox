@@ -1,4 +1,4 @@
-import { apiFetch } from "../lib/api";
+import { apiFetch } from "../libs/api";
 import {
 	getPaginationMeta,
 	type ApiMeta,
@@ -26,6 +26,7 @@ export interface CreateUserPayload {
 
 export interface ListUsersParams {
 	search?: string;
+	role?: "admin" | "cashier";
 	isActive?: boolean;
 	page?: number;
 	limit?: number;
@@ -41,6 +42,7 @@ export async function listUsers(
 ): Promise<ListUsersResult> {
 	const qs = new URLSearchParams();
 	if (params.search) qs.set("search", params.search);
+	if (params.role) qs.set("role", params.role);
 	if (params.isActive !== undefined)
 		qs.set("isActive", String(params.isActive));
 	if (params.page) qs.set("page", String(params.page));

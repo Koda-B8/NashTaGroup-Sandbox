@@ -2,9 +2,9 @@ import { constants } from "node:http2";
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { verifyToken } from "../../../lib/jwt.js";
-import authMiddleware from "../../../middleware/auth.js";
-import db from "../../../models/index.cjs";
+import { verifyToken } from "./../lib/jwt.js";
+import authMiddleware from "./../middleware/auth.js";
+import db from "./../models/index.cjs";
 
 vi.mock("../../../lib/jwt.js", () => ({
 	verifyToken: vi.fn(),

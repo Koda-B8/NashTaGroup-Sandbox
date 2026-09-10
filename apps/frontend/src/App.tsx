@@ -57,10 +57,13 @@ const router = createBrowserRouter([
 
 export default function App() {
 	return (
-		<PersistGate persistor={persistor}>
-			<Provider store={store}>
+		<Provider store={store}>
+			<PersistGate
+				loading={null}
+				persistor={persistor}
+			>
 				<RouterProvider router={router} />
-			</Provider>
-		</PersistGate>
+			</PersistGate>
+		</Provider>
 	);
 }

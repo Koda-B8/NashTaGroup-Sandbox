@@ -16,10 +16,11 @@ const swaggerSpecification = swaggerJsdoc({
 		},
 		components: {
 			securitySchemes: {
-				bearerAuth: {
-					type: "http",
-					scheme: "bearer",
-					bearerFormat: "JWT",
+				cookieAuth: {
+					type: "apiKey",
+					in: "cookie",
+					name: "auth_token",
+					description: "JWT yang disimpan dalam cookie HttpOnly setelah login.",
 				},
 			},
 		},

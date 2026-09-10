@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+
 import type { ApiMeta } from "../types/pagination";
 
 function getPageCount(totalItems: number, pageSize: number): number {
@@ -13,7 +14,10 @@ function paginateItems<T>(items: T[], safePage: number, pageSize: number): T[] {
 	return items.slice(safePage * pageSize, safePage * pageSize + pageSize);
 }
 
-function isServerPaginatedMeta(meta: ApiMeta | null | undefined, itemsLength: number): boolean {
+function isServerPaginatedMeta(
+	meta: ApiMeta | null | undefined,
+	itemsLength: number,
+): boolean {
 	return Boolean(meta && meta.pagination.total_items !== itemsLength);
 }
 
@@ -24,10 +28,19 @@ export function useServerPagination(meta?: ApiMeta) {
 	const totalItems = pagination?.total_items ?? 0;
 	const totalPages = pagination?.total_pages ?? 1;
 	const safePage = getSafePage(page, totalPages);
-	return { page: safePage, limit, totalItems, totalPages, rawPage: pagination?.page ?? 1 };
+	return {
+		page: safePage,
+		limit,
+		totalItems,
+		totalPages,
+		rawPage: pagination?.page ?? 1,
+	};
 }
 
-export type PaginatedFetcher<T, P extends Record<string, unknown> = Record<string, unknown>> = (
+export type PaginatedFetcher<
+	T,
+	P extends Record<string, unknown> = Record<string, unknown>,
+> = (
 	params: P & { page?: number; limit?: number },
 ) => Promise<{ data: T[]; meta: ApiMeta }>;
 
@@ -52,7 +65,11 @@ export function usePaginatedList<T, P extends Record<string, unknown>>(opts: {
 		setError(null);
 		try {
 			const parsedParams = JSON.parse(paramsKey) as P;
-			const { data, meta: m } = await fetcher({ ...parsedParams, page: page + 1, limit: pageSize });
+			const { data, meta: m } = await fetcher({
+				...parsedParams,
+				page: page + 1,
+				limit: pageSize,
+			});
 			setItems(data);
 			setMeta(m);
 		} catch (e) {
@@ -79,8 +96,12 @@ export function usePaginatedList<T, P extends Record<string, unknown>>(opts: {
 		return transform(filteredBase);
 	}, [filteredBase, transform]);
 
-	const pageCount = isServerPaginated ? server.totalPages : getPageCount(filtered.length, pageSize);
-	const safePage = isServerPaginated ? server.page : getSafePage(page, pageCount);
+	const pageCount = isServerPaginated
+		? server.totalPages
+		: getPageCount(filtered.length, pageSize);
+	const safePage = isServerPaginated
+		? server.page
+		: getSafePage(page, pageCount);
 	const paged = useMemo(() => {
 		if (isServerPaginated) return filtered;
 		return paginateItems(filtered, safePage, pageSize);
@@ -88,5 +109,18 @@ export function usePaginatedList<T, P extends Record<string, unknown>>(opts: {
 
 	const totalItems = isServerPaginated ? server.totalItems : filtered.length;
 
-	return { items, meta, loading, error, fetchList, server, isServerPaginated, filtered, paged, pageCount, safePage, totalItems };
+	return {
+		items,
+		meta,
+		loading,
+		error,
+		fetchList,
+		server,
+		isServerPaginated,
+		filtered,
+		paged,
+		pageCount,
+		safePage,
+		totalItems,
+	};
 }

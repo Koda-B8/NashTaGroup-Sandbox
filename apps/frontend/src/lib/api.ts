@@ -67,7 +67,11 @@ export async function apiFetch(
 	};
 
 	if (isMutating) {
-		const token = csrfToken ?? getCsrfFromCookie() ?? getCsrfFromStorage() ?? (await getCsrfToken());
+		const token =
+			csrfToken ??
+			getCsrfFromCookie() ??
+			getCsrfFromStorage() ??
+			(await getCsrfToken());
 		if (token) headers["X-CSRF-Token"] = token;
 		if (!headers["Content-Type"] && !(init.body instanceof FormData)) {
 			headers["Content-Type"] = "application/json";
@@ -85,7 +89,10 @@ export async function apiFetch(
 			const clone = res.clone();
 			const ct = clone.headers.get("content-type") ?? "";
 			if (ct.includes("application/json")) {
-				const body = (await clone.json()) as { message?: string; error?: string };
+				const body = (await clone.json()) as {
+					message?: string;
+					error?: string;
+				};
 				const msg = `${body?.message ?? ""} ${body?.error ?? ""}`.toLowerCase();
 				if (msg.includes("csrf")) shouldRetry = true;
 			} else {
@@ -105,7 +112,8 @@ export async function apiFetch(
 		}
 	}
 
-	const newToken = res.headers.get("X-CSRF-Token") ?? res.headers.get("x-csrf-token");
+	const newToken =
+		res.headers.get("X-CSRF-Token") ?? res.headers.get("x-csrf-token");
 	if (newToken) setCsrfToken(newToken);
 
 	return res;

@@ -41,12 +41,12 @@ done
 log "PostgreSQL is ready."
 
 log "Running database migrations..."
-npx sequelize db:migrate
+npm run db:migrate
 
 if [ "${RUN_SEEDS:-true}" = "true" ]; then
   log "Running database seeders..."
-  npx sequelize db:seed:all || log "Seeding failed or already applied, continuing..."
+  npm run db:seed || log "Seeding failed or already applied, continuing..."
 fi
 
 log "Starting application..."
-exec node server.js
+exec node src/server.js

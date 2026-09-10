@@ -7,7 +7,7 @@ const Navbar = lazy(() => import("./Navbar"));
 
 export default function MainLayout() {
 	return (
-		<div className="w-full min-h-screen">
+		<div className="w-full bg-base min-h-screen">
 			<header>
 				<Suspense fallback={<NavSkeleton />}>
 					<Navbar />
@@ -22,7 +22,7 @@ export default function MainLayout() {
 					/>
 				</aside>
 
-				<section>
+				<section className="w-full">
 					<Outlet />
 				</section>
 

@@ -4,8 +4,7 @@ import express from "express";
 import swaggerUi from "swagger-ui-express";
 
 import swaggerSpecification from "./config/swagger.js";
-import authRoute from "./routes/AuthRoute.js";
-import userRoute from "./routes/UserRoute.js";
+import apiRoutes from "./routes/index.js";
 
 const app = express();
 
@@ -38,8 +37,8 @@ app.use(
 	swaggerUi.setup(swaggerSpecification, { explorer: true }),
 );
 
-app.use("/api/v1/auth", authRoute);
-app.use("/api/v1/users", userRoute);
+app.use("/api/v1", apiRoutes);
+
 app.use((_request, response) => {
 	return response.status(404).json({
 		success: false,

@@ -18,15 +18,20 @@
 	"scripts": {
 		"fmt": "oxfmt",
 		"lint": "oxlint --fix",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"test:coverage": "vitest run --coverage",
 		"prepare": "lefthook install"
 	},
 	"devDependencies": {
 		"@kekkon-nexus/config": "3.0.0",
+		"@vitest/coverage-v8": "^5.0.0",
 		"lefthook": "^2.1.12",
 		"oxfmt": "0.64.0",
 		"oxlint": "1.79.0",
 		"oxlint-tsgolint": "^7.0.2001",
-		"typescript": "^7.0.2"
+		"typescript": "^7.0.2",
+		"vitest": "^5.0.0"
 	},
 	"devEngines": {
 		"packageManager": {

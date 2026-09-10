@@ -6,6 +6,7 @@ import { useLocation, useNavigate } from "react-router";
 import Button from "../../components/ui/button";
 import Checkbox from "../../components/ui/checkbox";
 import Input from "../../components/ui/input";
+import { setCsrfToken } from "../../libs/api";
 import type { AppDispatch } from "../../store";
 import { setCredentials, type AuthUser } from "../../store/authSlice";
 
@@ -19,7 +20,7 @@ interface LoginPayload {
 }
 
 interface LoginResponse {
-	data: AuthUser;
+	data: AuthUser & { csrfToken?: string };
 	message?: string;
 }
 
@@ -101,7 +102,11 @@ export default function LoginPage() {
 
 		try {
 			const resData = await loginRequest({ username, password });
-			dispatch(setCredentials(resData.data));
+			const { csrfToken, ...user } = resData.data as AuthUser & {
+				csrfToken?: string;
+			};
+			if (csrfToken) setCsrfToken(csrfToken);
+			dispatch(setCredentials(user as AuthUser));
 			navigate(redirectTo, { replace: true });
 		} catch (error) {
 			const message =

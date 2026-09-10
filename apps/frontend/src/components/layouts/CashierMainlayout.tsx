@@ -30,6 +30,13 @@ export default function MainLayout() {
 					<AsideContent
 						headerName={"Keranjang"}
 						Attribute={"3 item"}
+						Content={
+							<div>
+								<section className="border-b border-b-base-border min-h-10" />
+								<section className="border-b border-b-base-border min-h-10" />
+								<section className="min-h-10" />
+							</div>
+						}
 					/>
 				</aside>
 			</main>

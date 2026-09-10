@@ -4,7 +4,8 @@ import express from "express";
 import { rateLimit } from "express-rate-limit";
 
 /* oxlint-disable jsdoc/check-tag-names -- @openapi is consumed by swagger-jsdoc. */
-import { login } from "../controllers/auth.controller.js";
+import { getCsrfToken, login } from "../controllers/auth.controller.js";
+import authMiddleware from "../middleware/auth.js";
 
 const router = express.Router();
 const isProduction = process.env.NODE_ENV === "production";
@@ -85,5 +86,44 @@ const loginLimiter = rateLimit({
  *         description: Too many login attempts
  */
 router.post("/login", loginLimiter, login);
+
+/**
+ * @openapi
+ * /api/v1/auth/csrf-token:
+ *   get:
+ *     tags: [Auth]
+ *     summary: Refresh the CSRF token for an authenticated user
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: CSRF token retrieved successfully
+ *         headers:
+ *           Set-Cookie:
+ *             description: Refreshed HttpOnly CSRF cookie.
+ *             schema:
+ *               type: string
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               required: [success, message, data]
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: CSRF token retrieved successfully
+ *                 data:
+ *                   type: object
+ *                   required: [csrfToken]
+ *                   properties:
+ *                     csrfToken:
+ *                       type: string
+ *       401:
+ *         description: Authentication is required
+ */
+router.get("/csrf-token", authMiddleware, getCsrfToken);
 
 export default router;

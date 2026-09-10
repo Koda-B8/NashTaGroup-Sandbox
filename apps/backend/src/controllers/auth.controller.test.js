@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { signToken } from "../lib/jwt.js";
 import db from "../models/index.cjs";
-import { login } from "./auth.controller.js";
+import { getCsrfToken, login } from "./auth.controller.js";
 
 vi.mock("argon2", () => ({
 	default: { verify: vi.fn() },
@@ -194,6 +194,33 @@ describe("auth controller login", () => {
 		expect(response.json).toHaveBeenCalledWith({
 			success: false,
 			message: "Internal server error",
+		});
+	});
+
+	it("returns and stores a refreshed CSRF token", () => {
+		const response = createResponse();
+
+		getCsrfToken({}, response);
+
+		const responseBody = response.json.mock.calls[0][0];
+		const csrfToken = responseBody.data.csrfToken;
+
+		expect(typeof csrfToken).toBe("string");
+		expect(csrfToken).toHaveLength(64);
+
+		expect(response.cookie).toHaveBeenCalledWith("csrf_token", csrfToken, {
+			httpOnly: true,
+			secure: false,
+			sameSite: "lax",
+			maxAge: 24 * 60 * 60 * 1000,
+			path: "/",
+		});
+
+		expect(response.status).toHaveBeenCalledWith(constants.HTTP_STATUS_OK);
+		expect(response.json).toHaveBeenCalledWith({
+			success: true,
+			message: "CSRF token retrieved successfully",
+			data: { csrfToken },
 		});
 	});
 });

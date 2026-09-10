@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import csrfProtection from "../../../middleware/csrf.js";
+import csrfProtection from "./csrf.js";
 
 const createResponse = () => ({
 	status: vi.fn().mockReturnThis(),

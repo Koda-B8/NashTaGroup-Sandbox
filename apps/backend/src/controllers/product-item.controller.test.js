@@ -3,14 +3,14 @@ import { constants } from "node:http2";
 import { Op, UniqueConstraintError } from "sequelize";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import db from "../models/index.cjs";
 import {
 	createProductItem,
 	deleteProductItem,
 	getProductItems,
-} from "../../../controllers/product-item.controller.js";
-import db from "../../../models/index.cjs";
+} from "./product-item.controller.js";
 
-vi.mock("../../../models/index.cjs", () => ({
+vi.mock("../models/index.cjs", () => ({
 	default: {
 		ProductItems: {
 			create: vi.fn(),

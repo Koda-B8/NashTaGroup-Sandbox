@@ -3,15 +3,15 @@ import { constants } from "node:http2";
 import { Op } from "sequelize";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import db from "../models/index.cjs";
 import {
 	createProduct,
 	deleteProduct,
 	getProducts,
 	updateProduct,
-} from "../../../controllers/product.controller.js";
-import db from "../../../models/index.cjs";
+} from "./product.controller.js";
 
-vi.mock("../../../models/index.cjs", () => ({
+vi.mock("../models/index.cjs", () => ({
 	default: {
 		Brands: { findByPk: vi.fn() },
 		Categories: { findByPk: vi.fn() },

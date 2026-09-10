@@ -17,6 +17,7 @@
 		"db:setup": "npm run db:create && npm run db:migrate && npm run db:seed"
 	},
 	"dependencies": {
+		"@scalar/express-api-reference": "^0.10.18",
 		"argon2": "^0.45.1",
 		"cloudinary": "^2.11.0",
 		"cookie-parser": "^1.4.7",
@@ -28,8 +29,7 @@
 		"redis": "^6.2.1",
 		"sequelize": "^6.37.8",
 		"sequelize-cli": "^6.6.5",
-		"swagger-jsdoc": "^6.3.0",
-		"swagger-ui-express": "^5.0.1"
+		"swagger-jsdoc": "^6.3.0"
 	},
 	"devDependencies": {
 		"@types/cookie-parser": "^1.4.10",
@@ -38,7 +38,6 @@
 		"@types/jsonwebtoken": "^9.0.10",
 		"@types/node": "^26.5.0",
 		"@types/swagger-jsdoc": "^6.0.4",
-		"@types/swagger-ui-express": "^4.1.8",
 		"vitest": "^5.0.0"
 	}
 }

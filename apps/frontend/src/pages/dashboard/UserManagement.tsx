@@ -45,20 +45,22 @@ export default function UserManagementDashboard() {
 	});
 
 	useEffect(() => {
-		setPage(0);
+		queueMicrotask(() => setPage(0));
 	}, [debouncedSearch, statusFilter]);
 
 	useEffect(() => {
-		if (paged.length > 0) {
-			setSelectedId((prev) =>
-				prev && paged.some((u) => u.id === prev) ? prev : paged[0]!.id,
-			);
-			setSelectedIds((prev) =>
-				prev.size > 0 ? prev : new Set([paged[0]!.id]),
-			);
-		} else if (users.length === 0) {
-			setSelectedId(null);
-		}
+		queueMicrotask(() => {
+			if (paged.length > 0) {
+				setSelectedId((prev) =>
+					prev && paged.some((u) => u.id === prev) ? prev : paged[0]!.id,
+				);
+				setSelectedIds((prev) =>
+					prev.size > 0 ? prev : new Set([paged[0]!.id]),
+				);
+			} else if (users.length === 0) {
+				setSelectedId(null);
+			}
+		});
 	}, [paged, users.length]);
 
 	const selected = useMemo(() => {

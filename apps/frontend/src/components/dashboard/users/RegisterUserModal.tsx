@@ -224,8 +224,12 @@ export default function RegisterUserModal({
 							</span>
 						)}
 					</div>
-					<label className="flex items-center gap-2 py-1 text-sm text-text-h select-none">
+					<label
+						htmlFor="register-isActive"
+						className="flex items-center gap-2 py-1 text-sm text-text-h select-none"
+					>
 						<Checkbox
+							id="register-isActive"
 							checked={isActive}
 							onCheckedChange={(c) => setIsActive(c === true)}
 							aria-label="Active status"

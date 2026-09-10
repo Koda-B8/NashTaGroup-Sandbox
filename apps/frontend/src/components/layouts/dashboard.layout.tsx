@@ -95,6 +95,7 @@ const SIDEBAR_NAV_GROUPS: SidebarNavGroup[] = [
 				label: "Cashier",
 				path: "/dashboard/cashier",
 				icon: <CreditCardIcon size={14} />,
+				children: [{ label: "All Cashiers", path: "/dashboard/cashier" }],
 			},
 			{
 				id: "customers",

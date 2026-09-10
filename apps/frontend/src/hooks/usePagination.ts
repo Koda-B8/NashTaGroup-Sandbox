@@ -80,7 +80,7 @@ export function usePaginatedList<T, P extends Record<string, unknown>>(opts: {
 	}, [fetcher, paramsKey, page, pageSize]);
 
 	useEffect(() => {
-		fetchList();
+		queueMicrotask(() => void fetchList());
 	}, [fetchList]);
 
 	const server = useServerPagination(meta ?? undefined);

@@ -4,6 +4,7 @@ import { createBrowserRouter, RouterProvider } from "react-router";
 import Home from "./pages";
 import NotFound from "./pages/+404";
 import Layout from "./pages/+Layout";
+import Checkout from "./pages/Checkout";
 import { store } from "./store";
 
 const router = createBrowserRouter([
@@ -12,6 +13,7 @@ const router = createBrowserRouter([
 		element: <Layout />,
 		children: [
 			{ index: true, element: <Home /> },
+			{ path: "/checkout", element: <Checkout /> },
 			{ path: "*", element: <NotFound /> },
 		],
 	},

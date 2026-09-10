@@ -1,11 +1,12 @@
 import { Provider } from "react-redux";
 import { createBrowserRouter, RouterProvider } from "react-router";
+import { PersistGate } from "redux-persist/integration/react";
 
 import Home from "./pages";
 import NotFound from "./pages/+404";
 import Layout from "./pages/+Layout";
 import Checkout from "./pages/Checkout";
-import { store } from "./store";
+import { store, persistor } from "./store";
 
 const router = createBrowserRouter([
 	{
@@ -21,8 +22,10 @@ const router = createBrowserRouter([
 
 export default function App() {
 	return (
-		<Provider store={store}>
-			<RouterProvider router={router} />
-		</Provider>
+		<PersistGate persistor={persistor}>
+			<Provider store={store}>
+				<RouterProvider router={router} />
+			</Provider>
+		</PersistGate>
 	);
 }

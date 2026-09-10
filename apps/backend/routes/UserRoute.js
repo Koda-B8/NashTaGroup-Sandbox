@@ -15,7 +15,7 @@ const router = express.Router();
  *     summary: Membuat user baru
  *     description: Hanya Admin yang dapat membuat akun Admin atau Cashier.
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     requestBody:
  *       required: true
  *       content:

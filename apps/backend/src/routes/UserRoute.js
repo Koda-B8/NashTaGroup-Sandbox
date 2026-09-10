@@ -31,8 +31,8 @@ router.get("/", authMiddleware, requireRole("admin"), getUsers);
  * /api/v1/users:
  *   post:
  *     tags: [Users]
- *     summary: Membuat user baru
- *     description: Hanya Admin yang dapat membuat akun Admin atau Cashier.
+ *     summary: Create a new user
+ *     description: Only Admin can create Admin or Cashier accounts.
  *     security:
  *       - cookieAuth: []
  *         csrfToken: []
@@ -70,7 +70,7 @@ router.get("/", authMiddleware, requireRole("admin"), getUsers);
  *                 default: true
  *     responses:
  *       201:
- *         description: User berhasil dibuat
+ *         description: User created successfully
  *         content:
  *           application/json:
  *             example:
@@ -83,13 +83,13 @@ router.get("/", authMiddleware, requireRole("admin"), getUsers);
  *                 role: cashier
  *                 isActive: true
  *       400:
- *         description: Request body atau role tidak valid
+ *         description: Request body or role is invalid
  *       401:
- *         description: Token tidak tersedia atau tidak valid
+ *         description: Token is unavailable or invalid
  *       403:
- *         description: Pengguna bukan Admin
+ *         description: User is not an Admin
  *       409:
- *         description: Username sudah digunakan
+ *         description: Username is already used
  */
 router.post("/", authMiddleware, requireRole("admin"), CreateUser);
 

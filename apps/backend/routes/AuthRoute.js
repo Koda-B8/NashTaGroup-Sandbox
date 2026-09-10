@@ -1,28 +1,31 @@
-import express from "express";
-/* oxlint-disable jsdoc/check-tag-names -- @openapi is consumed by swagger-jsdoc. */
-// import { rateLimit } from "express-rate-limit";
+import process from "node:process";
 
+import express from "express";
+import { rateLimit } from "express-rate-limit";
+
+/* oxlint-disable jsdoc/check-tag-names -- @openapi is consumed by swagger-jsdoc. */
 import { login } from "../controllers/auth.controller.js";
 
 const router = express.Router();
+const isProduction = process.env.NODE_ENV === "production";
 
-// const loginLimiter = rateLimit({
-// 	windowMs: 15 * 60 * 1000,
-// 	limit: 5,
-// 	standardHeaders: "draft-8",
-// 	legacyHeaders: false,
-// 	message: {
-// 		success: false,
-// 		message: "Terlalu banyak percobaan login. Coba lagi dalam 15 menit.",
-// 	},
-// });
+const loginLimiter = rateLimit({
+	windowMs: 15 * 60 * 1000,
+	limit: isProduction ? 5 : 1000,
+	standardHeaders: "draft-8",
+	legacyHeaders: false,
+	message: {
+		success: false,
+		message: "Too many login attempts. Please try again in 15 minutes.",
+	},
+});
 
 /**
  * @openapi
  * /api/v1/auth/login:
  *   post:
  *     tags: [Auth]
- *     summary: Login dan menyimpan JWT dalam cookie HttpOnly
+ *     summary: Log in and store JWT in an HttpOnly cookie
  *     requestBody:
  *       required: true
  *       content:
@@ -40,10 +43,10 @@ const router = express.Router();
  *                 example: Cashier123!
  *     responses:
  *       200:
- *         description: Login berhasil
+ *         description: Login successful
  *         headers:
  *           Set-Cookie:
- *             description: Cookie autentikasi HttpOnly
+ *             description: HttpOnly authentication and CSRF cookies.
  *             schema:
  *               type: string
  *         content:
@@ -60,21 +63,27 @@ const router = express.Router();
  *                   example: Login successfully
  *                 data:
  *                   type: object
- *                   required: [id, fullname, role]
+ *                   required: [id, fullname, role, csrfToken]
  *                   properties:
  *                     id:
  *                       type: string
  *                       format: uuid
  *                     fullname:
  *                       type: string
+ *                       example: System Administrator
  *                     role:
  *                       type: string
  *                       enum: [admin, cashier]
+ *                     csrfToken:
+ *                       type: string
+ *                       description: Send this value in the X-CSRF-Token header for authenticated write requests.
  *       400:
- *         description: Username atau password kosong
+ *         description: Username or password is required
  *       401:
- *         description: Username atau password salah
+ *         description: Invalid username or password
+ *       429:
+ *         description: Too many login attempts
  */
-router.post("/login", /* loginLimiter, */ login);
+router.post("/login", loginLimiter, login);
 
 export default router;

@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { constants } from "node:http2";
 import process from "node:process";
 
@@ -47,8 +48,17 @@ export async function login(req, res) {
 
 		const role = user.role.name;
 		const token = signToken({ userId: user.id, userRole: role });
+		const csrfToken = randomBytes(32).toString("hex");
 
 		res.cookie("auth_token", token, {
+			httpOnly: true,
+			secure: isProduction,
+			sameSite: isProduction ? "none" : "lax",
+			maxAge: 24 * 60 * 60 * 1000,
+			path: "/",
+		});
+
+		res.cookie("csrf_token", csrfToken, {
 			httpOnly: true,
 			secure: isProduction,
 			sameSite: isProduction ? "none" : "lax",
@@ -63,6 +73,7 @@ export async function login(req, res) {
 				id: user.id,
 				fullname: user.fullname,
 				role,
+				csrfToken,
 			},
 		});
 	} catch {

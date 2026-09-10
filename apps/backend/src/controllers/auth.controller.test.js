@@ -11,11 +11,11 @@ vi.mock("argon2", () => ({
 	default: { verify: vi.fn() },
 }));
 
-vi.mock("../../../lib/jwt.js", () => ({
+vi.mock("../lib/jwt.js", () => ({
 	signToken: vi.fn(),
 }));
 
-vi.mock("../../../models/index.cjs", () => ({
+vi.mock("../models/index.cjs", () => ({
 	default: {
 		Roles: {},
 		Users: { scope: vi.fn() },

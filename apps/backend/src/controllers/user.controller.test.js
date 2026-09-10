@@ -3,12 +3,12 @@ import { constants } from "node:http2";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import db from "../models/index.cjs";
-import { CreateUser } from "./user.controller.js";
+import { CreateUser, getUsers } from "./user.controller.js";
 
 vi.mock("../models/index.cjs", () => ({
 	default: {
 		Roles: { findOne: vi.fn() },
-		Users: { create: vi.fn() },
+		Users: { create: vi.fn(), findAll: vi.fn() },
 	},
 }));
 
@@ -222,6 +222,61 @@ describe("CreateUser", () => {
 			response,
 			next,
 		);
+
+		expect(response.status).not.toHaveBeenCalled();
+		expect(next).toHaveBeenCalledWith(error);
+	});
+});
+
+describe("getUsers", () => {
+	it("returns users with their roles without password data", async () => {
+		const users = [
+			{
+				id: "7bf0806e-daca-4afa-a2e1-643babe31176",
+				fullname: "Demo Cashier",
+				username: "cashier2",
+				isActive: true,
+				role: { id: role.id, name: "cashier" },
+			},
+		];
+		db.Users.findAll.mockResolvedValue(users);
+		const response = createResponse();
+		const next = vi.fn();
+
+		await getUsers({}, response, next);
+
+		expect(db.Users.findAll).toHaveBeenCalledWith({
+			attributes: ["id", "fullname", "username", "isActive", "createdAt"],
+			include: [
+				{
+					model: db.Roles,
+					as: "role",
+					attributes: ["id", "name"],
+				},
+			],
+			order: [["fullname", "ASC"]],
+		});
+		expect(response.status).toHaveBeenCalledWith(constants.HTTP_STATUS_OK);
+		expect(response.json).toHaveBeenCalledWith({
+			success: true,
+			message: "Users retrieved successfully",
+			data: [
+				{
+					...users[0],
+					cashierId: users[0].id,
+				},
+			],
+		});
+		expect(next).not.toHaveBeenCalled();
+	});
+
+	it("forwards database errors", async () => {
+		const error = new Error("database unavailable");
+		db.Users.findAll.mockRejectedValue(error);
+		const response = createResponse();
+		const next = vi.fn();
+
+		await getUsers({}, response, next);
 
 		expect(response.status).not.toHaveBeenCalled();
 		expect(next).toHaveBeenCalledWith(error);

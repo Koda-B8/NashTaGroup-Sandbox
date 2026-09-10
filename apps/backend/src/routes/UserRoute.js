@@ -1,11 +1,30 @@
 import express from "express";
 /* oxlint-disable jsdoc/check-tag-names -- @openapi is consumed by swagger-jsdoc. */
 
-import { CreateUser } from "../controllers/user.controller.js";
+import { CreateUser, getUsers } from "../controllers/user.controller.js";
 import authMiddleware from "../middleware/auth.js";
 import { requireRole } from "../middleware/authorize.js";
 
 const router = express.Router();
+
+/**
+ * @openapi
+ * /api/v1/users:
+ *   get:
+ *     tags: [Users]
+ *     summary: Mengambil seluruh user
+ *     description: Hanya Admin yang dapat melihat daftar user.
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Daftar user berhasil diambil
+ *       401:
+ *         description: Token tidak tersedia atau tidak valid
+ *       403:
+ *         description: Pengguna bukan Admin
+ */
+router.get("/", authMiddleware, requireRole("admin"), getUsers);
 
 /**
  * @openapi

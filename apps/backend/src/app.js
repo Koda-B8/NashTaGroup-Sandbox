@@ -2,8 +2,10 @@ import { apiReference } from "@scalar/express-api-reference";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
+import { rateLimit } from "express-rate-limit";
 
 import swaggerSpecification from "../config/swagger.js";
+import csrfProtection from "./middleware/csrf.js";
 import apiRoutes from "./routes/index.js";
 
 const app = express();
@@ -12,6 +14,17 @@ const allowedOrigins = (process.env.CORS_ORIGIN ?? "http://localhost:5173")
 	.split(",")
 	.map((origin) => origin.trim())
 	.filter(Boolean);
+
+const apiLimiter = rateLimit({
+	windowMs: 15 * 60 * 1000,
+	limit: 300,
+	standardHeaders: "draft-8",
+	legacyHeaders: false,
+	message: {
+		success: false,
+		message: "Too many requests. Please try again later.",
+	},
+});
 
 app.disable("x-powered-by");
 app.use(
@@ -38,7 +51,7 @@ app.use(
 	}),
 );
 
-app.use("/api/v1", apiRoutes);
+app.use("/api/v1", apiLimiter, csrfProtection, apiRoutes);
 
 app.use((_request, response) => {
 	return response.status(404).json({

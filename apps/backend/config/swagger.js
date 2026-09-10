@@ -12,7 +12,7 @@ const swaggerSpecification = swaggerJsdoc({
 		info: {
 			title: "NashTa Group API",
 			version: "1.0.0",
-			description: "Dokumentasi REST API NashTa Group.",
+			description: "NashTa Group REST API documentation.",
 		},
 		components: {
 			securitySchemes: {
@@ -20,7 +20,14 @@ const swaggerSpecification = swaggerJsdoc({
 					type: "apiKey",
 					in: "cookie",
 					name: "auth_token",
-					description: "JWT yang disimpan dalam cookie HttpOnly setelah login.",
+					description: "HttpOnly authentication cookie.",
+				},
+				csrfToken: {
+					type: "apiKey",
+					in: "header",
+					name: "X-CSRF-Token",
+					description:
+						"Required for authenticated POST, PUT, PATCH, and DELETE requests.",
 				},
 			},
 		},

@@ -41,19 +41,27 @@ describe("auth controller login", () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks();
+
 		findOne = vi.fn().mockResolvedValue(user);
 		db.Users.scope.mockReturnValue({ findOne });
+
 		vi.mocked(argon2.verify).mockResolvedValue(true);
 		vi.mocked(signToken).mockReturnValue("signed-access-token");
 	});
 
-	it("sets an HttpOnly cookie and returns user data for valid credentials", async () => {
+	it("sets authentication and CSRF cookies for valid credentials", async () => {
 		const request = {
 			body: { username: " cashier ", password: "Cashier123!" },
 		};
 		const response = createResponse();
 
 		await login(request, response);
+
+		const responseBody = response.json.mock.calls[0][0];
+		const csrfToken = responseBody.data.csrfToken;
+
+		expect(typeof csrfToken).toBe("string");
+		expect(csrfToken).toHaveLength(64);
 
 		expect(db.Users.scope).toHaveBeenCalledWith("withPassword");
 		expect(findOne).toHaveBeenCalledWith({
@@ -67,7 +75,9 @@ describe("auth controller login", () => {
 			userId: user.id,
 			userRole: "cashier",
 		});
-		expect(response.cookie).toHaveBeenCalledWith(
+
+		expect(response.cookie).toHaveBeenNthCalledWith(
+			1,
 			"auth_token",
 			"signed-access-token",
 			{
@@ -78,11 +88,29 @@ describe("auth controller login", () => {
 				path: "/",
 			},
 		);
+		expect(response.cookie).toHaveBeenNthCalledWith(
+			2,
+			"csrf_token",
+			csrfToken,
+			{
+				httpOnly: true,
+				secure: false,
+				sameSite: "lax",
+				maxAge: 24 * 60 * 60 * 1000,
+				path: "/",
+			},
+		);
+
 		expect(response.status).toHaveBeenCalledWith(constants.HTTP_STATUS_OK);
 		expect(response.json).toHaveBeenCalledWith({
 			success: true,
 			message: "Login successfully",
-			data: { id: user.id, fullname: user.fullname, role: "cashier" },
+			data: {
+				id: user.id,
+				fullname: user.fullname,
+				role: "cashier",
+				csrfToken,
+			},
 		});
 	});
 

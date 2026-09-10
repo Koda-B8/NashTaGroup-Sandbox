@@ -1,3 +1,4 @@
+// oxlint-disable typescript/no-require-imports
 const { Model } = require("sequelize");
 
 const defineRoles = (sequelize, DataTypes) => {

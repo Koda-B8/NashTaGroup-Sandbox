@@ -22,7 +22,7 @@ router.use(authMiddleware);
  *     tags: [Categories]
  *     summary: Mengambil daftar category
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     parameters:
  *       - in: query
  *         name: search
@@ -49,7 +49,7 @@ router.get("/", getCategories);
  *     tags: [Categories]
  *     summary: Mengambil detail category berdasarkan ID
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -74,7 +74,7 @@ router.get("/:id", getCategoryById);
  *     tags: [Categories]
  *     summary: Membuat category baru
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -107,7 +107,7 @@ router.post("/", requireRole("admin"), createCategory);
  *     tags: [Categories]
  *     summary: Memperbarui category
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -151,7 +151,7 @@ router.patch("/:id", requireRole("admin"), updateCategory);
  *     tags: [Categories]
  *     summary: Menghapus category secara soft delete
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     parameters:
  *       - in: path
  *         name: id

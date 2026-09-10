@@ -3,7 +3,7 @@
 	"compilerOptions": {
 		// Environment
 		"lib": ["esnext"],
-		"types": ["*"],
+		"types": ["*", "vite/client", "vitest"],
 
 		"skipLibCheck": true,
 

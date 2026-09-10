@@ -1,3 +1,4 @@
+// oxlint-disable typescript/no-require-imports
 const argon2 = require("argon2");
 const { Model } = require("sequelize");
 

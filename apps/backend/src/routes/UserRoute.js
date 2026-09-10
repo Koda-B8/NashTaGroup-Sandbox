@@ -1,39 +1,69 @@
-import express from "express";
 /* oxlint-disable jsdoc/check-tag-names -- @openapi is consumed by swagger-jsdoc. */
+import express from "express";
 
-import { CreateUser, getUsers } from "../controllers/user.controller.js";
+import {
+	CreateUser,
+	deleteUser,
+	getUserById,
+	getUsers,
+	updateUser,
+} from "../controllers/user.controller.js";
 import authMiddleware from "../middleware/auth.js";
 import { requireRole } from "../middleware/authorize.js";
 
 const router = express.Router();
+
+router.use(authMiddleware, requireRole("admin"));
 
 /**
  * @openapi
  * /api/v1/users:
  *   get:
  *     tags: [Users]
- *     summary: Retrieve all users
- *     description: Only Admin can view the user list.
+ *     summary: Retrieve users
+ *     description: Retrieve a paginated user list (admin only).
  *     security:
  *       - cookieAuth: []
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 10
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search by fullname or username.
+ *       - in: query
+ *         name: role
+ *         schema:
+ *           type: string
+ *           enum: [admin, cashier]
+ *       - in: query
+ *         name: isActive
+ *         schema:
+ *           type: boolean
  *     responses:
  *       200:
- *         description: User list retrieved successfully
- *       401:
- *         description: Token is unavailable or invalid
+ *         description: Users retrieved successfully
+ *       400:
+ *         description: Invalid query parameters
  *       403:
- *         description: User is not an Admin
- */
-router.get("/", authMiddleware, requireRole("admin"), getUsers);
-
-/**
- * @openapi
- * /api/v1/users:
+ *         description: Admin access required
  *   post:
  *     tags: [Users]
- *     summary: Create a new user
- *     description: Only Admin can create Admin or Cashier accounts.
+ *     summary: Create a user
+ *     description: Create an Admin or Cashier account (admin only).
  *     security:
  *       - cookieAuth: []
  *         csrfToken: []
@@ -50,49 +80,118 @@ router.get("/", authMiddleware, requireRole("admin"), getUsers);
  *               fullname:
  *                 type: string
  *                 maxLength: 150
- *                 example: Demo Cashier
  *               username:
  *                 type: string
  *                 minLength: 3
  *                 maxLength: 100
- *                 pattern: '^[a-zA-Z0-9._-]+$'
- *                 example: cashier2
  *               password:
  *                 type: string
  *                 format: password
  *                 minLength: 8
  *                 maxLength: 128
- *                 example: Cashier123!
  *               role:
  *                 type: string
  *                 enum: [admin, cashier]
- *                 example: cashier
  *               isActive:
  *                 type: boolean
  *                 default: true
  *     responses:
  *       201:
  *         description: User created successfully
- *         content:
- *           application/json:
- *             example:
- *               success: true
- *               message: User created successfully
- *               data:
- *                 id: 7bf0806e-daca-4afa-a2e1-643babe31176
- *                 fullname: Demo Cashier
- *                 username: cashier2
- *                 role: cashier
- *                 isActive: true
  *       400:
- *         description: Request body or role is invalid
- *       401:
- *         description: Token is unavailable or invalid
- *       403:
- *         description: User is not an Admin
+ *         description: Invalid request body
  *       409:
- *         description: Username is already used
+ *         description: Username is already in use
  */
-router.post("/", authMiddleware, requireRole("admin"), CreateUser);
+router.get("/", getUsers);
+router.post("/", CreateUser);
+
+/**
+ * @openapi
+ * /api/v1/users/{id}:
+ *   get:
+ *     tags: [Users]
+ *     summary: Retrieve a user by id
+ *     security:
+ *       - cookieAuth: []
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: User retrieved successfully
+ *       404:
+ *         description: User not found
+ *   patch:
+ *     tags: [Users]
+ *     summary: Update a user
+ *     security:
+ *       - cookieAuth: []
+ *         csrfToken: []
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: false
+ *             properties:
+ *               fullname:
+ *                 type: string
+ *               username:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *                 format: password
+ *               role:
+ *                 type: string
+ *                 enum: [admin, cashier]
+ *               isActive:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: User updated successfully
+ *       404:
+ *         description: User not found
+ *       409:
+ *         description: Username is already in use
+ *   delete:
+ *     tags: [Users]
+ *     summary: Soft delete a user
+ *     security:
+ *       - cookieAuth: []
+ *         csrfToken: []
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: User deleted successfully
+ *       400:
+ *         description: Invalid user id or attempt to delete own account
+ *       404:
+ *         description: User not found
+ */
+router.get("/:id", getUserById);
+router.patch("/:id", updateUser);
+router.delete("/:id", deleteUser);
 
 export default router;

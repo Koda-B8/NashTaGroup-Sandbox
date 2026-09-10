@@ -3,12 +3,18 @@ import { constants } from "node:http2";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import db from "../models/index.cjs";
-import { CreateUser, getUsers } from "./user.controller.js";
+import {
+	CreateUser,
+	deleteUser,
+	getUserById,
+	getUsers,
+	updateUser,
+} from "./user.controller.js";
 
 vi.mock("../models/index.cjs", () => ({
 	default: {
 		Roles: { findOne: vi.fn() },
-		Users: { create: vi.fn(), findAll: vi.fn() },
+		Users: { create: vi.fn(), findAndCountAll: vi.fn(), findByPk: vi.fn() },
 	},
 }));
 
@@ -229,6 +235,10 @@ describe("CreateUser", () => {
 });
 
 describe("getUsers", () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
 	it("returns users with their roles without password data", async () => {
 		const users = [
 			{
@@ -239,13 +249,14 @@ describe("getUsers", () => {
 				role: { id: role.id, name: "cashier" },
 			},
 		];
-		db.Users.findAll.mockResolvedValue(users);
+		db.Users.findAndCountAll.mockResolvedValue({ count: 1, rows: users });
 		const response = createResponse();
 		const next = vi.fn();
 
-		await getUsers({}, response, next);
+		await getUsers({ query: {} }, response, next);
 
-		expect(db.Users.findAll).toHaveBeenCalledWith({
+		expect(db.Users.findAndCountAll).toHaveBeenCalledWith({
+			where: {},
 			attributes: ["id", "fullname", "username", "isActive", "createdAt"],
 			include: [
 				{
@@ -255,6 +266,9 @@ describe("getUsers", () => {
 				},
 			],
 			order: [["fullname", "ASC"]],
+			limit: 10,
+			offset: 0,
+			distinct: true,
 		});
 		expect(response.status).toHaveBeenCalledWith(constants.HTTP_STATUS_OK);
 		expect(response.json).toHaveBeenCalledWith({
@@ -266,19 +280,115 @@ describe("getUsers", () => {
 					cashierId: users[0].id,
 				},
 			],
+			pagination: {
+				page: 1,
+				limit: 10,
+				totalItems: 1,
+				totalPages: 1,
+			},
 		});
 		expect(next).not.toHaveBeenCalled();
 	});
 
 	it("forwards database errors", async () => {
 		const error = new Error("database unavailable");
-		db.Users.findAll.mockRejectedValue(error);
+		db.Users.findAndCountAll.mockRejectedValue(error);
 		const response = createResponse();
 		const next = vi.fn();
 
-		await getUsers({}, response, next);
+		await getUsers({ query: {} }, response, next);
 
 		expect(response.status).not.toHaveBeenCalled();
 		expect(next).toHaveBeenCalledWith(error);
+	});
+
+	it("rejects invalid pagination parameters", async () => {
+		const response = createResponse();
+		const next = vi.fn();
+
+		await getUsers({ query: { page: "0" } }, response, next);
+
+		expect(next).toHaveBeenCalledWith(
+			expect.objectContaining({
+				message: "page must be between 1 and 1000000",
+			}),
+		);
+		expect(db.Users.findAndCountAll).not.toHaveBeenCalled();
+	});
+});
+
+describe("getUserById", () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it("returns a user by id", async () => {
+		const userWithRole = { ...user, role };
+		db.Users.findByPk.mockResolvedValue(userWithRole);
+		const response = createResponse();
+
+		await getUserById({ params: { id: user.id } }, response, vi.fn());
+
+		expect(response.status).toHaveBeenCalledWith(constants.HTTP_STATUS_OK);
+		expect(response.json).toHaveBeenCalledWith({
+			success: true,
+			message: "User retrieved successfully",
+			data: { ...userWithRole, cashierId: user.id },
+		});
+	});
+});
+
+describe("updateUser", () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it("updates a user and returns its latest data", async () => {
+		const update = vi.fn();
+		const storedUser = { id: user.id, update };
+		const updatedUser = { ...user, fullname: "Updated Cashier", role };
+		db.Users.findByPk
+			.mockResolvedValueOnce(storedUser)
+			.mockResolvedValueOnce(updatedUser);
+		const response = createResponse();
+
+		await updateUser(
+			{ params: { id: user.id }, body: { fullname: "Updated Cashier" } },
+			response,
+			vi.fn(),
+		);
+
+		expect(update).toHaveBeenCalledWith({ fullname: "Updated Cashier" });
+		expect(response.status).toHaveBeenCalledWith(constants.HTTP_STATUS_OK);
+		expect(response.json).toHaveBeenCalledWith({
+			success: true,
+			message: "User updated successfully",
+			data: { ...updatedUser, cashierId: user.id },
+		});
+	});
+});
+
+describe("deleteUser", () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it("soft deletes a different user", async () => {
+		const destroy = vi.fn();
+		db.Users.findByPk.mockResolvedValue({ id: user.id, destroy });
+		const response = createResponse();
+
+		await deleteUser(
+			{ params: { id: user.id }, user: { id: "another-user-id" } },
+			response,
+			vi.fn(),
+		);
+
+		expect(destroy).toHaveBeenCalledOnce();
+		expect(response.status).toHaveBeenCalledWith(constants.HTTP_STATUS_OK);
+		expect(response.json).toHaveBeenCalledWith({
+			success: true,
+			message: "User deleted successfully",
+		});
 	});
 });

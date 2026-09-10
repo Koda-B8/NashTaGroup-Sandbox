@@ -4,7 +4,7 @@ import argon2 from "argon2";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { signToken } from "../lib/jwt.js";
-import db from "./../models/index.cjs";
+import db from "../models/index.cjs";
 import { login } from "./auth.controller.js";
 
 vi.mock("argon2", () => ({

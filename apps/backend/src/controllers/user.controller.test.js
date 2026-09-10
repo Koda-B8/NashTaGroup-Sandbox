@@ -2,10 +2,10 @@ import { constants } from "node:http2";
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { CreateUser } from "../../../controllers/user.controller.js";
-import db from "../../../models/index.cjs";
+import db from "../models/index.cjs";
+import { CreateUser } from "./user.controller.js";
 
-vi.mock("../../../models/index.cjs", () => ({
+vi.mock("../models/index.cjs", () => ({
 	default: {
 		Roles: { findOne: vi.fn() },
 		Users: { create: vi.fn() },

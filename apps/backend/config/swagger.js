@@ -2,7 +2,9 @@ import { fileURLToPath } from "node:url";
 
 import swaggerJsdoc from "swagger-jsdoc";
 
-const routesGlob = fileURLToPath(new URL("../routes/*.js", import.meta.url));
+const routesGlob = fileURLToPath(
+	new URL("../src/routes/*.js", import.meta.url),
+);
 
 const swaggerSpecification = swaggerJsdoc({
 	definition: {

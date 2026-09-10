@@ -3,19 +3,19 @@ import { constants } from "node:http2";
 import argon2 from "argon2";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { login } from "../../../controllers/auth.controller.js";
-import { signToken } from "../../../lib/jwt.js";
-import db from "../../../models/index.cjs";
+import { signToken } from "../lib/jwt.js";
+import db from "../models/index.cjs";
+import { login } from "./auth.controller.js";
 
 vi.mock("argon2", () => ({
 	default: { verify: vi.fn() },
 }));
 
-vi.mock("../../../lib/jwt.js", () => ({
+vi.mock("../lib/jwt.js", () => ({
 	signToken: vi.fn(),
 }));
 
-vi.mock("../../../models/index.cjs", () => ({
+vi.mock("../models/index.cjs", () => ({
 	default: {
 		Roles: {},
 		Users: { scope: vi.fn() },

@@ -2,7 +2,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const process = require("node:process");
 const { DataTypes, Sequelize } = require("sequelize");
-const configurations = require("../config/config.cjs");
+const configurations = require("../../config/config.cjs");
 
 const basename = path.basename(__filename);
 const environment = process.env.NODE_ENV ?? "development";

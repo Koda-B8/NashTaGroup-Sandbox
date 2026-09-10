@@ -1,3 +1,4 @@
+// oxlint-disable typescript/no-require-imports
 const path = require("node:path");
 
 module.exports = {

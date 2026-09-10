@@ -1,13 +1,25 @@
 import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { useDispatch } from "react-redux";
 
 import Button from "../components/ui/button";
 import Card from "../components/ui/card";
+import { formatRupiah } from "../libs/formatRupiah";
+import { addToCart } from "../store/reducer/cart";
 
 interface Product {
-	id: string;
-	image: string;
+	uuid: string;
+	image: null | string;
 	alt: string;
-	title: string;
+	name: string;
+	price: number;
+	category: string;
+}
+
+interface Cart {
+	uuid: string;
+	image: null | string;
+	alt: string;
+	name: string;
 	price: number;
 	category: string;
 }
@@ -30,87 +42,93 @@ const pages: Page[] = [
 
 const products: Product[] = [
 	{
-		id: "1",
-		image: "",
+		uuid: "1",
+		image: null,
 		alt: "",
-		title: "Example",
-		price: 30_000,
+		name: "Example",
+		price: 100_000,
 		category: "Smartphone",
 	},
 	{
-		id: "2",
-		image: "",
+		uuid: "2",
+		image: null,
 		alt: "",
-		title: "Example",
-		price: 30_000,
+		name: "Example",
+		price: 100_000,
 		category: "Smartphone",
 	},
 	{
-		id: "3",
-		image: "",
+		uuid: "3",
+		image: null,
 		alt: "",
-		title: "Example",
-		price: 30_000,
+		name: "Example",
+		price: 100_000,
 		category: "Smartphone",
 	},
 	{
-		id: "4",
-		image: "",
+		uuid: "4",
+		image: null,
 		alt: "",
-		title: "Example",
-		price: 30_000,
+		name: "Example",
+		price: 100_000,
 		category: "Smartphone",
 	},
 	{
-		id: "5",
-		image: "",
+		uuid: "5",
+		image: null,
 		alt: "",
-		title: "Example",
-		price: 30_000,
+		name: "Example",
+		price: 100_000,
 		category: "Smartphone",
 	},
 	{
-		id: "6",
-		image: "",
+		uuid: "6",
+		image: null,
 		alt: "",
-		title: "Example",
-		price: 30_000,
+		name: "Example",
+		price: 100_000,
 		category: "Smartphone",
 	},
 	{
-		id: "7",
-		image: "",
+		uuid: "7",
+		image: null,
 		alt: "",
-		title: "Example",
-		price: 30_000,
+		name: "Example",
+		price: 100_000,
 		category: "Smartphone",
 	},
 	{
-		id: "8",
-		image: "",
+		uuid: "8",
+		image: null,
 		alt: "",
-		title: "Example",
-		price: 30_000,
+		name: "Example",
+		price: 100_000,
 		category: "Smartphone",
 	},
 	{
-		id: "9",
-		image: "",
+		uuid: "9",
+		image: null,
 		alt: "",
-		title: "Example",
-		price: 30_000,
+		name: "Example",
+		price: 100_000,
 		category: "Smartphone",
 	},
 ];
 
 export default function Home() {
+	const dispatch = useDispatch();
+	function addItem(uuid: string) {
+		const data: Cart | undefined = products.find((i) => i.uuid === uuid);
+		if (data !== undefined) dispatch(addToCart({ ...data, qty: 1 }));
+	}
+
 	return (
 		<div className="flex w-full px-3 flex-col">
 			<ParamsSection />
 			<div className="grid grid-cols-3 gap-3">
 				{products.map((item) => (
 					<Card
-						key={item.id}
+						key={item.uuid}
 						padding={"none"}
 						className="p-1"
 					>
@@ -125,12 +143,15 @@ export default function Home() {
 							)}
 						</header>
 						<main className="w-full h-25 p-2">
-							<h6>{item.title}</h6>
+							<h6>{item.name}</h6>
 							<p className="text-sm">{item.category}</p>
 
 							<div className="flex items-center justify-between mt-1">
-								<h5>Rp.{item.price}</h5>
-								<Button className="px-7 cursor-pointer">
+								<h5>{formatRupiah(item.price)}</h5>
+								<Button
+									onClick={() => addItem(item.uuid)}
+									className="px-7 cursor-pointer"
+								>
 									<Plus size={14} />
 									<p>Add</p>
 								</Button>

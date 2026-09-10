@@ -1,13 +1,15 @@
 import { QrCode, Wallet, CreditCard } from "lucide-react";
 import type { ReactNode } from "react";
+import { useSelector } from "react-redux";
 
 import Button from "../components/ui/button";
+import { formatRupiah } from "../libs/formatRupiah";
+import type { RootState } from "../store";
 
 interface Product {
 	uuid: string;
 	name: string;
-	image: string;
-	desc: string;
+	image: null | string;
 	alt: string;
 	price: number;
 	qty: number;
@@ -46,7 +48,6 @@ const products: Product[] = [
 		uuid: "1",
 		name: "Smartphone",
 		image: "",
-		desc: "Putih",
 		alt: "smartphone",
 		price: 4_000_000,
 		qty: 1,
@@ -55,7 +56,6 @@ const products: Product[] = [
 		uuid: "2",
 		name: "Smartphone",
 		image: "",
-		desc: "Putih",
 		alt: "smartphone",
 		price: 4_000_000,
 		qty: 1,
@@ -64,7 +64,6 @@ const products: Product[] = [
 		uuid: "3",
 		name: "Smartphone",
 		image: "",
-		desc: "Putih",
 		alt: "smartphone",
 		price: 4_000_000,
 		qty: 1,
@@ -72,6 +71,8 @@ const products: Product[] = [
 ];
 
 export default function Checkout() {
+	const cart = useSelector((state: RootState) => state.cart.cart);
+
 	return (
 		<form className="w-full flex flex-col gap-2 px-3">
 			<header className="flex items-center justify-between">
@@ -92,14 +93,14 @@ export default function Checkout() {
 			<main className="flex flex-col gap-3">
 				<section className="bg-white rounded-md border border-base-border p-3">
 					<header className="flex items-center justify-between">
-						<h6>Pesanan 3 Items</h6>
+						<h6>Pesanan {cart.length} Items</h6>
 						<Button variant={"inverse"}>
 							<p>Edit</p>
 						</Button>
 					</header>
 
 					<main className="flex flex-col gap-3 mt-2">
-						{products.map((item) => (
+						{cart.map((item) => (
 							<div
 								key={item.uuid}
 								className="flex items-center justify-between"
@@ -107,20 +108,18 @@ export default function Checkout() {
 								<div className="flex gap-3">
 									<div className="w-13 h-13 border border-base-border rounded-md bg-base">
 										<img
-											src={item.image}
+											src={item.image ?? ""}
 											alt={item.alt}
 										/>
 									</div>
 									<div className="flex flex-col justify-center">
 										<p className="text-sm text-text-h">{item.name}</p>
-										<p className="text-sm">
-											{item.desc} • {item.qty}x
-										</p>
+										<p className="text-sm">Example • {item.qty}x</p>
 									</div>
 								</div>
 
 								<div className="flex items-center">
-									<h6>Rp.{item.price}</h6>
+									<h6>{formatRupiah(item.price)}</h6>
 								</div>
 							</div>
 						))}

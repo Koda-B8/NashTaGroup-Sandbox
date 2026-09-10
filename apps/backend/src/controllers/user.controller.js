@@ -4,6 +4,8 @@ import db from "../models/index.cjs";
 
 const { Roles, Users } = db;
 const ALLOWED_ROLES = new Set(["admin", "cashier"]);
+const DEFAULT_PAGE_LIMIT = 10;
+const MAX_PAGE_LIMIT = 100;
 const ALLOWED_FIELDS = new Set([
 	"fullname",
 	"username",
@@ -24,9 +26,35 @@ const toUserResponse = (user) => {
 	};
 };
 
-export async function getUsers(_request, response, next) {
+function parsePagination(query = {}) {
+	const page = Number(query.page ?? 1);
+	const limit = Number(query.limit ?? DEFAULT_PAGE_LIMIT);
+
+	if (!Number.isInteger(page) || page < 1) {
+		return { error: "page must be a positive integer" };
+	}
+	if (!Number.isInteger(limit) || limit < 1 || limit > MAX_PAGE_LIMIT) {
+		return {
+			error: `limit must be an integer between 1 and ${MAX_PAGE_LIMIT}`,
+		};
+	}
+
+	return { value: { page, limit } };
+}
+
+export async function getUsers(request, response, next) {
+	const pagination = parsePagination(request.query);
+	if (!pagination.value) {
+		return sendError(
+			response,
+			constants.HTTP_STATUS_BAD_REQUEST,
+			pagination.error,
+		);
+	}
+
+	const { page, limit } = pagination.value;
 	try {
-		const users = await Users.findAll({
+		const { count, rows } = await Users.findAndCountAll({
 			attributes: ["id", "fullname", "username", "isActive", "createdAt"],
 			include: [
 				{
@@ -36,12 +64,20 @@ export async function getUsers(_request, response, next) {
 				},
 			],
 			order: [["fullname", "ASC"]],
+			limit,
+			offset: (page - 1) * limit,
 		});
 
 		return response.status(constants.HTTP_STATUS_OK).json({
 			success: true,
 			message: "Users retrieved successfully",
-			data: users.map((user) => toUserResponse(user)),
+			data: rows.map((user) => toUserResponse(user)),
+			pagination: {
+				page,
+				limit,
+				total: count,
+				totalPages: Math.ceil(count / limit),
+			},
 		});
 	} catch (error) {
 		return next(error);

@@ -8,7 +8,7 @@ import { CreateUser, getUsers } from "./user.controller.js";
 vi.mock("../models/index.cjs", () => ({
 	default: {
 		Roles: { findOne: vi.fn() },
-		Users: { create: vi.fn(), findAll: vi.fn() },
+		Users: { create: vi.fn(), findAndCountAll: vi.fn() },
 	},
 }));
 
@@ -229,6 +229,10 @@ describe("CreateUser", () => {
 });
 
 describe("getUsers", () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
 	it("returns users with their roles without password data", async () => {
 		const users = [
 			{
@@ -239,13 +243,13 @@ describe("getUsers", () => {
 				role: { id: role.id, name: "cashier" },
 			},
 		];
-		db.Users.findAll.mockResolvedValue(users);
+		db.Users.findAndCountAll.mockResolvedValue({ count: 1, rows: users });
 		const response = createResponse();
 		const next = vi.fn();
 
-		await getUsers({}, response, next);
+		await getUsers({ query: {} }, response, next);
 
-		expect(db.Users.findAll).toHaveBeenCalledWith({
+		expect(db.Users.findAndCountAll).toHaveBeenCalledWith({
 			attributes: ["id", "fullname", "username", "isActive", "createdAt"],
 			include: [
 				{
@@ -255,6 +259,8 @@ describe("getUsers", () => {
 				},
 			],
 			order: [["fullname", "ASC"]],
+			limit: 10,
+			offset: 0,
 		});
 		expect(response.status).toHaveBeenCalledWith(constants.HTTP_STATUS_OK);
 		expect(response.json).toHaveBeenCalledWith({
@@ -266,17 +272,54 @@ describe("getUsers", () => {
 					cashierId: users[0].id,
 				},
 			],
+			pagination: { page: 1, limit: 10, total: 1, totalPages: 1 },
 		});
+		expect(next).not.toHaveBeenCalled();
+	});
+
+	it("applies page and limit from the query string", async () => {
+		db.Users.findAndCountAll.mockResolvedValue({ count: 25, rows: [] });
+		const response = createResponse();
+
+		await getUsers({ query: { page: "3", limit: "5" } }, response, vi.fn());
+
+		expect(db.Users.findAndCountAll).toHaveBeenCalledWith(
+			expect.objectContaining({ limit: 5, offset: 10 }),
+		);
+		expect(response.json).toHaveBeenCalledWith(
+			expect.objectContaining({
+				pagination: { page: 3, limit: 5, total: 25, totalPages: 5 },
+			}),
+		);
+	});
+
+	it.each([
+		[{ page: "0" }, "page must be a positive integer"],
+		[{ page: "abc" }, "page must be a positive integer"],
+		[{ limit: "0" }, "limit must be an integer between 1 and 100"],
+		[{ limit: "101" }, "limit must be an integer between 1 and 100"],
+		[{ limit: "2.5" }, "limit must be an integer between 1 and 100"],
+	])("rejects invalid pagination %o", async (query, message) => {
+		const response = createResponse();
+		const next = vi.fn();
+
+		await getUsers({ query }, response, next);
+
+		expect(response.status).toHaveBeenCalledWith(
+			constants.HTTP_STATUS_BAD_REQUEST,
+		);
+		expect(response.json).toHaveBeenCalledWith({ success: false, message });
+		expect(db.Users.findAndCountAll).not.toHaveBeenCalled();
 		expect(next).not.toHaveBeenCalled();
 	});
 
 	it("forwards database errors", async () => {
 		const error = new Error("database unavailable");
-		db.Users.findAll.mockRejectedValue(error);
+		db.Users.findAndCountAll.mockRejectedValue(error);
 		const response = createResponse();
 		const next = vi.fn();
 
-		await getUsers({}, response, next);
+		await getUsers({ query: {} }, response, next);
 
 		expect(response.status).not.toHaveBeenCalled();
 		expect(next).toHaveBeenCalledWith(error);

@@ -17,9 +17,36 @@ const router = express.Router();
  *     security:
  *       - cookieAuth: []
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 10
  *     responses:
  *       200:
  *         description: User list retrieved successfully
+ *         content:
+ *           application/json:
+ *             example:
+ *               success: true
+ *               message: Users retrieved successfully
+ *               data: []
+ *               pagination:
+ *                 page: 1
+ *                 limit: 10
+ *                 total: 0
+ *                 totalPages: 0
+ *       400:
+ *         description: page or limit is invalid
  *       401:
  *         description: Token is unavailable or invalid
  *       403:

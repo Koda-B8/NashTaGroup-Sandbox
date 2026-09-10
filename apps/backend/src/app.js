@@ -1,7 +1,7 @@
+import { apiReference } from "@scalar/express-api-reference";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
-import swaggerUi from "swagger-ui-express";
 
 import swaggerSpecification from "../config/swagger.js";
 import apiRoutes from "./routes/index.js";
@@ -28,13 +28,14 @@ app.get("/health", (_request, response) => {
 	return response.status(200).json({ success: true, message: "OK" });
 });
 
-app.get("/api-docs.json", (_request, response) => {
+app.get("/openapi.json", (_request, response) => {
 	return response.json(swaggerSpecification);
 });
 app.use(
 	"/api/docs",
-	swaggerUi.serve,
-	swaggerUi.setup(swaggerSpecification, { explorer: true }),
+	apiReference({
+		url: "/openapi.json",
+	}),
 );
 
 app.use("/api/v1", apiRoutes);

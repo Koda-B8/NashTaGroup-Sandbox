@@ -21,6 +21,8 @@ router.use(authMiddleware);
  *   get:
  *     tags: [Product Items]
  *     summary: Retrieve product items
+ *     security:
+ *       - cookieAuth: []
  *     parameters:
  *       - in: query
  *         name: search
@@ -46,6 +48,9 @@ router.use(authMiddleware);
  *   post:
  *     tags: [Product Items]
  *     summary: Create a product item (admin only)
+ *     security:
+ *       - cookieAuth: []
+ *         csrfToken: []
  *     requestBody:
  *       required: true
  *       content:
@@ -91,6 +96,8 @@ router.post("/", requireRole("admin"), createProductItem);
  *   get:
  *     tags: [Product Items]
  *     summary: Retrieve a product item by id
+ *     security:
+ *       - cookieAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -108,6 +115,9 @@ router.post("/", requireRole("admin"), createProductItem);
  *   patch:
  *     tags: [Product Items]
  *     summary: Update a product item (admin only)
+ *     security:
+ *       - cookieAuth: []
+ *         csrfToken: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -150,6 +160,9 @@ router.post("/", requireRole("admin"), createProductItem);
  *   delete:
  *     tags: [Product Items]
  *     summary: Soft delete a product item (admin only)
+ *     security:
+ *       - cookieAuth: []
+ *         csrfToken: []
  *     parameters:
  *       - in: path
  *         name: id

@@ -35,6 +35,7 @@ router.get("/", authMiddleware, requireRole("admin"), getUsers);
  *     description: Hanya Admin yang dapat membuat akun Admin atau Cashier.
  *     security:
  *       - cookieAuth: []
+ *         csrfToken: []
  *     requestBody:
  *       required: true
  *       content:

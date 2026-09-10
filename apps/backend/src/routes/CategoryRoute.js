@@ -75,6 +75,7 @@ router.get("/:id", getCategoryById);
  *     summary: Membuat category baru
  *     security:
  *       - cookieAuth: []
+ *         csrfToken: []
  *     requestBody:
  *       required: true
  *       content:
@@ -108,6 +109,7 @@ router.post("/", requireRole("admin"), createCategory);
  *     summary: Memperbarui category
  *     security:
  *       - cookieAuth: []
+ *         csrfToken: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -152,6 +154,7 @@ router.patch("/:id", requireRole("admin"), updateCategory);
  *     summary: Menghapus category secara soft delete
  *     security:
  *       - cookieAuth: []
+ *         csrfToken: []
  *     parameters:
  *       - in: path
  *         name: id

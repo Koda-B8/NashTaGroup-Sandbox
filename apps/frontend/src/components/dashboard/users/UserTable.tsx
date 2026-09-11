@@ -108,7 +108,7 @@ export default function UserTable({
 									Memuat users...
 								</td>
 							</tr>
-						) : paged.length === 0 ? (
+						) : (paged.length === 0 ? (
 							<tr>
 								<td
 									colSpan={7}
@@ -210,7 +210,7 @@ export default function UserTable({
 									</tr>
 								);
 							})
-						)}
+						))}
 					</tbody>
 				</table>
 			</div>

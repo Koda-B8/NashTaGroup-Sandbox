@@ -14,7 +14,7 @@ const ALLOWED_FIELDS = new Set([
 	"username",
 	"password",
 	"role",
-	"isActive",
+	"is_active",
 ]);
 
 const sendError = (response, status, message) =>
@@ -49,29 +49,29 @@ const parseBoolean = (value) => {
 
 const toUserResponse = (user) => {
 	const value = typeof user?.toJSON === "function" ? user.toJSON() : user;
+	const { createdAt, isActive, ...userData } = value;
 
 	return {
-		...value,
-		cashierId: value.id,
+		...userData,
+		is_active: isActive,
+		created_at: createdAt,
 	};
 };
 
 export async function getUsers(request, response, next) {
 	try {
 		const search =
-			typeof request.query.search === "string"
-				? request.query.search.trim()
-				: "";
-		const isActive = parseBoolean(request.query.isActive);
+			typeof request.query.q === "string" ? request.query.q.trim() : "";
+		const isActive = parseBoolean(request.query.is_active);
 		const role =
 			typeof request.query.role === "string"
 				? request.query.role.trim().toLowerCase()
 				: "";
 
-		if (request.query.isActive !== undefined && isActive === undefined) {
+		if (request.query.is_active !== undefined && isActive === undefined) {
 			throw createHttpError(
 				constants.HTTP_STATUS_BAD_REQUEST,
-				"isActive must be true or false",
+				"is_active must be true or false",
 			);
 		}
 		if (role && !ALLOWED_ROLES.has(role)) {
@@ -90,7 +90,7 @@ export async function getUsers(request, response, next) {
 		}
 		if (isActive !== undefined) where.isActive = isActive;
 
-		const { rows, page } = await paginate(Users, request.query, {
+		const { rows, pagination } = await paginate(Users, request.query, {
 			where,
 			attributes: userAttributes,
 			include: userInclude(role),
@@ -102,7 +102,7 @@ export async function getUsers(request, response, next) {
 			success: true,
 			message: "Users retrieved successfully",
 			data: rows.map((user) => toUserResponse(user)),
-			page,
+			meta: { pagination },
 		});
 	} catch (error) {
 		return next(error);
@@ -176,11 +176,11 @@ function validateCreateUser(body) {
 		return { error: "role must be either admin or cashier" };
 	}
 
-	if ("isActive" in body) {
-		if (typeof body.isActive !== "boolean") {
-			return { error: "isActive must be a boolean" };
+	if ("is_active" in body) {
+		if (typeof body.is_active !== "boolean") {
+			return { error: "is_active must be a boolean" };
 		}
-		value.isActive = body.isActive;
+		value.isActive = body.is_active;
 	}
 
 	return { value };
@@ -247,11 +247,11 @@ function validateUpdateUser(body) {
 		}
 	}
 
-	if (Object.hasOwn(body, "isActive")) {
-		if (typeof body.isActive !== "boolean") {
-			return { error: "isActive must be a boolean" };
+	if (Object.hasOwn(body, "is_active")) {
+		if (typeof body.is_active !== "boolean") {
+			return { error: "is_active must be a boolean" };
 		}
-		value.isActive = body.isActive;
+		value.isActive = body.is_active;
 	}
 
 	return { value };
@@ -294,7 +294,7 @@ export async function CreateUser(request, response, next) {
 				fullname: user.fullname,
 				username: user.username,
 				role: role.name,
-				isActive: user.isActive,
+				is_active: user.isActive,
 			},
 		});
 	} catch (error) {

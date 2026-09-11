@@ -1,10 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { createPageMetadata, paginate, parsePagination } from "./pagination.js";
+import {
+	createPaginationMetadata,
+	paginate,
+	parsePagination,
+} from "./pagination.js";
 
 describe("parsePagination", () => {
 	it("uses the default pagination values", () => {
-		expect(parsePagination({})).toEqual({ page: 1, limit: 10, offset: 0 });
+		expect(parsePagination({})).toEqual({ page: 1, limit: 20, offset: 0 });
 	});
 
 	it("calculates the offset from page and limit", () => {
@@ -38,22 +42,24 @@ describe("parsePagination", () => {
 	});
 });
 
-describe("createPageMetadata", () => {
-	it("creates navigation metadata", () => {
-		expect(
-			createPageMetadata({ count: 25, rowCount: 5, page: 3, limit: 5 }),
-		).toEqual({ total: 25, count: 5, current: 3, next: 4, prev: 2 });
+describe("createPaginationMetadata", () => {
+	it("creates API contract pagination metadata", () => {
+		expect(createPaginationMetadata({ count: 25, page: 3, limit: 5 })).toEqual({
+			page: 3,
+			limit: 5,
+			total_items: 25,
+			total_pages: 5,
+		});
 	});
 
 	it("supports grouped Sequelize count results", () => {
 		expect(
-			createPageMetadata({ count: [{}, {}], rowCount: 2, page: 1, limit: 10 }),
+			createPaginationMetadata({ count: [{}, {}], page: 1, limit: 20 }),
 		).toEqual({
-			total: 2,
-			count: 2,
-			current: 1,
-			next: undefined,
-			prev: undefined,
+			page: 1,
+			limit: 20,
+			total_items: 2,
+			total_pages: 1,
 		});
 	});
 });
@@ -69,7 +75,7 @@ describe("paginate", () => {
 			paginate(model, { page: "2", limit: "2" }, { where: { active: true } }),
 		).resolves.toEqual({
 			rows,
-			page: { total: 12, count: 2, current: 2, next: 3, prev: 1 },
+			pagination: { page: 2, limit: 2, total_items: 12, total_pages: 6 },
 		});
 		expect(model.findAndCountAll).toHaveBeenCalledWith({
 			where: { active: true },

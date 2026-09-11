@@ -1,5 +1,5 @@
 const DEFAULT_PAGE = 1;
-const DEFAULT_LIMIT = 10;
+const DEFAULT_LIMIT = 20;
 const DEFAULT_MAX_PAGE = 1_000_000;
 const DEFAULT_MAX_LIMIT = 100;
 
@@ -45,16 +45,14 @@ export function parsePagination(
 	return { page, limit, offset: (page - 1) * limit };
 }
 
-export function createPageMetadata({ count, rowCount, page, limit }) {
-	const total = Array.isArray(count) ? count.length : count;
-	const totalPages = Math.ceil(total / limit);
+export function createPaginationMetadata({ count, page, limit }) {
+	const totalItems = Array.isArray(count) ? count.length : count;
 
 	return {
-		total,
-		count: rowCount,
-		current: page,
-		next: page < totalPages ? page + 1 : undefined,
-		prev: page > 1 ? page - 1 : undefined,
+		page,
+		limit,
+		total_items: totalItems,
+		total_pages: Math.ceil(totalItems / limit),
 	};
 }
 
@@ -68,9 +66,8 @@ export async function paginate(model, query, findOptions = {}, config = {}) {
 
 	return {
 		rows,
-		page: createPageMetadata({
+		pagination: createPaginationMetadata({
 			count,
-			rowCount: rows.length,
 			page,
 			limit,
 		}),

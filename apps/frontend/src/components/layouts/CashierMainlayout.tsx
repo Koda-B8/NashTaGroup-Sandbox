@@ -64,7 +64,7 @@ function AsideVariants() {
 								<ul className="flex flex-col gap-1">
 									<li className="flex items-center justify-between">
 										<p>Subtotal</p>
-										<p className="text-text-h">{formatRupiah(15000)}</p>
+										<p className="text-text-h">{formatRupiah(15_000)}</p>
 									</li>
 									<li className="flex items-center justify-between">
 										<p>Diskon</p>
@@ -74,7 +74,7 @@ function AsideVariants() {
 							</section>
 							<section className="flex py-3 items-center justify-between">
 								<h6>Total</h6>
-								<h6>{formatRupiah(10000)}</h6>
+								<h6>{formatRupiah(10_000)}</h6>
 							</section>
 						</div>
 					}
@@ -100,7 +100,7 @@ function AsideVariants() {
 								<ul className="flex flex-col gap-1">
 									<li className="flex items-center justify-between">
 										<p>Subtotal</p>
-										<p className="text-text-h">{formatRupiah(15000)}</p>
+										<p className="text-text-h">{formatRupiah(15_000)}</p>
 									</li>
 									<li className="flex items-center justify-between">
 										<p>Pajak</p>
@@ -114,7 +114,7 @@ function AsideVariants() {
 							</section>
 							<section className="flex py-3 items-center justify-between">
 								<h6>Total</h6>
-								<h6>{formatRupiah(13000)}</h6>
+								<h6>{formatRupiah(13_000)}</h6>
 							</section>
 						</div>
 					}

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { ApiMeta } from "../types/pagination";
 
@@ -59,8 +59,10 @@ export function usePaginatedList<T, P extends Record<string, unknown>>(opts: {
 	const [error, setError] = useState<string | null>(null);
 
 	const paramsKey = JSON.stringify(params);
+	const latestRequestRef = useRef(0);
 
 	const fetchList = useCallback(async () => {
+		const requestId = ++latestRequestRef.current;
 		setLoading(true);
 		setError(null);
 		try {
@@ -70,14 +72,16 @@ export function usePaginatedList<T, P extends Record<string, unknown>>(opts: {
 				page: page + 1,
 				limit: pageSize,
 			});
+			if (requestId !== latestRequestRef.current) return;
 			setItems(data);
 			setMeta(m);
 		} catch (error) {
+			if (requestId !== latestRequestRef.current) return;
 			setError(
 				error instanceof Error ? error.message : "Terjadi kesalahan jaringan",
 			);
 		} finally {
-			setLoading(false);
+			if (requestId === latestRequestRef.current) setLoading(false);
 		}
 	}, [fetcher, paramsKey, page, pageSize]);
 

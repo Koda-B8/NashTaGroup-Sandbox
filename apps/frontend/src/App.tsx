@@ -46,8 +46,13 @@ const router = createBrowserRouter([
 						element: <CategoriesDashboard />,
 					},
 					{
-						path: "cashier",
-						element: <UserManagementDashboard />,
+						element: <ProtectedRoute allowedRoles={["admin"]} />,
+						children: [
+							{
+								path: "cashier",
+								element: <UserManagementDashboard />,
+							},
+						],
 					},
 				],
 			},

@@ -280,14 +280,40 @@ describe("getUsers", () => {
 					cashierId: users[0].id,
 				},
 			],
-			pagination: {
-				page: 1,
-				limit: 10,
-				totalItems: 1,
-				totalPages: 1,
+			page: {
+				total: 1,
+				count: 1,
+				current: 1,
+				next: undefined,
+				prev: undefined,
 			},
 		});
 		expect(next).not.toHaveBeenCalled();
+	});
+
+	it("returns page navigation metadata for a middle page", async () => {
+		db.Users.findAndCountAll.mockResolvedValue({
+			count: 25,
+			rows: [user, user, user, user, user],
+		});
+		const response = createResponse();
+
+		await getUsers({ query: { page: "3", limit: "5" } }, response, vi.fn());
+
+		expect(db.Users.findAndCountAll).toHaveBeenCalledWith(
+			expect.objectContaining({ limit: 5, offset: 10 }),
+		);
+		expect(response.json).toHaveBeenCalledWith(
+			expect.objectContaining({
+				page: {
+					total: 25,
+					count: 5,
+					current: 3,
+					next: 4,
+					prev: 2,
+				},
+			}),
+		);
 	});
 
 	it("forwards database errors", async () => {

@@ -56,6 +56,18 @@ router.use(authMiddleware, requireRole("admin"));
  *     responses:
  *       200:
  *         description: Users retrieved successfully
+ *         content:
+ *           application/json:
+ *             example:
+ *               success: true
+ *               message: Users retrieved successfully
+ *               data: []
+ *               page:
+ *                 total: 0
+ *                 count: 0
+ *                 current: 1
+ *                 next: null
+ *                 prev: null
  *       400:
  *         description: Invalid query parameters
  *       403:

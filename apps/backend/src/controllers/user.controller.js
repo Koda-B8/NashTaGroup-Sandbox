@@ -2,6 +2,7 @@ import { constants } from "node:http2";
 
 import { Op } from "sequelize";
 
+import { paginate } from "../lib/pagination.js";
 import db from "../models/index.cjs";
 
 const { Roles, Users } = db;
@@ -46,27 +47,6 @@ const parseBoolean = (value) => {
 	if (value === false || value === "false") return false;
 };
 
-const parsePositiveInteger = (value, field, fallback, maximum) => {
-	if (value === undefined) return fallback;
-
-	if (typeof value !== "string" || !/^\d+$/.test(value)) {
-		throw createHttpError(
-			constants.HTTP_STATUS_BAD_REQUEST,
-			`${field} must be a positive integer`,
-		);
-	}
-
-	const parsed = Number(value);
-	if (!Number.isSafeInteger(parsed) || parsed < 1 || parsed > maximum) {
-		throw createHttpError(
-			constants.HTTP_STATUS_BAD_REQUEST,
-			`${field} must be between 1 and ${maximum}`,
-		);
-	}
-
-	return parsed;
-};
-
 const toUserResponse = (user) => {
 	const value = typeof user?.toJSON === "function" ? user.toJSON() : user;
 
@@ -78,8 +58,6 @@ const toUserResponse = (user) => {
 
 export async function getUsers(request, response, next) {
 	try {
-		const page = parsePositiveInteger(request.query.page, "page", 1, 1_000_000);
-		const limit = parsePositiveInteger(request.query.limit, "limit", 10, 100);
 		const search =
 			typeof request.query.search === "string"
 				? request.query.search.trim()
@@ -112,29 +90,19 @@ export async function getUsers(request, response, next) {
 		}
 		if (isActive !== undefined) where.isActive = isActive;
 
-		const { count, rows } = await Users.findAndCountAll({
+		const { rows, page } = await paginate(Users, request.query, {
 			where,
 			attributes: userAttributes,
 			include: userInclude(role),
 			order: [["fullname", "ASC"]],
-			limit,
-			offset: (page - 1) * limit,
 			distinct: true,
 		});
-		const totalItems = Array.isArray(count) ? count.length : count;
-		const totalPages = Math.ceil(totalItems / limit);
 
 		return response.status(constants.HTTP_STATUS_OK).json({
 			success: true,
 			message: "Users retrieved successfully",
 			data: rows.map((user) => toUserResponse(user)),
-			page: {
-				total: totalItems,
-				count: rows.length,
-				current: page,
-				next: page < totalPages ? page + 1 : null,
-				prev: page > 1 ? page - 1 : null,
-			},
+			page,
 		});
 	} catch (error) {
 		return next(error);

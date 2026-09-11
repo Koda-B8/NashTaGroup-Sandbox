@@ -122,16 +122,18 @@ export async function getUsers(request, response, next) {
 			distinct: true,
 		});
 		const totalItems = Array.isArray(count) ? count.length : count;
+		const totalPages = Math.ceil(totalItems / limit);
 
 		return response.status(constants.HTTP_STATUS_OK).json({
 			success: true,
 			message: "Users retrieved successfully",
 			data: rows.map((user) => toUserResponse(user)),
-			pagination: {
-				page,
-				limit,
-				totalItems,
-				totalPages: Math.ceil(totalItems / limit),
+			page: {
+				total: totalItems,
+				count: rows.length,
+				current: page,
+				next: page < totalPages ? page + 1 : null,
+				prev: page > 1 ? page - 1 : null,
 			},
 		});
 	} catch (error) {

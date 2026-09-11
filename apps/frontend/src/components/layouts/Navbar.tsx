@@ -12,7 +12,7 @@ interface CartActionProps {
 
 export default function Navbar() {
 	return (
-		<nav className="w-full h-17 shadow-sm flex items-center px-7 justify-between">
+		<nav className="w-full bg-white h-17 shadow-sm flex items-center px-7 justify-between">
 			<section className="flex text-xs gap-xp lg:text-lg lg:items-center lg:gap-10 flex-col-reverse lg:flex-row">
 				<Link to={"/"}>
 					<p>NashTa Group</p>

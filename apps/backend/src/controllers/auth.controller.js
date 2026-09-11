@@ -1,0 +1,100 @@
+import { randomBytes } from "node:crypto";
+import { constants } from "node:http2";
+import process from "node:process";
+
+import argon2 from "argon2";
+
+import { signToken } from "../lib/jwt.js";
+import db from "../models/index.cjs";
+
+const { Roles, Users } = db;
+const isProduction = process.env.NODE_ENV === "production";
+
+const cookieOptions = {
+	httpOnly: true,
+	secure: isProduction,
+	sameSite: isProduction ? "none" : "lax",
+	maxAge: 24 * 60 * 60 * 1000,
+	path: "/",
+};
+
+const createCsrfToken = () => randomBytes(32).toString("hex");
+
+const setCsrfCookie = (response, csrfToken) => {
+	response.cookie("csrf_token", csrfToken, cookieOptions);
+};
+
+const unauthorized = (res) =>
+	res.status(constants.HTTP_STATUS_UNAUTHORIZED).json({
+		success: false,
+		message: "Invalid username or password",
+	});
+
+export async function login(req, res) {
+	try {
+		const username =
+			typeof req.body?.username === "string" ? req.body.username.trim() : "";
+		const { password } = req.body ?? {};
+
+		if (!username || typeof password !== "string" || !password) {
+			return res.status(constants.HTTP_STATUS_BAD_REQUEST).json({
+				success: false,
+				message: "Username or password required",
+			});
+		}
+
+		const user = await Users.scope("withPassword").findOne({
+			where: { username },
+			include: [
+				{
+					model: Roles,
+					as: "role",
+					attributes: ["name"],
+					required: true,
+				},
+			],
+		});
+
+		if (!user?.isActive) return unauthorized(res);
+
+		const isMatch = await argon2.verify(user.password, password);
+		if (!isMatch) return unauthorized(res);
+
+		const role = user.role.name;
+		const token = signToken({ userId: user.id, userRole: role });
+		const csrfToken = createCsrfToken();
+
+		res.cookie("auth_token", token, cookieOptions);
+		setCsrfCookie(res, csrfToken);
+
+		return res.status(constants.HTTP_STATUS_OK).json({
+			success: true,
+			message: "Login successfully",
+			data: {
+				id: user.id,
+				fullname: user.fullname,
+				role,
+				csrfToken,
+			},
+		});
+	} catch {
+		return res.status(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR).json({
+			success: false,
+			message: "Internal server error",
+		});
+	}
+}
+
+export function getCsrfToken(_request, response) {
+	const csrfToken = createCsrfToken();
+
+	setCsrfCookie(response, csrfToken);
+
+	return response.status(constants.HTTP_STATUS_OK).json({
+		success: true,
+		message: "CSRF token retrieved successfully",
+		data: {
+			csrfToken,
+		},
+	});
+}

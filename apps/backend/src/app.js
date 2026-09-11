@@ -1,0 +1,73 @@
+import { apiReference } from "@scalar/express-api-reference";
+import cookieParser from "cookie-parser";
+import cors from "cors";
+import express from "express";
+import { rateLimit } from "express-rate-limit";
+
+import swaggerSpecification from "../config/swagger.js";
+import csrfProtection from "./middleware/csrf.js";
+import apiRoutes from "./routes/index.js";
+
+const app = express();
+
+const allowedOrigins = (process.env.CORS_ORIGIN ?? "http://localhost:5173")
+	.split(",")
+	.map((origin) => origin.trim())
+	.filter(Boolean);
+
+const apiLimiter = rateLimit({
+	windowMs: 15 * 60 * 1000,
+	limit: 300,
+	standardHeaders: "draft-8",
+	legacyHeaders: false,
+	message: {
+		success: false,
+		message: "Too many requests. Please try again later.",
+	},
+});
+
+app.disable("x-powered-by");
+app.use(
+	cors({
+		origin: allowedOrigins,
+		credentials: true,
+	}),
+);
+app.use(cookieParser());
+app.use(express.urlencoded({ extended: false, limit: "100kb" }));
+app.use(express.json({ limit: "100kb" }));
+
+app.get("/health", (_request, response) => {
+	return response.status(200).json({ success: true, message: "OK" });
+});
+
+app.get("/openapi.json", (_request, response) => {
+	return response.json(swaggerSpecification);
+});
+app.use(
+	"/api/docs",
+	apiReference({
+		url: "/openapi.json",
+	}),
+);
+
+app.use("/api/v1", apiLimiter, csrfProtection, apiRoutes);
+
+app.use((_request, response) => {
+	return response.status(404).json({
+		success: false,
+		message: "Endpoint not found.",
+	});
+});
+app.use((error, _request, response, _next) => {
+	const statusCode = Number.isInteger(error.statusCode)
+		? error.statusCode
+		: 500;
+	const message = statusCode >= 500 ? "Internal server error." : error.message;
+
+	if (statusCode >= 500) console.error(error);
+
+	return response.status(statusCode).json({ success: false, message });
+});
+
+export default app;

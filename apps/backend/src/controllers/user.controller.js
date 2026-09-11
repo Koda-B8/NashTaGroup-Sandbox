@@ -132,8 +132,8 @@ export async function getUsers(request, response, next) {
 				total: totalItems,
 				count: rows.length,
 				current: page,
-				next: page < totalPages ? page + 1 : undefined,
-				prev: page > 1 ? page - 1 : undefined,
+				next: page < totalPages ? page + 1 : null,
+				prev: page > 1 ? page - 1 : null,
 			},
 		});
 	} catch (error) {

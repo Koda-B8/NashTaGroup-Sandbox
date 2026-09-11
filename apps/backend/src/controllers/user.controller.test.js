@@ -284,8 +284,8 @@ describe("getUsers", () => {
 				total: 1,
 				count: 1,
 				current: 1,
-				next: undefined,
-				prev: undefined,
+				next: null,
+				prev: null,
 			},
 		});
 		expect(next).not.toHaveBeenCalled();

@@ -128,9 +128,9 @@ export default function FilterPills<Value extends string>({
 						<span
 							className={`ml-0.5 inline-flex items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold leading-none ${
 								value === item.value
-									? (variant === "outline"
+									? variant === "outline"
 										? "bg-white/20 text-white"
-										: "bg-primary-light text-primary")
+										: "bg-primary-light text-primary"
 									: "bg-base-border/60 text-text"
 							}`}
 						>

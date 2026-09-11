@@ -345,9 +345,9 @@ export default function CategoriesDashboard() {
 			isActive:
 				statusFilter === "Active"
 					? true
-					: (statusFilter === "Inactive"
+					: statusFilter === "Inactive"
 						? false
-						: undefined),
+						: undefined,
 		},
 		page,
 		pageSize,
@@ -622,7 +622,7 @@ export default function CategoriesDashboard() {
 												Memuat categories...
 											</td>
 										</tr>
-									) : (paged.length === 0 ? (
+									) : paged.length === 0 ? (
 										<tr>
 											<td
 												colSpan={6}
@@ -720,7 +720,7 @@ export default function CategoriesDashboard() {
 												</tr>
 											);
 										})
-									))}
+									)}
 								</tbody>
 							</table>
 						</div>

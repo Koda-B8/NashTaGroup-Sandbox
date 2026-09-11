@@ -59,9 +59,9 @@ export async function listUsers(
 		);
 	const data: User[] = Array.isArray(json?.data)
 		? (json.data as User[])
-		: (Array.isArray(json)
+		: Array.isArray(json)
 			? (json as unknown as User[])
-			: []);
+			: [];
 	const meta: ApiMeta =
 		json?.meta ??
 		getPaginationMeta(data.length, params.limit ?? 20, params.page ?? 1);

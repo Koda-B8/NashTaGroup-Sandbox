@@ -38,9 +38,9 @@ router.use(authMiddleware, requireRole("admin"));
  *           type: integer
  *           minimum: 1
  *           maximum: 100
- *           default: 10
+ *           default: 20
  *       - in: query
- *         name: search
+ *         name: q
  *         schema:
  *           type: string
  *         description: Search by fullname or username.
@@ -50,7 +50,7 @@ router.use(authMiddleware, requireRole("admin"));
  *           type: string
  *           enum: [admin, cashier]
  *       - in: query
- *         name: isActive
+ *         name: is_active
  *         schema:
  *           type: boolean
  *     responses:
@@ -62,12 +62,12 @@ router.use(authMiddleware, requireRole("admin"));
  *               success: true
  *               message: Users retrieved successfully
  *               data: []
- *               page:
- *                 total: 0
- *                 count: 0
- *                 current: 1
- *                 next: null
- *                 prev: null
+ *               meta:
+ *                 pagination:
+ *                   page: 1
+ *                   limit: 20
+ *                   total_items: 0
+ *                   total_pages: 0
  *       400:
  *         description: Invalid query parameters
  *       403:
@@ -104,7 +104,7 @@ router.use(authMiddleware, requireRole("admin"));
  *               role:
  *                 type: string
  *                 enum: [admin, cashier]
- *               isActive:
+ *               is_active:
  *                 type: boolean
  *                 default: true
  *     responses:
@@ -171,7 +171,7 @@ router.post("/", CreateUser);
  *               role:
  *                 type: string
  *                 enum: [admin, cashier]
- *               isActive:
+ *               is_active:
  *                 type: boolean
  *     responses:
  *       200:

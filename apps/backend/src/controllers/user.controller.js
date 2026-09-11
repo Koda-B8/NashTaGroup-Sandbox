@@ -2,6 +2,7 @@ import { constants } from "node:http2";
 
 import { Op } from "sequelize";
 
+import { paginate } from "../lib/pagination.js";
 import db from "../models/index.cjs";
 
 const { Roles, Users } = db;
@@ -13,7 +14,7 @@ const ALLOWED_FIELDS = new Set([
 	"username",
 	"password",
 	"role",
-	"isActive",
+	"is_active",
 ]);
 
 const sendError = (response, status, message) =>
@@ -46,54 +47,31 @@ const parseBoolean = (value) => {
 	if (value === false || value === "false") return false;
 };
 
-const parsePositiveInteger = (value, field, fallback, maximum) => {
-	if (value === undefined) return fallback;
-
-	if (typeof value !== "string" || !/^\d+$/.test(value)) {
-		throw createHttpError(
-			constants.HTTP_STATUS_BAD_REQUEST,
-			`${field} must be a positive integer`,
-		);
-	}
-
-	const parsed = Number(value);
-	if (!Number.isSafeInteger(parsed) || parsed < 1 || parsed > maximum) {
-		throw createHttpError(
-			constants.HTTP_STATUS_BAD_REQUEST,
-			`${field} must be between 1 and ${maximum}`,
-		);
-	}
-
-	return parsed;
-};
-
 const toUserResponse = (user) => {
 	const value = typeof user?.toJSON === "function" ? user.toJSON() : user;
+	const { createdAt, isActive, ...userData } = value;
 
 	return {
-		...value,
-		cashierId: value.id,
+		...userData,
+		is_active: isActive,
+		created_at: createdAt,
 	};
 };
 
 export async function getUsers(request, response, next) {
 	try {
-		const page = parsePositiveInteger(request.query.page, "page", 1, 1_000_000);
-		const limit = parsePositiveInteger(request.query.limit, "limit", 10, 100);
 		const search =
-			typeof request.query.search === "string"
-				? request.query.search.trim()
-				: "";
-		const isActive = parseBoolean(request.query.isActive);
+			typeof request.query.q === "string" ? request.query.q.trim() : "";
+		const isActive = parseBoolean(request.query.is_active);
 		const role =
 			typeof request.query.role === "string"
 				? request.query.role.trim().toLowerCase()
 				: "";
 
-		if (request.query.isActive !== undefined && isActive === undefined) {
+		if (request.query.is_active !== undefined && isActive === undefined) {
 			throw createHttpError(
 				constants.HTTP_STATUS_BAD_REQUEST,
-				"isActive must be true or false",
+				"is_active must be true or false",
 			);
 		}
 		if (role && !ALLOWED_ROLES.has(role)) {
@@ -112,29 +90,19 @@ export async function getUsers(request, response, next) {
 		}
 		if (isActive !== undefined) where.isActive = isActive;
 
-		const { count, rows } = await Users.findAndCountAll({
+		const { rows, pagination } = await paginate(Users, request.query, {
 			where,
 			attributes: userAttributes,
 			include: userInclude(role),
 			order: [["fullname", "ASC"]],
-			limit,
-			offset: (page - 1) * limit,
 			distinct: true,
 		});
-		const totalItems = Array.isArray(count) ? count.length : count;
-		const totalPages = Math.ceil(totalItems / limit);
 
 		return response.status(constants.HTTP_STATUS_OK).json({
 			success: true,
 			message: "Users retrieved successfully",
 			data: rows.map((user) => toUserResponse(user)),
-			page: {
-				total: totalItems,
-				count: rows.length,
-				current: page,
-				next: page < totalPages ? page + 1 : undefined,
-				prev: page > 1 ? page - 1 : undefined,
-			},
+			meta: { pagination },
 		});
 	} catch (error) {
 		return next(error);
@@ -208,11 +176,11 @@ function validateCreateUser(body) {
 		return { error: "role must be either admin or cashier" };
 	}
 
-	if ("isActive" in body) {
-		if (typeof body.isActive !== "boolean") {
-			return { error: "isActive must be a boolean" };
+	if ("is_active" in body) {
+		if (typeof body.is_active !== "boolean") {
+			return { error: "is_active must be a boolean" };
 		}
-		value.isActive = body.isActive;
+		value.isActive = body.is_active;
 	}
 
 	return { value };
@@ -279,11 +247,11 @@ function validateUpdateUser(body) {
 		}
 	}
 
-	if (Object.hasOwn(body, "isActive")) {
-		if (typeof body.isActive !== "boolean") {
-			return { error: "isActive must be a boolean" };
+	if (Object.hasOwn(body, "is_active")) {
+		if (typeof body.is_active !== "boolean") {
+			return { error: "is_active must be a boolean" };
 		}
-		value.isActive = body.isActive;
+		value.isActive = body.is_active;
 	}
 
 	return { value };
@@ -326,7 +294,7 @@ export async function CreateUser(request, response, next) {
 				fullname: user.fullname,
 				username: user.username,
 				role: role.name,
-				isActive: user.isActive,
+				is_active: user.isActive,
 			},
 		});
 	} catch (error) {

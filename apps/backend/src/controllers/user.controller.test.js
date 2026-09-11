@@ -1,5 +1,6 @@
 import { constants } from "node:http2";
 
+import { Op } from "sequelize";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import db from "../models/index.cjs";
@@ -27,6 +28,7 @@ const user = {
 	fullname: "Demo Cashier",
 	username: "cashier2",
 	isActive: true,
+	createdAt: "2026-09-07T09:30:00.000Z",
 };
 
 const createResponse = () => ({
@@ -76,7 +78,7 @@ describe("CreateUser", () => {
 				fullname: user.fullname,
 				username: user.username,
 				role: "cashier",
-				isActive: true,
+				is_active: true,
 			},
 		});
 		expect(next).not.toHaveBeenCalled();
@@ -92,7 +94,7 @@ describe("CreateUser", () => {
 					username: "inactive.cashier",
 					password: "Cashier123!",
 					role: "cashier",
-					isActive: false,
+					is_active: false,
 				},
 			},
 			response,
@@ -246,6 +248,7 @@ describe("getUsers", () => {
 				fullname: "Demo Cashier",
 				username: "cashier2",
 				isActive: true,
+				createdAt: user.createdAt,
 				role: { id: role.id, name: "cashier" },
 			},
 		];
@@ -266,7 +269,7 @@ describe("getUsers", () => {
 				},
 			],
 			order: [["fullname", "ASC"]],
-			limit: 10,
+			limit: 20,
 			offset: 0,
 			distinct: true,
 		});
@@ -276,22 +279,27 @@ describe("getUsers", () => {
 			message: "Users retrieved successfully",
 			data: [
 				{
-					...users[0],
-					cashierId: users[0].id,
+					id: users[0].id,
+					fullname: users[0].fullname,
+					username: users[0].username,
+					role: users[0].role,
+					is_active: true,
+					created_at: user.createdAt,
 				},
 			],
-			page: {
-				total: 1,
-				count: 1,
-				current: 1,
-				next: undefined,
-				prev: undefined,
+			meta: {
+				pagination: {
+					page: 1,
+					limit: 20,
+					total_items: 1,
+					total_pages: 1,
+				},
 			},
 		});
 		expect(next).not.toHaveBeenCalled();
 	});
 
-	it("returns page navigation metadata for a middle page", async () => {
+	it("returns API contract pagination metadata", async () => {
 		db.Users.findAndCountAll.mockResolvedValue({
 			count: 25,
 			rows: [user, user, user, user, user],
@@ -305,13 +313,45 @@ describe("getUsers", () => {
 		);
 		expect(response.json).toHaveBeenCalledWith(
 			expect.objectContaining({
-				page: {
-					total: 25,
-					count: 5,
-					current: 3,
-					next: 4,
-					prev: 2,
+				meta: {
+					pagination: {
+						page: 3,
+						limit: 5,
+						total_items: 25,
+						total_pages: 5,
+					},
 				},
+			}),
+		);
+	});
+
+	it("uses API contract query names for search and active status", async () => {
+		db.Users.findAndCountAll.mockResolvedValue({ count: 0, rows: [] });
+
+		await getUsers(
+			{ query: { q: " cashier ", is_active: "false", role: "CASHIER" } },
+			createResponse(),
+			vi.fn(),
+		);
+
+		expect(db.Users.findAndCountAll).toHaveBeenCalledWith(
+			expect.objectContaining({
+				where: {
+					[Op.or]: [
+						{ fullname: { [Op.iLike]: "%cashier%" } },
+						{ username: { [Op.iLike]: "%cashier%" } },
+					],
+					isActive: false,
+				},
+				include: [
+					{
+						model: db.Roles,
+						as: "role",
+						attributes: ["id", "name"],
+						where: { name: "cashier" },
+						required: true,
+					},
+				],
 			}),
 		);
 	});
@@ -341,6 +381,20 @@ describe("getUsers", () => {
 		);
 		expect(db.Users.findAndCountAll).not.toHaveBeenCalled();
 	});
+
+	it("rejects an invalid is_active filter", async () => {
+		const next = vi.fn();
+
+		await getUsers({ query: { is_active: "yes" } }, createResponse(), next);
+
+		expect(next).toHaveBeenCalledWith(
+			expect.objectContaining({
+				statusCode: constants.HTTP_STATUS_BAD_REQUEST,
+				message: "is_active must be true or false",
+			}),
+		);
+		expect(db.Users.findAndCountAll).not.toHaveBeenCalled();
+	});
 });
 
 describe("getUserById", () => {
@@ -359,7 +413,14 @@ describe("getUserById", () => {
 		expect(response.json).toHaveBeenCalledWith({
 			success: true,
 			message: "User retrieved successfully",
-			data: { ...userWithRole, cashierId: user.id },
+			data: {
+				id: user.id,
+				fullname: user.fullname,
+				username: user.username,
+				role,
+				is_active: true,
+				created_at: user.createdAt,
+			},
 		});
 	});
 });
@@ -389,7 +450,14 @@ describe("updateUser", () => {
 		expect(response.json).toHaveBeenCalledWith({
 			success: true,
 			message: "User updated successfully",
-			data: { ...updatedUser, cashierId: user.id },
+			data: {
+				id: user.id,
+				fullname: "Updated Cashier",
+				username: user.username,
+				role,
+				is_active: true,
+				created_at: user.createdAt,
+			},
 		});
 	});
 });

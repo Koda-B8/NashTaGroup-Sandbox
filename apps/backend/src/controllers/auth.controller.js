@@ -10,12 +10,15 @@ import db from "../models/index.cjs";
 const { Roles, Users } = db;
 const isProduction = process.env.NODE_ENV === "production";
 
-const cookieOptions = {
+const cookieSecurityOptions = {
 	httpOnly: true,
 	secure: isProduction,
 	sameSite: isProduction ? "none" : "lax",
-	maxAge: 24 * 60 * 60 * 1000,
 	path: "/",
+};
+const cookieOptions = {
+	...cookieSecurityOptions,
+	maxAge: 24 * 60 * 60 * 1000,
 };
 
 const createCsrfToken = () => randomBytes(32).toString("hex");
@@ -96,5 +99,16 @@ export function getCsrfToken(_request, response) {
 		data: {
 			csrfToken,
 		},
+	});
+}
+
+export function logout(_request, response) {
+	response.clearCookie("auth_token", cookieSecurityOptions);
+	response.clearCookie("csrf_token", cookieSecurityOptions);
+
+	return response.status(constants.HTTP_STATUS_OK).json({
+		success: true,
+		message: "Logout successful",
+		data: {},
 	});
 }

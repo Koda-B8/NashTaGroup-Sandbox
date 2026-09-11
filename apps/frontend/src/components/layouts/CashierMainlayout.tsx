@@ -72,6 +72,7 @@ function AsideVariants() {
 									</li>
 								</ul>
 							</section>
+
 							<section className="flex py-3 items-center justify-between">
 								<h6>Total</h6>
 								<h6>{formatRupiah(10_000)}</h6>
@@ -118,12 +119,164 @@ function AsideVariants() {
 							</section>
 						</div>
 					}
-					Footer={<p>Aman dan terenskripsi</p>}
+					Footer={<p className="text-center">Aman dan terenskripsi</p>}
 				/>
 			);
 		}
 		default: {
 			return <AsideContent headerName="Keranjang" />;
+		}
+	}
+}
+
+function SideVariants() {
+	const location = useLocation();
+	const path = location.pathname;
+	switch (path) {
+		case "/": {
+			return (
+				<AsideContent
+					headerName={"Filters"}
+					Attribute={
+						<Button
+							onClick={handleClearFilter}
+							variant={"inverse"}
+						>
+							<p>Clear</p>
+						</Button>
+					}
+					Content={
+						<div>
+							<section className="border-b border-base-border py-3">
+								<p className="text-sm font-semibold">KATEGORI</p>
+								<ul className="flex flex-col text-[15px] mt-2 w-full ml-0">
+									<li className="flex gap-2 items-center justify-start list-outside">
+										<input
+											type="checkbox"
+											name="smartphone"
+											id="smartphone"
+											className="peer"
+										/>
+										<label
+											htmlFor="smartphone"
+											className="peer-checked:text-text-h"
+										>
+											Smartphone
+										</label>
+									</li>
+									<li className="flex gap-2 items-center justify-start list-outside">
+										<input
+											type="checkbox"
+											name="laptop"
+											id="laptop"
+											className="peer"
+										/>
+										<label
+											htmlFor="laptop"
+											className="peer-checked:text-text-h"
+										>
+											Laptop
+										</label>
+									</li>
+									<li className="flex gap-2 items-center justify-start list-outside">
+										<input
+											type="checkbox"
+											name="tv"
+											id="tv"
+											className="peer"
+										/>
+										<label
+											htmlFor="tv"
+											className="peer-checked:text-text-h"
+										>
+											Tv
+										</label>
+									</li>
+								</ul>
+							</section>
+
+							<section className="border-b border-base-border py-3">
+								<p className="font-semibold text-sm">STATUS</p>
+								<ul className="flex flex-col text-[15px] text-ms mt-2 w-full ml-0">
+									<li className="flex gap-2 items-center justify-start list-outside">
+										<input
+											type="checkbox"
+											name="instock"
+											id="instock"
+											className="peer"
+										/>
+										<label
+											htmlFor="instock"
+											className="peer-checked:text-text-h"
+										>
+											In Stock
+										</label>
+									</li>
+									<li className="flex gap-2 items-center justify-start list-outside">
+										<input
+											type="checkbox"
+											name="promo"
+											id="promo"
+											className="peer"
+										/>
+										<label
+											htmlFor="promo"
+											className="peer-checked:text-text-h"
+										>
+											Promo
+										</label>
+									</li>
+									<li className="flex gap-2 items-center justify-start list-outside">
+										<input
+											type="checkbox"
+											name="bestseller"
+											id="bestseller"
+											className="peer"
+										/>
+										<label
+											htmlFor="bestseller"
+											className="peer-checked:text-text-h"
+										>
+											Best Seller
+										</label>
+									</li>
+								</ul>
+							</section>
+						</div>
+					}
+					Footer={
+						<div className="centerized gap-2">
+							<Button
+								variant={"outline"}
+								className="px-6"
+							>
+								<p>Reset</p>
+							</Button>
+							<Button
+								variant={"primary"}
+								className="px-6"
+							>
+								<p>Terapkan</p>
+							</Button>
+						</div>
+					}
+				/>
+			);
+		}
+		case "/checkout": {
+			return (
+				<AsideContent
+					headerName={"Proses Pesanan"}
+					Attribute={
+						<Button
+							onClick={handleClearFilter}
+							variant={"inverse"}
+						>
+							<p>Clear</p>
+						</Button>
+					}
+				/>
+			);
 		}
 	}
 }
@@ -142,19 +295,7 @@ export default function MainLayout() {
 			</header>
 
 			<main className="flex min-h-screen justify-between p-2">
-				<aside className="">
-					<AsideContent
-						headerName={"Filters"}
-						Attribute={
-							<Button
-								onClick={handleClearFilter}
-								variant={"inverse"}
-							>
-								<p>Clear</p>
-							</Button>
-						}
-					/>
-				</aside>
+				<aside className="">{SideVariants()}</aside>
 
 				<section className="w-full">
 					<Outlet />

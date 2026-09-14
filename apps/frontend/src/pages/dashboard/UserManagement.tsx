@@ -1,13 +1,13 @@
 import { Plus } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import RegisterUserModal from "../../components/dashboard/users/RegisterUserModal";
-import UserDetailPanel from "../../components/dashboard/users/UserDetailPanel";
-import UserOverview from "../../components/dashboard/users/UserOverview";
-import UserTable from "../../components/dashboard/users/UserTable";
 import Button from "../../components/ui/button";
 import FilterPills from "../../components/ui/filter-pills";
 import Input from "../../components/ui/input";
+import RegisterUserModal from "../../features/users/components/RegisterUserModal";
+import UserDetailPanel from "../../features/users/components/UserDetailPanel";
+import UserOverview from "../../features/users/components/UserOverview";
+import UserTable from "../../features/users/components/UserTable";
 import {
 	useUsersList,
 	type RoleFilter,

@@ -2,7 +2,7 @@ import { useCallback, useMemo } from "react";
 
 import { usePaginatedList } from "../../../hooks/usePagination";
 import { getRoleName } from "../../../libs/format";
-import { listUsers, type User } from "../../../services/users";
+import { listUsers, type User } from "../api";
 
 type StatusFilter = "All" | "Active" | "Inactive";
 type RoleFilter = "All" | "admin" | "cashier";

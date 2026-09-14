@@ -2,20 +2,20 @@ import { Provider } from "react-redux";
 import { createBrowserRouter, RouterProvider } from "react-router";
 import { PersistGate } from "redux-persist/integration/react";
 
-import DashboardLayout from "./components/layouts/dashboard.layout";
-import ProtectedRoute, { GuestRoute } from "./components/ProtectedRoute";
-import Home from "./pages";
-import NotFound from "./pages/+404";
-import Layout from "./pages/+Layout";
-import LoginPage from "./pages/auth/Login";
-import Checkout from "./pages/Checkout";
+import Home from "../pages";
+import NotFound from "../pages/+404";
+import Layout from "../pages/+Layout";
+import LoginPage from "../pages/auth/Login";
+import Checkout from "../pages/Checkout";
 import {
 	CategoriesDashboard,
 	MainDashboard,
 	UserManagementDashboard,
-} from "./pages/dashboard";
-import StructStatus from "./pages/StructStatus";
-import { persistor, store } from "./store";
+} from "../pages/dashboard";
+import DashboardLayout from "../pages/dashboard/+Layout";
+import StructStatus from "../pages/StructStatus";
+import { persistor, store } from "../store";
+import ProtectedRoute, { GuestRoute } from "./ProtectedRoute";
 
 const router = createBrowserRouter([
 	{

@@ -1,7 +1,7 @@
 import { Plus } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import PaginationControls from "../../components/dashboard/shared/PaginationControls";
+import PaginationControls from "../../components/PaginationControls";
 import ActionMenu from "../../components/ui/action-menu";
 import Badge from "../../components/ui/badge";
 import Button from "../../components/ui/button";
@@ -11,16 +11,16 @@ import FilterPills from "../../components/ui/filter-pills";
 import Input from "../../components/ui/input";
 import Modal, { ModalBody, ModalFooter } from "../../components/ui/modal";
 import Select from "../../components/ui/select";
-import { useDebouncedValue } from "../../hooks/useDebouncedValue";
-import { usePaginatedList } from "../../hooks/usePagination";
-import { dotColor, formatDate, initials } from "../../libs/format";
 import {
 	type Category,
 	createCategory,
 	deleteCategory as deleteCategoryApi,
 	listCategories,
 	updateCategory,
-} from "../../services/categories";
+} from "../../features/categories/api";
+import { useDebouncedValue } from "../../hooks/useDebouncedValue";
+import { usePaginatedList } from "../../hooks/usePagination";
+import { dotColor, formatDate, initials } from "../../libs/format";
 
 type StatusFilter = "All" | "Active" | "Inactive";
 type SortBy = "name_asc" | "name_desc" | "updated_desc" | "created_desc";

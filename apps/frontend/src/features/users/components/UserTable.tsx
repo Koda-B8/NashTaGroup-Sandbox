@@ -1,11 +1,11 @@
+import PaginationControls from "../../../components/PaginationControls";
+import ActionMenu from "../../../components/ui/action-menu";
+import Avatar from "../../../components/ui/avatar";
+import Badge from "../../../components/ui/badge";
+import Card from "../../../components/ui/card";
+import Checkbox from "../../../components/ui/checkbox";
 import { formatDate, getRoleName } from "../../../libs/format";
-import type { User } from "../../../services/users";
-import ActionMenu from "../../ui/action-menu";
-import Avatar from "../../ui/avatar";
-import Badge from "../../ui/badge";
-import Card from "../../ui/card";
-import Checkbox from "../../ui/checkbox";
-import PaginationControls from "../shared/PaginationControls";
+import type { User } from "../api";
 
 interface Props {
 	loading: boolean;

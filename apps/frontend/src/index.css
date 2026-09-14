@@ -1,6 +1,9 @@
+@import url("https://rsms.me/inter/inter.css");
 @import "tailwindcss";
 
 @theme {
+	--font-sans:
+		"Inter Variable", "Inter", Helvetica, Arial, ui-sans-serif, sans-serif;
 	--color-text: #94959f;
 	--color-text-h: #121215;
 	--color-primary: #3b82f6;

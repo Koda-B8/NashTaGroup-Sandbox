@@ -1,13 +1,23 @@
+// oxlint-disable unicorn/no-null
 import { constants } from "node:http2";
 
 import { Op } from "sequelize";
 
 import db from "../models/index.cjs";
 
-const { Brands, Categories, Inventories, ProductItems, Products } = db;
+const {
+	Brands,
+	Categories,
+	Inventories,
+	ProductImages,
+	ProductItems,
+	Products,
+} = db;
 
 const UUID_PATTERN =
 	/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+// oxlint-disable-next-line unicorn/no-null -- The API represents a missing image explicitly as null.
+const EMPTY_IMAGE = null;
 
 class HttpError extends Error {
 	constructor(statusCode, message) {
@@ -28,8 +38,6 @@ const normalizeText = (value) => {
 const parseBoolean = (value) => {
 	if (value === true || value === "true") return true;
 	if (value === false || value === "false") return false;
-
-	return;
 };
 
 const isUuid = (value) => typeof value === "string" && UUID_PATTERN.test(value);
@@ -55,21 +63,41 @@ const productIncludes = [
 	},
 ];
 
-const productListIncludes = productIncludes.map((include) => {
-	if (include.as !== "items") return include;
+const productListIncludes = [
+	...productIncludes.map((include) => {
+		if (include.as !== "items") return include;
 
-	return {
-		...include,
-		include: [
-			{
-				model: Inventories,
-				as: "inventory",
-				attributes: ["stock"],
-				required: false,
-			},
+		return {
+			...include,
+			include: [
+				{
+					model: Inventories,
+					as: "inventory",
+					attributes: ["stock"],
+					required: false,
+				},
+				{
+					model: ProductImages,
+					as: "images",
+					attributes: ["imageUrl", "alt", "isPrimary", "sortOrder"],
+					required: false,
+				},
+			],
+		};
+	}),
+	{
+		model: ProductImages,
+		as: "images",
+		attributes: ["imageUrl", "alt", "isPrimary", "sortOrder"],
+		where: { productItemId: null },
+		required: false,
+		separate: true,
+		order: [
+			["isPrimary", "DESC"],
+			["sortOrder", "ASC"],
 		],
-	};
-});
+	},
+];
 
 async function getCategory(categoryId) {
 	const category = await Categories.findByPk(categoryId);
@@ -95,14 +123,32 @@ const toProductResponse = (product) => {
 	const value =
 		typeof product?.toJSON === "function" ? product.toJSON() : product;
 
-	if (!Array.isArray(value?.items)) return value;
+	const { images, ...productData } = value;
+	const primaryProductImage =
+		images?.find((image) => image.isPrimary) ?? images?.[0];
+	const items = Array.isArray(value?.items)
+		? value.items.map(({ images, inventory, ...item }) => {
+				const primaryItemImage =
+					images?.find((image) => image.isPrimary) ?? images?.[0];
+
+				return {
+					...item,
+					image:
+						primaryItemImage?.imageUrl ??
+						primaryProductImage?.imageUrl ??
+						EMPTY_IMAGE,
+					alt: primaryItemImage?.alt ?? primaryProductImage?.alt ?? item.name,
+					stock: inventory?.stock ?? 0,
+				};
+			})
+		: [];
 
 	return {
-		...value,
-		items: value.items.map(({ inventory, ...item }) => ({
-			...item,
-			stock: inventory?.stock ?? 0,
-		})),
+		...productData,
+		image: primaryProductImage?.imageUrl ?? EMPTY_IMAGE,
+		alt: primaryProductImage?.alt ?? value.name,
+		stock: items.reduce((total, item) => total + Number(item.stock), 0),
+		items,
 	};
 };
 
@@ -268,6 +314,7 @@ export async function createProduct(req, res, next) {
 			categoryId,
 			brandId,
 			name,
+			// oxlint-disable-next-line unicorn/no-null -- Empty descriptions are stored as SQL NULL.
 			description: description?.trim() || null,
 			isActive: req.body?.isActive ?? true,
 		});
@@ -329,6 +376,7 @@ export async function updateProduct(req, res, next) {
 				);
 			}
 
+			// oxlint-disable-next-line unicorn/no-null -- Sending null explicitly clears the database value.
 			updates.description = description?.trim() || null;
 		}
 

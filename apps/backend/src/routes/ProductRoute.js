@@ -50,6 +50,21 @@ router.use(authMiddleware);
  *     responses:
  *       200:
  *         description: Products retrieved successfully
+ *         content:
+ *           application/json:
+ *             example:
+ *               success: true
+ *               message: Products retrieved successfully
+ *               data:
+ *                 - id: 3962d3bd-b9a6-4275-bf87-6cb6af71d943
+ *                   name: Samsung Galaxy A55
+ *                   image: https://res.cloudinary.com/nashta/image/upload/galaxy-a55.webp
+ *                   alt: Samsung Galaxy A55 smartphone
+ *                   stock: 17
+ *                   items:
+ *                     - id: d7878d58-7742-4389-9c35-92d72351f200
+ *                       name: 8GB/128GB - Awesome Navy
+ *                       stock: 10
  *       400:
  *         description: Invalid query parameters
  *   post:

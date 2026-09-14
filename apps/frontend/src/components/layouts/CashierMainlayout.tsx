@@ -1,4 +1,4 @@
-import { ArrowRight, ShoppingCart } from "lucide-react";
+import { ArrowRight, ShoppingCart, Check } from "lucide-react";
 import { Suspense, lazy } from "react";
 import { useSelector } from "react-redux";
 import { Outlet, useLocation, useNavigate } from "react-router";
@@ -92,6 +92,38 @@ function AsideVariants() {
 			);
 		}
 		case "/checkout": {
+			return (
+				<AsideContent
+					headerName={"Ringkasan"}
+					Content={
+						<div>
+							<section className="border-b py-3 text-sm border-b-base-border min-h-10">
+								<ul className="flex flex-col gap-1">
+									<li className="flex items-center justify-between">
+										<p>Subtotal</p>
+										<p className="text-text-h">{formatRupiah(15_000)}</p>
+									</li>
+									<li className="flex items-center justify-between">
+										<p>Pajak</p>
+										<p className="text-text-h">{formatRupiah(1000)}</p>
+									</li>
+									<li className="flex items-center justify-between">
+										<p>Diskon</p>
+										<p className="text-text-h">{formatRupiah(1000)}</p>
+									</li>
+								</ul>
+							</section>
+							<section className="flex py-3 items-center justify-between">
+								<h6>Total</h6>
+								<h6>{formatRupiah(13_000)}</h6>
+							</section>
+						</div>
+					}
+					Footer={<p className="text-center">Aman dan terenskripsi</p>}
+				/>
+			);
+		}
+		case "/struct": {
 			return (
 				<AsideContent
 					headerName={"Ringkasan"}
@@ -268,12 +300,137 @@ function SideVariants() {
 				<AsideContent
 					headerName={"Proses Pesanan"}
 					Attribute={
-						<Button
-							onClick={handleClearFilter}
-							variant={"inverse"}
-						>
-							<p>Clear</p>
-						</Button>
+						<p className="w-14 text-primary font-semibold text-xs text-right text-wrap">
+							Langkah 2/3
+						</p>
+					}
+					Content={
+						<div>
+							<section className="flex py-3">
+								<ul className="flex items-center flex-col w-full gap-4 cursor-pointer">
+									<li className="flex items-center w-full gap-3">
+										<div className="w-9 h-9 rounded-full centerized border border-primary bg-primary-light">
+											<Check
+												size={14}
+												className="text-primary"
+											/>
+										</div>
+										<div className="flex text-xs flex-col justify-center text-left ">
+											<p className="text-text-h">Keranjang</p>
+											<p>4 produk</p>
+										</div>
+									</li>
+									<li className="flex items-center w-full gap-3">
+										<div className="w-9 h-9 rounded-full centerized border border-primary bg-primary">
+											{/* <Check size={14} className="text-primary" /> */}
+											<p className="text-white  text-sm font-semibold">2</p>
+										</div>
+										<div className="flex text-xs flex-col justify-center text-left ">
+											<p className="text-text-h">Pembayaran</p>
+											<p>Pilih metode</p>
+										</div>
+									</li>
+
+									<li className="flex items-center w-full gap-3">
+										<div className="w-9 h-9 rounded-full centerized bg-base">
+											{/* <Check size={14} className="text-primary" /> */}
+											<p className="text-sm font-semibold">3</p>
+										</div>
+										<div className="flex text-xs flex-col justify-center text-left ">
+											<p className="text-text-h">Selesai</p>
+											<p>Struk dan status</p>
+										</div>
+									</li>
+								</ul>
+							</section>
+						</div>
+					}
+					Footer={
+						<div className="centerized gap-2">
+							<Button
+								variant={"outline"}
+								className="px-6"
+							>
+								<p>Batal</p>
+							</Button>
+							<Button
+								variant={"primary"}
+								className="px-6"
+							>
+								<p>Lanjutkan</p>
+							</Button>
+						</div>
+					}
+				/>
+			);
+		}
+		case "/struct": {
+			return (
+				<AsideContent
+					headerName={"Proses Pesanan"}
+					Attribute={
+						<p className="w-14 text-primary font-semibold text-xs text-right text-wrap">
+							Langkah 2/3
+						</p>
+					}
+					Content={
+						<div>
+							<section className="flex py-3">
+								<ul className="flex items-center flex-col w-full gap-4 cursor-pointer">
+									<li className="flex items-center w-full gap-3">
+										<div className="w-9 h-9 rounded-full centerized border border-primary bg-primary-light">
+											<Check
+												size={14}
+												className="text-primary"
+											/>
+										</div>
+										<div className="flex text-xs flex-col justify-center text-left ">
+											<p className="text-text-h">Keranjang</p>
+											<p>4 produk</p>
+										</div>
+									</li>
+									<li className="flex items-center w-full gap-3">
+										<div className="w-9 h-9 rounded-full centerized border border-primary bg-primary-light">
+											<Check
+												size={14}
+												className="text-primary"
+											/>
+										</div>
+										<div className="flex text-xs flex-col justify-center text-left ">
+											<p className="text-text-h">Pembayaran</p>
+											<p>Pilih metode</p>
+										</div>
+									</li>
+
+									<li className="flex items-center w-full gap-3">
+										<div className="w-9 h-9 rounded-full centerized bg-primary text-white">
+											{/* <Check size={14} className="text-primary" /> */}
+											<p className="text-sm font-semibold">3</p>
+										</div>
+										<div className="flex text-xs flex-col justify-center text-left ">
+											<p className="text-text-h">Selesai</p>
+											<p>Struk dan status</p>
+										</div>
+									</li>
+								</ul>
+							</section>
+						</div>
+					}
+					Footer={
+						<div className="centerized gap-2">
+							<Button
+								variant={"outline"}
+								className="px-6"
+							>
+								<p>Batal</p>
+							</Button>
+							<Button
+								variant={"primary"}
+								className="px-6"
+							>
+								<p>Lanjutkan</p>
+							</Button>
+						</div>
 					}
 				/>
 			);

@@ -4,7 +4,7 @@ import express from "express";
 import { rateLimit } from "express-rate-limit";
 
 /* oxlint-disable jsdoc/check-tag-names -- @openapi is consumed by swagger-jsdoc. */
-import { getCsrfToken, login } from "../controllers/auth.controller.js";
+import { getCsrfToken, login, logout } from "../controllers/auth.controller.js";
 import authMiddleware from "../middleware/auth.js";
 
 const router = express.Router();
@@ -86,6 +86,35 @@ const loginLimiter = rateLimit({
  *         description: Too many login attempts
  */
 router.post("/login", loginLimiter, login);
+
+/**
+ * @openapi
+ * /api/v1/auth/logout:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Log out and clear authentication cookies
+ *     description: Clears the authentication and CSRF cookies. Bearer-token clients must also discard their token locally.
+ *     security:
+ *       - cookieAuth: []
+ *         csrfToken: []
+ *     responses:
+ *       200:
+ *         description: Logout successful
+ *         headers:
+ *           Set-Cookie:
+ *             description: Expired authentication and CSRF cookies.
+ *             schema:
+ *               type: string
+ *         content:
+ *           application/json:
+ *             example:
+ *               success: true
+ *               message: Logout successful
+ *               data: {}
+ *       403:
+ *         description: Invalid or missing CSRF token
+ */
+router.post("/logout", logout);
 
 /**
  * @openapi

@@ -4,7 +4,7 @@ import { Op } from "sequelize";
 
 import db from "../models/index.cjs";
 
-const { Brands, Categories, ProductItems, Products } = db;
+const { Brands, Categories, Inventories, ProductItems, Products } = db;
 
 const UUID_PATTERN =
 	/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -55,6 +55,22 @@ const productIncludes = [
 	},
 ];
 
+const productListIncludes = productIncludes.map((include) => {
+	if (include.as !== "items") return include;
+
+	return {
+		...include,
+		include: [
+			{
+				model: Inventories,
+				as: "inventory",
+				attributes: ["stock"],
+				required: false,
+			},
+		],
+	};
+});
+
 async function getCategory(categoryId) {
 	const category = await Categories.findByPk(categoryId);
 
@@ -74,6 +90,21 @@ async function getCategory(categoryId) {
 
 	return category;
 }
+
+const toProductResponse = (product) => {
+	const value =
+		typeof product?.toJSON === "function" ? product.toJSON() : product;
+
+	if (!Array.isArray(value?.items)) return value;
+
+	return {
+		...value,
+		items: value.items.map(({ inventory, ...item }) => ({
+			...item,
+			stock: inventory?.stock ?? 0,
+		})),
+	};
+};
 
 async function getBrand(brandId) {
 	const brand = await Brands.findByPk(brandId);
@@ -139,14 +170,14 @@ export async function getProducts(req, res, next) {
 
 		const products = await Products.findAll({
 			where,
-			include: productIncludes,
+			include: productListIncludes,
 			order: [["name", "ASC"]],
 		});
 
 		return res.status(constants.HTTP_STATUS_OK).json({
 			success: true,
 			message: "Products retrieved successfully",
-			data: products,
+			data: products.map((product) => toProductResponse(product)),
 		});
 	} catch (error) {
 		return next(error);

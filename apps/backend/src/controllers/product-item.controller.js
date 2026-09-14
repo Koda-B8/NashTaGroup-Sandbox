@@ -7,7 +7,15 @@ import { createHttpError } from "../utils/http-error.js";
 import { parseBoolean, parseSearch } from "../utils/query.js";
 import { isUuid, normalizeText } from "../utils/validation.js";
 
-const { Inventories, ProductItems, Products, sequelize } = db;
+const {
+	Brands,
+	Categories,
+	Inventories,
+	ProductImages,
+	ProductItems,
+	Products,
+	sequelize,
+} = db;
 
 const normalizeProductCode = (value) => {
 	if (typeof value !== "string") return "";
@@ -54,6 +62,65 @@ const itemIncludes = [
 	},
 ];
 
+const productItemDetailIncludes = [
+	{
+		model: Products,
+		as: "product",
+		attributes: [
+			"id",
+			"name",
+			"description",
+			"categoryId",
+			"brandId",
+			"isActive",
+		],
+		required: true,
+		include: [
+			{
+				model: Categories,
+				as: "category",
+				attributes: ["id", "name", "isActive"],
+			},
+			{
+				model: Brands,
+				as: "brand",
+				attributes: ["id", "name", "isActive"],
+			},
+			{
+				model: ProductImages,
+				as: "images",
+				attributes: ["imageUrl", "alt", "isPrimary", "sortOrder"],
+				required: false,
+				separate: true,
+				order: [
+					["isPrimary", "DESC"],
+					["sortOrder", "ASC"],
+				],
+			},
+		],
+	},
+	{
+		model: Inventories,
+		as: "inventory",
+		attributes: ["stock"],
+		required: false,
+	},
+	{
+		model: ProductImages,
+		as: "images",
+		attributes: ["imageUrl", "alt", "isPrimary", "sortOrder"],
+		required: false,
+		separate: true,
+		order: [
+			["isPrimary", "DESC"],
+			["sortOrder", "ASC"],
+		],
+	},
+];
+
+const findPrimaryImage = (images) =>
+	images?.find((image) => image.isPrimary) ?? images?.[0];
+
 const toProductItemResponse = (productItem) => {
 	const value =
 		typeof productItem?.toJSON === "function"
@@ -64,6 +131,31 @@ const toProductItemResponse = (productItem) => {
 	return {
 		...data,
 		stock: inventory?.stock ?? 0,
+	};
+};
+
+const toProductItemDetailResponse = (productItem) => {
+	const value =
+		typeof productItem?.toJSON === "function"
+			? productItem.toJSON()
+			: productItem;
+	const { images, inventory, product, ...itemData } = value;
+	const itemImage = findPrimaryImage(images);
+	const productImage = findPrimaryImage(product?.images);
+	const image = itemImage ?? productImage;
+
+	return {
+		...itemData,
+		stock: inventory?.stock ?? 0,
+		image: image?.imageUrl,
+		alt: image?.alt ?? `${product?.name ?? ""} ${value.name}`.trim(),
+		product: product
+			? {
+					...product,
+					image: productImage?.imageUrl,
+					alt: productImage?.alt ?? product.name,
+				}
+			: undefined,
 	};
 };
 
@@ -151,7 +243,7 @@ export async function getProductItemById(req, res, next) {
 		}
 
 		const productItem = await ProductItems.findByPk(req.params.id, {
-			include: itemIncludes,
+			include: productItemDetailIncludes,
 		});
 
 		if (!productItem) {
@@ -164,7 +256,7 @@ export async function getProductItemById(req, res, next) {
 		return res.status(constants.HTTP_STATUS_OK).json({
 			success: true,
 			message: "Product item retrieved successfully",
-			data: toProductItemResponse(productItem),
+			data: toProductItemDetailResponse(productItem),
 		});
 	} catch (error) {
 		return next(error);

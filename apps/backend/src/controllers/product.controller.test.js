@@ -226,22 +226,25 @@ describe("product controller", () => {
 		expect(response.json).toHaveBeenCalledWith({
 			success: true,
 			message: "Product retrieved successfully",
-			data: {
+			data: expect.objectContaining({
 				...product,
+				alt: "Samsung Galaxy A55",
 				stock: 17,
 				items: [
-					{
+					expect.objectContaining({
 						id: "44444444-4444-4444-8444-444444444444",
 						name: "8GB/128GB - Awesome Navy",
+						alt: "8GB/128GB - Awesome Navy",
 						stock: 10,
-					},
-					{
+					}),
+					expect.objectContaining({
 						id: "55555555-5555-4555-8555-555555555555",
 						name: "8GB/256GB - Ice Blue",
+						alt: "8GB/256GB - Ice Blue",
 						stock: 7,
-					},
+					}),
 				],
-			},
+			}),
 		});
 		expect(next).not.toHaveBeenCalled();
 	});

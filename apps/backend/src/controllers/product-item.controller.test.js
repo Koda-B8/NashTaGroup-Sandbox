@@ -7,15 +7,19 @@ import db from "../models/index.cjs";
 import {
 	createProductItem,
 	deleteProductItem,
+	getProductItemById,
 	getProductItems,
 	updateProductItem,
 } from "./product-item.controller.js";
 
 vi.mock("../models/index.cjs", () => ({
 	default: {
+		Brands: {},
+		Categories: {},
 		Inventories: {
 			create: vi.fn(),
 		},
+		ProductImages: {},
 		ProductItems: {
 			create: vi.fn(),
 			findAll: vi.fn(),
@@ -107,6 +111,58 @@ describe("product item controller", () => {
 			success: true,
 			message: "Product items retrieved successfully",
 			data: [productItemResponse],
+		});
+		expect(next).not.toHaveBeenCalled();
+	});
+
+	it("retrieves product item details with item and product images", async () => {
+		const itemImage = {
+			imageUrl: "https://example.com/galaxy-a55-blue.webp",
+			alt: "Samsung Galaxy A55 Blue",
+			isPrimary: true,
+			sortOrder: 0,
+		};
+		const productImage = {
+			imageUrl: "https://example.com/galaxy-a55.webp",
+			alt: "Samsung Galaxy A55",
+			isPrimary: true,
+			sortOrder: 0,
+		};
+		const detailProduct = {
+			...product,
+			category: { id: product.categoryId, name: "Smartphone", isActive: true },
+			brand: { id: product.brandId, name: "Samsung", isActive: true },
+			images: [productImage],
+		};
+		db.ProductItems.findByPk.mockResolvedValue({
+			...productItem,
+			product: detailProduct,
+			images: [itemImage],
+		});
+		const response = createResponse();
+		const next = vi.fn();
+
+		await getProductItemById({ params: { id: productItemId } }, response, next);
+
+		expect(response.json).toHaveBeenCalledWith({
+			success: true,
+			message: "Product item retrieved successfully",
+			data: {
+				id: productItemId,
+				productId,
+				productCode: "SAM-A55-256-BLU",
+				name: "Samsung Galaxy A55 256GB Blue",
+				price: "6499000.00",
+				isActive: true,
+				stock: 10,
+				image: itemImage.imageUrl,
+				alt: itemImage.alt,
+				product: {
+					...detailProduct,
+					image: productImage.imageUrl,
+					alt: productImage.alt,
+				},
+			},
 		});
 		expect(next).not.toHaveBeenCalled();
 	});

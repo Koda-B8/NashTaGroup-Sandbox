@@ -102,7 +102,7 @@ router.post("/", requireRole("admin"), createProductItem);
  * /api/v1/product-items/{id}:
  *   get:
  *     tags: [Product Items]
- *     summary: Retrieve a product item by id
+ *     summary: Retrieve a product item with product, category, brand, and image details
  *     security:
  *       - cookieAuth: []
  *       - bearerAuth: []
@@ -127,6 +127,15 @@ router.post("/", requireRole("admin"), createProductItem);
  *                 name: 8GB/128GB - Awesome Navy
  *                 price: "5999000.00"
  *                 stock: 10
+ *                 image: https://res.cloudinary.com/nashta/image/upload/galaxy-a55-navy.webp
+ *                 alt: Samsung Galaxy A55 Awesome Navy
+ *                 product:
+ *                   id: 3962d3bd-b9a6-4275-bf87-6cb6af71d943
+ *                   name: Samsung Galaxy A55
+ *                   category:
+ *                     name: Smartphone
+ *                   brand:
+ *                     name: Samsung
  *       400:
  *         description: Invalid product item id
  *       404:

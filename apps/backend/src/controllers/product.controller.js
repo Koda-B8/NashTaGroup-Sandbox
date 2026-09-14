@@ -242,7 +242,7 @@ export async function getProductById(req, res, next) {
 		}
 
 		const product = await Products.findByPk(req.params.id, {
-			include: productIncludes,
+			include: productListIncludes,
 		});
 
 		if (!product) {
@@ -255,7 +255,7 @@ export async function getProductById(req, res, next) {
 		return res.status(constants.HTTP_STATUS_OK).json({
 			success: true,
 			message: "Product retrieved successfully",
-			data: toProductCrudResponse(product),
+			data: toProductResponse(product),
 		});
 	} catch (error) {
 		return next(error);

@@ -16,6 +16,7 @@ vi.mock("../models/index.cjs", () => ({
 		Brands: { findByPk: vi.fn() },
 		Categories: { findByPk: vi.fn() },
 		Inventories: {},
+		ProductImages: {},
 		ProductItems: {},
 		Products: {
 			create: vi.fn(),
@@ -67,11 +68,34 @@ describe("product controller", () => {
 		db.Products.findAll.mockResolvedValue([
 			{
 				...product,
+				images: [
+					{
+						imageUrl:
+							"https://res.cloudinary.com/nashta/image/upload/galaxy-a55.webp",
+						alt: "Samsung Galaxy A55 smartphone",
+						isPrimary: true,
+						sortOrder: 0,
+					},
+				],
 				items: [
 					{
 						id: "44444444-4444-4444-8444-444444444444",
 						name: "8GB/128GB - Awesome Navy",
 						inventory: { stock: 10 },
+						images: [
+							{
+								imageUrl:
+									"https://res.cloudinary.com/nashta/image/upload/galaxy-a55-navy.webp",
+								alt: "Samsung Galaxy A55 Awesome Navy",
+								isPrimary: true,
+								sortOrder: 0,
+							},
+						],
+					},
+					{
+						id: "55555555-5555-4555-8555-555555555555",
+						name: "8GB/256GB - Ice Blue",
+						inventory: { stock: 7 },
 					},
 				],
 			},
@@ -105,11 +129,26 @@ describe("product controller", () => {
 			data: [
 				{
 					...product,
+					image:
+						"https://res.cloudinary.com/nashta/image/upload/galaxy-a55.webp",
+					alt: "Samsung Galaxy A55 smartphone",
+					stock: 17,
 					items: [
 						{
 							id: "44444444-4444-4444-8444-444444444444",
 							name: "8GB/128GB - Awesome Navy",
+							image:
+								"https://res.cloudinary.com/nashta/image/upload/galaxy-a55-navy.webp",
+							alt: "Samsung Galaxy A55 Awesome Navy",
 							stock: 10,
+						},
+						{
+							id: "55555555-5555-4555-8555-555555555555",
+							name: "8GB/256GB - Ice Blue",
+							image:
+								"https://res.cloudinary.com/nashta/image/upload/galaxy-a55.webp",
+							alt: "Samsung Galaxy A55 smartphone",
+							stock: 7,
 						},
 					],
 				},

@@ -14,6 +14,7 @@ import {
 	MainDashboard,
 	UserManagementDashboard,
 } from "./pages/dashboard";
+import StructStatus from "./pages/StructStatus";
 import { persistor, store } from "./store";
 
 const router = createBrowserRouter([
@@ -23,6 +24,7 @@ const router = createBrowserRouter([
 		children: [
 			{ index: true, element: <Home /> },
 			{ path: "/checkout", element: <Checkout /> },
+			{ path: "/struct", element: <StructStatus /> },
 			{ path: "*", element: <NotFound /> },
 		],
 	},

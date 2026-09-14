@@ -4,6 +4,9 @@ import { constants } from "node:http2";
 import { Op } from "sequelize";
 
 import db from "../models/index.cjs";
+import { createHttpError } from "../utils/http-error.js";
+import { parseBoolean, parseSearch } from "../utils/query.js";
+import { isUuid, normalizeText } from "../utils/validation.js";
 
 const {
 	Brands,
@@ -14,33 +17,8 @@ const {
 	Products,
 } = db;
 
-const UUID_PATTERN =
-	/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 // oxlint-disable-next-line unicorn/no-null -- The API represents a missing image explicitly as null.
 const EMPTY_IMAGE = null;
-
-class HttpError extends Error {
-	constructor(statusCode, message) {
-		super(message);
-		this.statusCode = statusCode;
-	}
-}
-
-const createHttpError = (statusCode, message) =>
-	new HttpError(statusCode, message);
-
-const normalizeText = (value) => {
-	if (typeof value !== "string") return "";
-
-	return value.trim().replaceAll(/\s+/g, " ");
-};
-
-const parseBoolean = (value) => {
-	if (value === true || value === "true") return true;
-	if (value === false || value === "false") return false;
-};
-
-const isUuid = (value) => typeof value === "string" && UUID_PATTERN.test(value);
 
 const productIncludes = [
 	{
@@ -59,6 +37,14 @@ const productIncludes = [
 		attributes: ["id", "productCode", "name", "price", "isActive"],
 		required: false,
 		separate: true,
+		include: [
+			{
+				model: Inventories,
+				as: "inventory",
+				attributes: ["stock"],
+				required: false,
+			},
+		],
 		order: [["name", "ASC"]],
 	},
 ];
@@ -152,6 +138,23 @@ const toProductResponse = (product) => {
 	};
 };
 
+const toProductCrudResponse = (product) => {
+	const value =
+		typeof product?.toJSON === "function" ? product.toJSON() : product;
+	const items = Array.isArray(value?.items)
+		? value.items.map(({ inventory, ...item }) => ({
+				...item,
+				stock: inventory?.stock ?? 0,
+			}))
+		: [];
+
+	return {
+		...value,
+		stock: items.reduce((total, item) => total + Number(item.stock), 0),
+		items,
+	};
+};
+
 async function getBrand(brandId) {
 	const brand = await Brands.findByPk(brandId);
 
@@ -171,8 +174,7 @@ async function getBrand(brandId) {
 
 export async function getProducts(req, res, next) {
 	try {
-		const search =
-			typeof req.query.search === "string" ? req.query.search.trim() : "";
+		const search = parseSearch(req.query.search);
 		const categoryId =
 			typeof req.query.categoryId === "string"
 				? req.query.categoryId.trim()
@@ -240,7 +242,7 @@ export async function getProductById(req, res, next) {
 		}
 
 		const product = await Products.findByPk(req.params.id, {
-			include: productIncludes,
+			include: productListIncludes,
 		});
 
 		if (!product) {
@@ -253,7 +255,7 @@ export async function getProductById(req, res, next) {
 		return res.status(constants.HTTP_STATUS_OK).json({
 			success: true,
 			message: "Product retrieved successfully",
-			data: product,
+			data: toProductResponse(product),
 		});
 	} catch (error) {
 		return next(error);
@@ -326,7 +328,7 @@ export async function createProduct(req, res, next) {
 		return res.status(constants.HTTP_STATUS_CREATED).json({
 			success: true,
 			message: "Product created successfully",
-			data: createdProduct,
+			data: toProductCrudResponse(createdProduct),
 		});
 	} catch (error) {
 		return next(error);
@@ -431,7 +433,7 @@ export async function updateProduct(req, res, next) {
 		return res.status(constants.HTTP_STATUS_OK).json({
 			success: true,
 			message: "Product updated successfully",
-			data: updatedProduct,
+			data: toProductCrudResponse(updatedProduct),
 		});
 	} catch (error) {
 		return next(error);

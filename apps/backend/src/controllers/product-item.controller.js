@@ -3,42 +3,25 @@ import { constants } from "node:http2";
 import { Op, UniqueConstraintError } from "sequelize";
 
 import db from "../models/index.cjs";
+import { createHttpError } from "../utils/http-error.js";
+import { parseBoolean, parseSearch } from "../utils/query.js";
+import { isUuid, normalizeText } from "../utils/validation.js";
 
-const { ProductItems, Products } = db;
-
-const UUID_PATTERN =
-	/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-class HttpError extends Error {
-	constructor(statusCode, message) {
-		super(message);
-		this.statusCode = statusCode;
-	}
-}
-
-const createHttpError = (statusCode, message) =>
-	new HttpError(statusCode, message);
-
-const normalizeText = (value) => {
-	if (typeof value !== "string") return "";
-
-	return value.trim().replaceAll(/\s+/g, " ");
-};
+const {
+	Brands,
+	Categories,
+	Inventories,
+	ProductImages,
+	ProductItems,
+	Products,
+	sequelize,
+} = db;
 
 const normalizeProductCode = (value) => {
 	if (typeof value !== "string") return "";
 
 	return value.trim().toUpperCase();
 };
-
-const parseBoolean = (value) => {
-	if (value === true || value === "true") return true;
-	if (value === false || value === "false") return false;
-
-	return;
-};
-
-const isUuid = (value) => typeof value === "string" && UUID_PATTERN.test(value);
 
 const parsePrice = (value) => {
 	const rawValue = String(value ?? "").trim();
@@ -56,6 +39,12 @@ const parsePrice = (value) => {
 	return rawValue;
 };
 
+const parseStock = (value) => {
+	if (!Number.isInteger(value) || value < 0) return;
+
+	return value;
+};
+
 const isValidProductCode = (value) => /^[A-Z0-9][A-Z0-9-]{0,49}$/.test(value);
 
 const itemIncludes = [
@@ -65,7 +54,110 @@ const itemIncludes = [
 		attributes: ["id", "name", "categoryId", "brandId", "isActive"],
 		required: true,
 	},
+	{
+		model: Inventories,
+		as: "inventory",
+		attributes: ["stock"],
+		required: false,
+	},
 ];
+
+const productItemDetailIncludes = [
+	{
+		model: Products,
+		as: "product",
+		attributes: [
+			"id",
+			"name",
+			"description",
+			"categoryId",
+			"brandId",
+			"isActive",
+		],
+		required: true,
+		include: [
+			{
+				model: Categories,
+				as: "category",
+				attributes: ["id", "name", "isActive"],
+			},
+			{
+				model: Brands,
+				as: "brand",
+				attributes: ["id", "name", "isActive"],
+			},
+			{
+				model: ProductImages,
+				as: "images",
+				attributes: ["imageUrl", "alt", "isPrimary", "sortOrder"],
+				required: false,
+				separate: true,
+				order: [
+					["isPrimary", "DESC"],
+					["sortOrder", "ASC"],
+				],
+			},
+		],
+	},
+	{
+		model: Inventories,
+		as: "inventory",
+		attributes: ["stock"],
+		required: false,
+	},
+	{
+		model: ProductImages,
+		as: "images",
+		attributes: ["imageUrl", "alt", "isPrimary", "sortOrder"],
+		required: false,
+		separate: true,
+		order: [
+			["isPrimary", "DESC"],
+			["sortOrder", "ASC"],
+		],
+	},
+];
+
+const findPrimaryImage = (images) =>
+	images?.find((image) => image.isPrimary) ?? images?.[0];
+
+const toProductItemResponse = (productItem) => {
+	const value =
+		typeof productItem?.toJSON === "function"
+			? productItem.toJSON()
+			: productItem;
+	const { inventory, ...data } = value;
+
+	return {
+		...data,
+		stock: inventory?.stock ?? 0,
+	};
+};
+
+const toProductItemDetailResponse = (productItem) => {
+	const value =
+		typeof productItem?.toJSON === "function"
+			? productItem.toJSON()
+			: productItem;
+	const { images, inventory, product, ...itemData } = value;
+	const itemImage = findPrimaryImage(images);
+	const productImage = findPrimaryImage(product?.images);
+	const image = itemImage ?? productImage;
+
+	return {
+		...itemData,
+		stock: inventory?.stock ?? 0,
+		image: image?.imageUrl,
+		alt: image?.alt ?? `${product?.name ?? ""} ${value.name}`.trim(),
+		product: product
+			? {
+					...product,
+					image: productImage?.imageUrl,
+					alt: productImage?.alt ?? product.name,
+				}
+			: undefined,
+	};
+};
 
 async function getProduct(productId) {
 	const product = await Products.findByPk(productId);
@@ -86,8 +178,7 @@ async function getProduct(productId) {
 
 export async function getProductItems(req, res, next) {
 	try {
-		const search =
-			typeof req.query.search === "string" ? req.query.search.trim() : "";
+		const search = parseSearch(req.query.search);
 		const productId =
 			typeof req.query.productId === "string" ? req.query.productId.trim() : "";
 		const isActive = parseBoolean(req.query.isActive);
@@ -135,7 +226,7 @@ export async function getProductItems(req, res, next) {
 		return res.status(constants.HTTP_STATUS_OK).json({
 			success: true,
 			message: "Product items retrieved successfully",
-			data: productItems,
+			data: productItems.map((item) => toProductItemResponse(item)),
 		});
 	} catch (error) {
 		return next(error);
@@ -152,7 +243,7 @@ export async function getProductItemById(req, res, next) {
 		}
 
 		const productItem = await ProductItems.findByPk(req.params.id, {
-			include: itemIncludes,
+			include: productItemDetailIncludes,
 		});
 
 		if (!productItem) {
@@ -165,7 +256,7 @@ export async function getProductItemById(req, res, next) {
 		return res.status(constants.HTTP_STATUS_OK).json({
 			success: true,
 			message: "Product item retrieved successfully",
-			data: productItem,
+			data: toProductItemDetailResponse(productItem),
 		});
 	} catch (error) {
 		return next(error);
@@ -178,6 +269,8 @@ export async function createProductItem(req, res, next) {
 		const name = normalizeText(req.body?.name);
 		const productCode = normalizeProductCode(req.body?.productCode);
 		const price = parsePrice(req.body?.price);
+		const stock =
+			req.body?.stock === undefined ? 0 : parseStock(req.body.stock);
 
 		if (!isUuid(productId)) {
 			throw createHttpError(
@@ -207,6 +300,13 @@ export async function createProductItem(req, res, next) {
 			);
 		}
 
+		if (stock === undefined) {
+			throw createHttpError(
+				constants.HTTP_STATUS_BAD_REQUEST,
+				"stock must be a non-negative integer",
+			);
+		}
+
 		if (
 			Object.hasOwn(req.body ?? {}, "isActive") &&
 			typeof req.body.isActive !== "boolean"
@@ -219,12 +319,24 @@ export async function createProductItem(req, res, next) {
 
 		await getProduct(productId);
 
-		const productItem = await ProductItems.create({
-			productId,
-			name,
-			productCode,
-			price,
-			isActive: req.body?.isActive ?? true,
+		const productItem = await sequelize.transaction(async (transaction) => {
+			const item = await ProductItems.create(
+				{
+					productId,
+					name,
+					productCode,
+					price,
+					isActive: req.body?.isActive ?? true,
+				},
+				{ transaction },
+			);
+
+			await Inventories.create(
+				{ productItemId: item.id, stock },
+				{ transaction },
+			);
+
+			return item;
 		});
 
 		const createdProductItem = await ProductItems.findByPk(productItem.id, {
@@ -234,7 +346,7 @@ export async function createProductItem(req, res, next) {
 		return res.status(constants.HTTP_STATUS_CREATED).json({
 			success: true,
 			message: "Product item created successfully",
-			data: createdProductItem,
+			data: toProductItemResponse(createdProductItem),
 		});
 	} catch (error) {
 		if (error instanceof UniqueConstraintError) {
@@ -348,7 +460,7 @@ export async function updateProductItem(req, res, next) {
 		return res.status(constants.HTTP_STATUS_OK).json({
 			success: true,
 			message: "Product item updated successfully",
-			data: updatedProductItem,
+			data: toProductItemResponse(updatedProductItem),
 		});
 	} catch (error) {
 		if (error instanceof UniqueConstraintError) {

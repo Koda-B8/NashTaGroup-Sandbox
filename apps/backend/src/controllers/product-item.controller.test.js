@@ -7,11 +7,19 @@ import db from "../models/index.cjs";
 import {
 	createProductItem,
 	deleteProductItem,
+	getProductItemById,
 	getProductItems,
+	updateProductItem,
 } from "./product-item.controller.js";
 
 vi.mock("../models/index.cjs", () => ({
 	default: {
+		Brands: {},
+		Categories: {},
+		Inventories: {
+			create: vi.fn(),
+		},
+		ProductImages: {},
 		ProductItems: {
 			create: vi.fn(),
 			findAll: vi.fn(),
@@ -19,6 +27,9 @@ vi.mock("../models/index.cjs", () => ({
 		},
 		Products: {
 			findByPk: vi.fn(),
+		},
+		sequelize: {
+			transaction: vi.fn(),
 		},
 	},
 }));
@@ -41,7 +52,19 @@ const productItem = {
 	name: "Samsung Galaxy A55 256GB Blue",
 	price: "6499000.00",
 	isActive: true,
+	inventory: { stock: 10 },
 	product,
+};
+
+const productItemResponse = {
+	id: productItemId,
+	productId,
+	productCode: "SAM-A55-256-BLU",
+	name: "Samsung Galaxy A55 256GB Blue",
+	price: "6499000.00",
+	isActive: true,
+	product,
+	stock: 10,
 };
 
 const createResponse = () => ({
@@ -54,6 +77,9 @@ describe("product item controller", () => {
 		vi.clearAllMocks();
 
 		db.Products.findByPk.mockResolvedValue(product);
+		db.sequelize.transaction.mockImplementation((callback) =>
+			callback({ id: "database-transaction" }),
+		);
 	});
 
 	it("retrieves product items with search and filters", async () => {
@@ -84,7 +110,59 @@ describe("product item controller", () => {
 		expect(response.json).toHaveBeenCalledWith({
 			success: true,
 			message: "Product items retrieved successfully",
-			data: [productItem],
+			data: [productItemResponse],
+		});
+		expect(next).not.toHaveBeenCalled();
+	});
+
+	it("retrieves product item details with item and product images", async () => {
+		const itemImage = {
+			imageUrl: "https://example.com/galaxy-a55-blue.webp",
+			alt: "Samsung Galaxy A55 Blue",
+			isPrimary: true,
+			sortOrder: 0,
+		};
+		const productImage = {
+			imageUrl: "https://example.com/galaxy-a55.webp",
+			alt: "Samsung Galaxy A55",
+			isPrimary: true,
+			sortOrder: 0,
+		};
+		const detailProduct = {
+			...product,
+			category: { id: product.categoryId, name: "Smartphone", isActive: true },
+			brand: { id: product.brandId, name: "Samsung", isActive: true },
+			images: [productImage],
+		};
+		db.ProductItems.findByPk.mockResolvedValue({
+			...productItem,
+			product: detailProduct,
+			images: [itemImage],
+		});
+		const response = createResponse();
+		const next = vi.fn();
+
+		await getProductItemById({ params: { id: productItemId } }, response, next);
+
+		expect(response.json).toHaveBeenCalledWith({
+			success: true,
+			message: "Product item retrieved successfully",
+			data: {
+				id: productItemId,
+				productId,
+				productCode: "SAM-A55-256-BLU",
+				name: "Samsung Galaxy A55 256GB Blue",
+				price: "6499000.00",
+				isActive: true,
+				stock: 10,
+				image: itemImage.imageUrl,
+				alt: itemImage.alt,
+				product: {
+					...detailProduct,
+					image: productImage.imageUrl,
+					alt: productImage.alt,
+				},
+			},
 		});
 		expect(next).not.toHaveBeenCalled();
 	});
@@ -103,6 +181,7 @@ describe("product item controller", () => {
 					productCode: " sam-a55-256-blu ",
 					name: "  Samsung Galaxy A55 256GB Blue  ",
 					price: "6499000.00",
+					stock: 10,
 				},
 			},
 			response,
@@ -110,18 +189,25 @@ describe("product item controller", () => {
 		);
 
 		expect(db.Products.findByPk).toHaveBeenCalledWith(productId);
-		expect(db.ProductItems.create).toHaveBeenCalledWith({
-			productId,
-			productCode: "SAM-A55-256-BLU",
-			name: "Samsung Galaxy A55 256GB Blue",
-			price: "6499000.00",
-			isActive: true,
-		});
+		expect(db.ProductItems.create).toHaveBeenCalledWith(
+			{
+				productId,
+				productCode: "SAM-A55-256-BLU",
+				name: "Samsung Galaxy A55 256GB Blue",
+				price: "6499000.00",
+				isActive: true,
+			},
+			{ transaction: { id: "database-transaction" } },
+		);
+		expect(db.Inventories.create).toHaveBeenCalledWith(
+			{ productItemId, stock: 10 },
+			{ transaction: { id: "database-transaction" } },
+		);
 		expect(response.status).toHaveBeenCalledWith(constants.HTTP_STATUS_CREATED);
 		expect(response.json).toHaveBeenCalledWith({
 			success: true,
 			message: "Product item created successfully",
-			data: productItem,
+			data: productItemResponse,
 		});
 		expect(next).not.toHaveBeenCalled();
 	});
@@ -155,6 +241,62 @@ describe("product item controller", () => {
 			);
 		},
 	);
+
+	it.each([-1, 1.5, "10"])(
+		"returns 400 for invalid stock %p",
+		async (stock) => {
+			const response = createResponse();
+			const next = vi.fn();
+
+			await createProductItem(
+				{
+					body: {
+						productId,
+						productCode: "SAM-A55-256-BLU",
+						name: "Samsung Galaxy A55 256GB Blue",
+						price: "6499000.00",
+						stock,
+					},
+				},
+				response,
+				next,
+			);
+
+			expect(db.sequelize.transaction).not.toHaveBeenCalled();
+			expect(next).toHaveBeenCalledWith(
+				expect.objectContaining({
+					statusCode: constants.HTTP_STATUS_BAD_REQUEST,
+					message: "stock must be a non-negative integer",
+				}),
+			);
+		},
+	);
+
+	it("includes current stock when updating product item data", async () => {
+		const update = vi.fn();
+		db.ProductItems.findByPk
+			.mockResolvedValueOnce({ ...productItem, update })
+			.mockResolvedValueOnce(productItem);
+		const response = createResponse();
+		const next = vi.fn();
+
+		await updateProductItem(
+			{
+				params: { id: productItemId },
+				body: { price: "6599000.00" },
+			},
+			response,
+			next,
+		);
+
+		expect(update).toHaveBeenCalledWith({ price: "6599000.00" });
+		expect(response.json).toHaveBeenCalledWith({
+			success: true,
+			message: "Product item updated successfully",
+			data: productItemResponse,
+		});
+		expect(next).not.toHaveBeenCalled();
+	});
 
 	it("returns 409 when the product code already exists", async () => {
 		db.ProductItems.create.mockRejectedValue(

@@ -7,6 +7,7 @@ import db from "../models/index.cjs";
 import {
 	createProduct,
 	deleteProduct,
+	getProductById,
 	getProducts,
 	updateProduct,
 } from "./product.controller.js";
@@ -49,6 +50,12 @@ const product = {
 	name: "Samsung Galaxy A55",
 	description: "Samsung Galaxy A55 smartphone.",
 	isActive: true,
+};
+
+const productWithStock = {
+	...product,
+	stock: 0,
+	items: [],
 };
 
 const createResponse = () => ({
@@ -159,7 +166,7 @@ describe("product controller", () => {
 
 	it("creates a product with valid category and brand", async () => {
 		db.Products.create.mockResolvedValue({ id: productId });
-		db.Products.findByPk.mockResolvedValue(product);
+		db.Products.findByPk.mockResolvedValue({ ...product, items: [] });
 
 		const response = createResponse();
 		const next = vi.fn();
@@ -190,7 +197,54 @@ describe("product controller", () => {
 		expect(response.json).toHaveBeenCalledWith({
 			success: true,
 			message: "Product created successfully",
-			data: product,
+			data: productWithStock,
+		});
+		expect(next).not.toHaveBeenCalled();
+	});
+
+	it("retrieves product details with aggregate and per-item stock", async () => {
+		db.Products.findByPk.mockResolvedValue({
+			...product,
+			items: [
+				{
+					id: "44444444-4444-4444-8444-444444444444",
+					name: "8GB/128GB - Awesome Navy",
+					inventory: { stock: 10 },
+				},
+				{
+					id: "55555555-5555-4555-8555-555555555555",
+					name: "8GB/256GB - Ice Blue",
+					inventory: { stock: 7 },
+				},
+			],
+		});
+		const response = createResponse();
+		const next = vi.fn();
+
+		await getProductById({ params: { id: productId } }, response, next);
+
+		expect(response.json).toHaveBeenCalledWith({
+			success: true,
+			message: "Product retrieved successfully",
+			data: expect.objectContaining({
+				...product,
+				alt: "Samsung Galaxy A55",
+				stock: 17,
+				items: [
+					expect.objectContaining({
+						id: "44444444-4444-4444-8444-444444444444",
+						name: "8GB/128GB - Awesome Navy",
+						alt: "8GB/128GB - Awesome Navy",
+						stock: 10,
+					}),
+					expect.objectContaining({
+						id: "55555555-5555-4555-8555-555555555555",
+						name: "8GB/256GB - Ice Blue",
+						alt: "8GB/256GB - Ice Blue",
+						stock: 7,
+					}),
+				],
+			}),
 		});
 		expect(next).not.toHaveBeenCalled();
 	});

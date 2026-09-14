@@ -4,10 +4,11 @@ import { Op } from "sequelize";
 
 import { paginate } from "../lib/pagination.js";
 import db from "../models/index.cjs";
+import { createHttpError } from "../utils/http-error.js";
+import { parseBoolean, parseSearch } from "../utils/query.js";
+import { isUuid } from "../utils/validation.js";
 
 const { Roles, Users } = db;
-const UUID_PATTERN =
-	/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const ALLOWED_ROLES = new Set(["admin", "cashier"]);
 const ALLOWED_FIELDS = new Set([
 	"fullname",
@@ -20,16 +21,6 @@ const ALLOWED_FIELDS = new Set([
 const sendError = (response, status, message) =>
 	response.status(status).json({ success: false, message });
 
-class HttpError extends Error {
-	constructor(statusCode, message) {
-		super(message);
-		this.statusCode = statusCode;
-	}
-}
-
-const createHttpError = (statusCode, message) =>
-	new HttpError(statusCode, message);
-
 const userAttributes = ["id", "fullname", "username", "isActive", "createdAt"];
 const userInclude = (roleName) => [
 	{
@@ -39,13 +30,6 @@ const userInclude = (roleName) => [
 		...(roleName ? { where: { name: roleName }, required: true } : {}),
 	},
 ];
-
-const isUuid = (value) => typeof value === "string" && UUID_PATTERN.test(value);
-
-const parseBoolean = (value) => {
-	if (value === true || value === "true") return true;
-	if (value === false || value === "false") return false;
-};
 
 const toUserResponse = (user) => {
 	const value = typeof user?.toJSON === "function" ? user.toJSON() : user;
@@ -60,8 +44,7 @@ const toUserResponse = (user) => {
 
 export async function getUsers(request, response, next) {
 	try {
-		const search =
-			typeof request.query.q === "string" ? request.query.q.trim() : "";
+		const search = parseSearch(request.query.q);
 		const isActive = parseBoolean(request.query.is_active);
 		const role =
 			typeof request.query.role === "string"

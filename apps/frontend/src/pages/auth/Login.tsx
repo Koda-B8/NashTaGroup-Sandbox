@@ -8,7 +8,7 @@ import Checkbox from "../../components/ui/checkbox";
 import Input from "../../components/ui/input";
 import { setCsrfToken } from "../../libs/api";
 import type { AppDispatch } from "../../store";
-import { setCredentials, type AuthUser } from "../../store/authSlice";
+import { setCredentials, type AuthUser } from "../../store/slices/auth";
 
 interface LocationState {
 	from?: string;

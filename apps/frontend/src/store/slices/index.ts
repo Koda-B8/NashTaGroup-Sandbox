@@ -2,7 +2,7 @@ import { combineReducers } from "@reduxjs/toolkit";
 import { persistReducer } from "redux-persist";
 import storage from "redux-persist/es/storage";
 
-import auth from "../authSlice.ts";
+import auth from "./auth.ts";
 import cart from "./cart.ts";
 
 const persistCartConfig = {

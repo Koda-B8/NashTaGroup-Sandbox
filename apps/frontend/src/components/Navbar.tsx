@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 
-import Breadcrumb from "../ui/breadcrumb";
+import Breadcrumb from "./ui/breadcrumb";
 
 interface SearchBoxProps {
 	onSearch?: (value: string) => void;

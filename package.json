@@ -16,6 +16,9 @@
 	},
 	"type": "module",
 	"scripts": {
+		"dev": "concurrently -n be,fe \"npm run dev:be\" \"npm run dev:fe\"",
+		"dev:be": "npm run dev -w backend",
+		"dev:fe": "npm run dev -w frontend",
 		"fmt": "oxfmt",
 		"lint": "oxlint --fix",
 		"test": "vitest run",
@@ -24,11 +27,12 @@
 		"prepare": "lefthook install"
 	},
 	"devDependencies": {
-		"@kekkon-nexus/config": "3.0.0",
+		"@kekkon-nexus/config": "3.1.1",
 		"@vitest/coverage-v8": "^5.0.0",
+		"concurrently": "^10.0.5",
 		"lefthook": "^2.1.12",
-		"oxfmt": "0.64.0",
-		"oxlint": "1.79.0",
+		"oxfmt": "0.66.0",
+		"oxlint": "1.81.0",
 		"oxlint-tsgolint": "^7.0.2001",
 		"typescript": "^7.0.2",
 		"vitest": "^5.0.0"

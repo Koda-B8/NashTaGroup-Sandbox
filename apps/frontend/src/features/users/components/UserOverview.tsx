@@ -1,7 +1,7 @@
+import Card from "../../../components/ui/card";
 import { getRoleName } from "../../../libs/format";
-import type { User } from "../../../services/users";
 import type { ApiMeta } from "../../../types/pagination";
-import Card from "../../ui/card";
+import type { User } from "../api";
 
 export default function UserOverview({
 	users,

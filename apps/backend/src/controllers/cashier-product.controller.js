@@ -5,7 +5,7 @@ import { Op } from "sequelize";
 import { paginate } from "../lib/pagination.js";
 import db from "../models/index.cjs";
 import { createHttpError } from "../utils/http-error.js";
-import { parseBoolean } from "../utils/query.js";
+import { parseBoolean, parseSearch } from "../utils/query.js";
 import { isUuid } from "../utils/validation.js";
 
 const {
@@ -74,8 +74,7 @@ const toCashierProductResponse = (productItem) => {
 
 export async function getCashierProducts(request, response, next) {
 	try {
-		const search =
-			typeof request.query.q === "string" ? request.query.q.trim() : "";
+		const search = parseSearch(request.query.q);
 		const categoryId = request.query.category_id;
 		const brandId = request.query.brand_id;
 		const inStock = parseBoolean(request.query.in_stock);

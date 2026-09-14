@@ -5,7 +5,7 @@ import { Op } from "sequelize";
 
 import db from "../models/index.cjs";
 import { createHttpError } from "../utils/http-error.js";
-import { parseBoolean } from "../utils/query.js";
+import { parseBoolean, parseSearch } from "../utils/query.js";
 import { isUuid, normalizeText } from "../utils/validation.js";
 
 const {
@@ -174,8 +174,7 @@ async function getBrand(brandId) {
 
 export async function getProducts(req, res, next) {
 	try {
-		const search =
-			typeof req.query.search === "string" ? req.query.search.trim() : "";
+		const search = parseSearch(req.query.search);
 		const categoryId =
 			typeof req.query.categoryId === "string"
 				? req.query.categoryId.trim()

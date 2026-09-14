@@ -4,3 +4,6 @@ export const parseBoolean = (value) => {
 
 	return;
 };
+
+export const parseSearch = (value) =>
+	typeof value === "string" ? value.trim() : "";

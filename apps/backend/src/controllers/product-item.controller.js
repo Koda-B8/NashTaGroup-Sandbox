@@ -4,7 +4,7 @@ import { Op, UniqueConstraintError } from "sequelize";
 
 import db from "../models/index.cjs";
 import { createHttpError } from "../utils/http-error.js";
-import { parseBoolean } from "../utils/query.js";
+import { parseBoolean, parseSearch } from "../utils/query.js";
 import { isUuid, normalizeText } from "../utils/validation.js";
 
 const { Inventories, ProductItems, Products, sequelize } = db;
@@ -86,8 +86,7 @@ async function getProduct(productId) {
 
 export async function getProductItems(req, res, next) {
 	try {
-		const search =
-			typeof req.query.search === "string" ? req.query.search.trim() : "";
+		const search = parseSearch(req.query.search);
 		const productId =
 			typeof req.query.productId === "string" ? req.query.productId.trim() : "";
 		const isActive = parseBoolean(req.query.isActive);

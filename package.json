@@ -16,6 +16,9 @@
 	},
 	"type": "module",
 	"scripts": {
+		"dev": "concurrently -n be,fe \"npm run dev:be\" \"npm run dev:fe\"",
+		"dev:be": "npm run dev -w backend",
+		"dev:fe": "npm run dev -w frontend",
 		"fmt": "oxfmt",
 		"lint": "oxlint --fix",
 		"test": "vitest run",
@@ -26,6 +29,7 @@
 	"devDependencies": {
 		"@kekkon-nexus/config": "3.1.1",
 		"@vitest/coverage-v8": "^5.0.0",
+		"concurrently": "^10.0.5",
 		"lefthook": "^2.1.12",
 		"oxfmt": "0.66.0",
 		"oxlint": "1.81.0",

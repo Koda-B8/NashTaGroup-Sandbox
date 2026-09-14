@@ -15,6 +15,7 @@ vi.mock("../models/index.cjs", () => ({
 	default: {
 		Brands: { findByPk: vi.fn() },
 		Categories: { findByPk: vi.fn() },
+		Inventories: {},
 		ProductItems: {},
 		Products: {
 			create: vi.fn(),
@@ -63,7 +64,18 @@ describe("product controller", () => {
 	});
 
 	it("retrieves products with search and filters", async () => {
-		db.Products.findAll.mockResolvedValue([product]);
+		db.Products.findAll.mockResolvedValue([
+			{
+				...product,
+				items: [
+					{
+						id: "44444444-4444-4444-8444-444444444444",
+						name: "8GB/128GB - Awesome Navy",
+						inventory: { stock: 10 },
+					},
+				],
+			},
+		]);
 		const response = createResponse();
 		const next = vi.fn();
 
@@ -90,7 +102,18 @@ describe("product controller", () => {
 		expect(response.json).toHaveBeenCalledWith({
 			success: true,
 			message: "Products retrieved successfully",
-			data: [product],
+			data: [
+				{
+					...product,
+					items: [
+						{
+							id: "44444444-4444-4444-8444-444444444444",
+							name: "8GB/128GB - Awesome Navy",
+							stock: 10,
+						},
+					],
+				},
+			],
 		});
 		expect(next).not.toHaveBeenCalled();
 	});

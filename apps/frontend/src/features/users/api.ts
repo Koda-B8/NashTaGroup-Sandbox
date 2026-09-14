@@ -1,9 +1,9 @@
-import { apiFetch } from "../libs/api";
+import { apiFetch } from "../../libs/api";
 import {
 	getPaginationMeta,
 	type ApiMeta,
 	type PaginatedResponse,
-} from "../types/pagination";
+} from "../../types/pagination";
 
 export interface User {
 	id: string;

@@ -3,7 +3,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { Navigate, Outlet, useLocation } from "react-router";
 
 import type { RootState } from "../store";
-import { checkExpiry, isAuthExpired, readAuthCookie } from "../store/authSlice";
+import {
+	checkExpiry,
+	isAuthExpired,
+	readAuthCookie,
+} from "../store/slices/auth";
 
 interface ProtectedRouteProps {
 	allowedRoles?: string[];

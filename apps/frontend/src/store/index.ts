@@ -9,7 +9,7 @@ import {
 } from "redux-persist";
 import persistStore from "redux-persist/es/persistStore";
 
-import reducer from "./reducer";
+import reducer from "./slices";
 
 export const store = configureStore({
 	reducer,

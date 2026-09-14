@@ -16,11 +16,11 @@ import {
 import { useState } from "react";
 import { Outlet, Link, useLocation } from "react-router";
 
-import Avatar from "../ui/avatar";
-import Badge from "../ui/badge";
-import Breadcrumb from "../ui/breadcrumb";
-import Input from "../ui/input";
-import Shell from "./Shell";
+import Shell from "../../components/Shell";
+import Avatar from "../../components/ui/avatar";
+import Badge from "../../components/ui/badge";
+import Breadcrumb from "../../components/ui/breadcrumb";
+import Input from "../../components/ui/input";
 
 interface SidebarNavItem {
 	id?: string;

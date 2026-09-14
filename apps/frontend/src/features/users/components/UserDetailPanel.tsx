@@ -1,9 +1,9 @@
+import Avatar from "../../../components/ui/avatar";
+import Badge from "../../../components/ui/badge";
+import Button from "../../../components/ui/button";
+import Card from "../../../components/ui/card";
 import { formatDate, getRoleName } from "../../../libs/format";
-import type { User } from "../../../services/users";
-import Avatar from "../../ui/avatar";
-import Badge from "../../ui/badge";
-import Button from "../../ui/button";
-import Card from "../../ui/card";
+import type { User } from "../api";
 
 export default function UserDetailPanel({ user }: { user: User | undefined }) {
 	if (!user)

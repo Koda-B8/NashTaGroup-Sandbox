@@ -4,7 +4,7 @@ import { useDispatch } from "react-redux";
 import Button from "../components/ui/button";
 import Card from "../components/ui/card";
 import { formatRupiah } from "../libs/formatRupiah";
-import { addToCart } from "../store/reducer/cart";
+import { addToCart } from "../store/slices/cart";
 
 interface Product {
 	uuid: string;

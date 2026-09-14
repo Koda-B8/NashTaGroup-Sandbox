@@ -50,9 +50,9 @@ export async function listCategories(
 		);
 	const data: Category[] = Array.isArray(json?.data)
 		? (json.data as Category[])
-		: (Array.isArray(json)
+		: Array.isArray(json)
 			? (json as unknown as Category[])
-			: []);
+			: [];
 	const meta: ApiMeta =
 		json?.meta ??
 		getPaginationMeta(data.length, params.limit ?? 20, params.page ?? 1);
@@ -70,9 +70,9 @@ export async function createCategory(payload: { name: string }): Promise<void> {
 			data?.message ??
 				(res.status === 409
 					? "Nama category sudah ada"
-					: (res.status === 403
+					: res.status === 403
 						? "Hanya admin yang dapat membuat category"
-						: `Gagal membuat category (${res.status})`)),
+						: `Gagal membuat category (${res.status})`),
 		);
 	}
 }
@@ -91,9 +91,9 @@ export async function updateCategory(
 			data?.message ??
 				(res.status === 409
 					? "Nama category sudah ada"
-					: (res.status === 404
+					: res.status === 404
 						? "Category tidak ditemukan"
-						: `Gagal memperbarui category (${res.status})`)),
+						: `Gagal memperbarui category (${res.status})`),
 		);
 	}
 }

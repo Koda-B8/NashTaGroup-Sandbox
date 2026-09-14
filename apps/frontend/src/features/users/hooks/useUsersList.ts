@@ -59,9 +59,9 @@ export function useUsersList(params: {
 			isActive:
 				statusFilter === "Active"
 					? true
-					: (statusFilter === "Inactive"
+					: statusFilter === "Inactive"
 						? false
-						: undefined),
+						: undefined,
 			role: roleFilter === "All" ? undefined : roleFilter,
 		},
 		page,

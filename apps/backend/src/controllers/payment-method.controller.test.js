@@ -57,6 +57,8 @@ describe("payment method controller", () => {
 					type: "cash",
 					admin_fee: "0.00",
 					is_active: true,
+					createdAt: expect.any(Date),
+					updatedAt: expect.any(Date),
 				},
 			],
 		});

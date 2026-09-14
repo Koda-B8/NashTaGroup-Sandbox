@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { signToken } from "../lib/jwt.js";
 import db from "../models/index.cjs";
-import { getCsrfToken, login } from "./auth.controller.js";
+import { getCsrfToken, login, logout } from "./auth.controller.js";
 
 vi.mock("argon2", () => ({
 	default: { verify: vi.fn() },
@@ -31,9 +31,41 @@ const user = {
 };
 
 const createResponse = () => ({
+	clearCookie: vi.fn(),
 	cookie: vi.fn(),
 	status: vi.fn().mockReturnThis(),
 	json: vi.fn(),
+});
+
+describe("auth controller logout", () => {
+	it("clears authentication and CSRF cookies", () => {
+		const response = createResponse();
+
+		logout({}, response);
+
+		const expectedOptions = {
+			httpOnly: true,
+			secure: false,
+			sameSite: "lax",
+			path: "/",
+		};
+		expect(response.clearCookie).toHaveBeenNthCalledWith(
+			1,
+			"auth_token",
+			expectedOptions,
+		);
+		expect(response.clearCookie).toHaveBeenNthCalledWith(
+			2,
+			"csrf_token",
+			expectedOptions,
+		);
+		expect(response.status).toHaveBeenCalledWith(constants.HTTP_STATUS_OK);
+		expect(response.json).toHaveBeenCalledWith({
+			success: true,
+			message: "Logout successful",
+			data: {},
+		});
+	});
 });
 
 describe("auth controller login", () => {

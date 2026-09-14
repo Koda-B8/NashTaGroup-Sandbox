@@ -20,6 +20,7 @@ import Avatar from "../ui/avatar";
 import Badge from "../ui/badge";
 import Breadcrumb from "../ui/breadcrumb";
 import Input from "../ui/input";
+import Shell from "./Shell";
 
 interface SidebarNavItem {
 	id?: string;
@@ -237,7 +238,7 @@ function SidebarNavNode({ item, depth = 0 }: SidebarNavNodeProps) {
 
 function Sidebar() {
 	return (
-		<aside className="flex h-screen w-64 shrink-0 flex-col border-r border-base-border bg-[#fcfcfd]">
+		<aside className="flex h-full w-64 shrink-0 flex-col border-r border-base-border bg-[#fcfcfd]">
 			<div className="flex-1 overflow-y-auto p-3">
 				<WorkspaceSwitcher />
 				<div className="my-3 border-t border-base-border" />
@@ -309,14 +310,14 @@ function Header() {
 
 export default function DashboardLayout() {
 	return (
-		<div className="flex min-h-screen bg-base">
-			<Sidebar />
-			<div className="flex min-w-0 flex-1 flex-col">
-				<Header />
-				<main className="flex-1 p-4">
-					<Outlet />
-				</main>
+		<Shell
+			header={<Header />}
+			left={<Sidebar />}
+			spanLeft
+		>
+			<div className="p-4">
+				<Outlet />
 			</div>
-		</div>
+		</Shell>
 	);
 }

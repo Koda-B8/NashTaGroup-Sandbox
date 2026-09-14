@@ -130,6 +130,19 @@ router.post("/", requireRole("admin"), createProduct);
  *     responses:
  *       200:
  *         description: Product retrieved successfully
+ *         content:
+ *           application/json:
+ *             example:
+ *               success: true
+ *               message: Product retrieved successfully
+ *               data:
+ *                 id: 3962d3bd-b9a6-4275-bf87-6cb6af71d943
+ *                 name: Samsung Galaxy A55
+ *                 stock: 17
+ *                 items:
+ *                   - id: d7878d58-7742-4389-9c35-92d72351f200
+ *                     name: 8GB/128GB - Awesome Navy
+ *                     stock: 10
  *       400:
  *         description: Invalid product id
  *       404:

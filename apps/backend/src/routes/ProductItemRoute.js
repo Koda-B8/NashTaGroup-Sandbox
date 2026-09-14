@@ -74,6 +74,11 @@ router.use(authMiddleware);
  *                 type: number
  *                 format: decimal
  *                 example: 6499000
+ *               stock:
+ *                 type: integer
+ *                 minimum: 0
+ *                 default: 0
+ *                 description: Initial inventory stock for this SKU.
  *               isActive:
  *                 type: boolean
  *                 default: true
@@ -111,6 +116,17 @@ router.post("/", requireRole("admin"), createProductItem);
  *     responses:
  *       200:
  *         description: Product item retrieved successfully
+ *         content:
+ *           application/json:
+ *             example:
+ *               success: true
+ *               message: Product item retrieved successfully
+ *               data:
+ *                 id: d7878d58-7742-4389-9c35-92d72351f200
+ *                 productCode: SAM-A55-128-NVY
+ *                 name: 8GB/128GB - Awesome Navy
+ *                 price: "5999000.00"
+ *                 stock: 10
  *       400:
  *         description: Invalid product item id
  *       404:

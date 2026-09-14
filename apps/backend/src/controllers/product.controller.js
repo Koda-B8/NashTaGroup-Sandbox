@@ -59,6 +59,14 @@ const productIncludes = [
 		attributes: ["id", "productCode", "name", "price", "isActive"],
 		required: false,
 		separate: true,
+		include: [
+			{
+				model: Inventories,
+				as: "inventory",
+				attributes: ["stock"],
+				required: false,
+			},
+		],
 		order: [["name", "ASC"]],
 	},
 ];
@@ -147,6 +155,23 @@ const toProductResponse = (product) => {
 		...productData,
 		image: primaryProductImage?.imageUrl ?? EMPTY_IMAGE,
 		alt: primaryProductImage?.alt ?? value.name,
+		stock: items.reduce((total, item) => total + Number(item.stock), 0),
+		items,
+	};
+};
+
+const toProductCrudResponse = (product) => {
+	const value =
+		typeof product?.toJSON === "function" ? product.toJSON() : product;
+	const items = Array.isArray(value?.items)
+		? value.items.map(({ inventory, ...item }) => ({
+				...item,
+				stock: inventory?.stock ?? 0,
+			}))
+		: [];
+
+	return {
+		...value,
 		stock: items.reduce((total, item) => total + Number(item.stock), 0),
 		items,
 	};
@@ -253,7 +278,7 @@ export async function getProductById(req, res, next) {
 		return res.status(constants.HTTP_STATUS_OK).json({
 			success: true,
 			message: "Product retrieved successfully",
-			data: product,
+			data: toProductCrudResponse(product),
 		});
 	} catch (error) {
 		return next(error);
@@ -326,7 +351,7 @@ export async function createProduct(req, res, next) {
 		return res.status(constants.HTTP_STATUS_CREATED).json({
 			success: true,
 			message: "Product created successfully",
-			data: createdProduct,
+			data: toProductCrudResponse(createdProduct),
 		});
 	} catch (error) {
 		return next(error);
@@ -431,7 +456,7 @@ export async function updateProduct(req, res, next) {
 		return res.status(constants.HTTP_STATUS_OK).json({
 			success: true,
 			message: "Product updated successfully",
-			data: updatedProduct,
+			data: toProductCrudResponse(updatedProduct),
 		});
 	} catch (error) {
 		return next(error);

@@ -12,7 +12,6 @@ export default defineConfig({
 	},
 	rules: {
 		"typescript/no-non-null-assertion": "off",
-		"unicorn/no-nested-ternary": "off",
 		"unicorn/filename-case": [
 			"warn",
 			{

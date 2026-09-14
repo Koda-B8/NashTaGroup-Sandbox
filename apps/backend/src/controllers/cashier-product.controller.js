@@ -4,6 +4,9 @@ import { Op } from "sequelize";
 
 import { paginate } from "../lib/pagination.js";
 import db from "../models/index.cjs";
+import { createHttpError } from "../utils/http-error.js";
+import { parseBoolean } from "../utils/query.js";
+import { isUuid } from "../utils/validation.js";
 
 const {
 	Brands,
@@ -14,8 +17,6 @@ const {
 	Products,
 } = db;
 
-const UUID_PATTERN =
-	/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 // oxlint-disable-next-line unicorn/no-null -- The API represents a missing image explicitly as null.
 const EMPTY_IMAGE = null;
 const SORT_OPTIONS = {
@@ -29,25 +30,6 @@ const SORT_OPTIONS = {
 	],
 	price_asc: [["price", "ASC"]],
 	price_desc: [["price", "DESC"]],
-};
-
-class HttpError extends Error {
-	constructor(statusCode, message) {
-		super(message);
-		this.statusCode = statusCode;
-	}
-}
-
-const createHttpError = (statusCode, message) =>
-	new HttpError(statusCode, message);
-
-const isUuid = (value) => typeof value === "string" && UUID_PATTERN.test(value);
-
-const parseBoolean = (value) => {
-	if (value === "true" || value === true) return true;
-	if (value === "false" || value === false) return false;
-
-	return;
 };
 
 const parsePrice = (value, field) => {

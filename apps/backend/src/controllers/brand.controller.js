@@ -3,30 +3,11 @@ import { constants } from "node:http2";
 import { Op } from "sequelize";
 
 import db from "../models/index.cjs";
+import { createHttpError } from "../utils/http-error.js";
+import { parseBoolean } from "../utils/query.js";
+import { isUuid } from "../utils/validation.js";
 
 const { Brands } = db;
-
-const UUID_PATTERN =
-	/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-class HttpError extends Error {
-	constructor(statusCode, message) {
-		super(message);
-		this.statusCode = statusCode;
-	}
-}
-
-const createHttpError = (statusCode, message) =>
-	new HttpError(statusCode, message);
-
-const parseBoolean = (value) => {
-	if (value === true || value === "true") return true;
-	if (value === false || value === "false") return false;
-
-	return;
-};
-
-const isUuid = (value) => typeof value === "string" && UUID_PATTERN.test(value);
 
 export async function getBrands(req, res, next) {
 	try {

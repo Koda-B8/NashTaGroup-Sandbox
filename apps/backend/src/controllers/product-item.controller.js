@@ -3,42 +3,17 @@ import { constants } from "node:http2";
 import { Op, UniqueConstraintError } from "sequelize";
 
 import db from "../models/index.cjs";
+import { createHttpError } from "../utils/http-error.js";
+import { parseBoolean } from "../utils/query.js";
+import { isUuid, normalizeText } from "../utils/validation.js";
 
 const { Inventories, ProductItems, Products, sequelize } = db;
-
-const UUID_PATTERN =
-	/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-class HttpError extends Error {
-	constructor(statusCode, message) {
-		super(message);
-		this.statusCode = statusCode;
-	}
-}
-
-const createHttpError = (statusCode, message) =>
-	new HttpError(statusCode, message);
-
-const normalizeText = (value) => {
-	if (typeof value !== "string") return "";
-
-	return value.trim().replaceAll(/\s+/g, " ");
-};
 
 const normalizeProductCode = (value) => {
 	if (typeof value !== "string") return "";
 
 	return value.trim().toUpperCase();
 };
-
-const parseBoolean = (value) => {
-	if (value === true || value === "true") return true;
-	if (value === false || value === "false") return false;
-
-	return;
-};
-
-const isUuid = (value) => typeof value === "string" && UUID_PATTERN.test(value);
 
 const parsePrice = (value) => {
 	const rawValue = String(value ?? "").trim();

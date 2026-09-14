@@ -1,13 +1,10 @@
 import { constants } from "node:http2";
 
 import db from "../models/index.cjs";
+import { createHttpError } from "../utils/http-error.js";
+import { parseBoolean } from "../utils/query.js";
 
 const { PaymentMethods } = db;
-
-const parseBoolean = (value) => {
-	if (value === true || value === "true") return true;
-	if (value === false || value === "false") return false;
-};
 
 const toPaymentMethodResponse = (paymentMethod) => {
 	const value =
@@ -28,10 +25,10 @@ export async function getPaymentMethods(request, response, next) {
 		const isActive = parseBoolean(request.query.is_active);
 
 		if (request.query.is_active !== undefined && isActive === undefined) {
-			const error = new Error("is_active must be true or false");
-			// @ts-ignore
-			error.statusCode = constants.HTTP_STATUS_BAD_REQUEST;
-			throw error;
+			throw createHttpError(
+				constants.HTTP_STATUS_BAD_REQUEST,
+				"is_active must be true or false",
+			);
 		}
 
 		const paymentMethods = await PaymentMethods.findAll({

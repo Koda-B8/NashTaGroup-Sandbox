@@ -3,31 +3,11 @@ import { constants } from "node:http2";
 import { Op, UniqueConstraintError } from "sequelize";
 
 import db from "../models/index.cjs";
+import { createHttpError } from "../utils/http-error.js";
+import { parseBoolean } from "../utils/query.js";
+import { normalizeText } from "../utils/validation.js";
 
 const { Categories } = db;
-
-class HttpError extends Error {
-	constructor(statusCode, message) {
-		super(message);
-		this.statusCode = statusCode;
-	}
-}
-
-const createHttpError = (statusCode, message) =>
-	new HttpError(statusCode, message);
-
-const normalizeName = (value) => {
-	if (typeof value !== "string") return "";
-
-	return value.trim().replaceAll(/\s+/g, " ");
-};
-
-const parseBoolean = (value) => {
-	if (value === true || value === "true") return true;
-	if (value === false || value === "false") return false;
-
-	return;
-};
 
 export async function getCategories(req, res, next) {
 	try {
@@ -94,7 +74,7 @@ export async function getCategoryById(req, res, next) {
 
 export async function createCategory(req, res, next) {
 	try {
-		const name = normalizeName(req.body?.name);
+		const name = normalizeText(req.body?.name);
 
 		if (!name) {
 			throw createHttpError(
@@ -138,7 +118,7 @@ export async function updateCategory(req, res, next) {
 		const updates = {};
 
 		if (Object.hasOwn(req.body ?? {}, "name")) {
-			const name = normalizeName(req.body.name);
+			const name = normalizeText(req.body.name);
 
 			if (!name) {
 				throw createHttpError(

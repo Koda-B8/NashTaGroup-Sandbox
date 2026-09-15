@@ -38,6 +38,12 @@ const defineProductImages = (sequelize, DataTypes) => {
 				allowNull: false,
 				field: "image_url",
 			},
+			publicId: {
+				type: DataTypes.STRING(512),
+				allowNull: true,
+				unique: true,
+				field: "public_id",
+			},
 			alt: {
 				type: DataTypes.STRING(255),
 				allowNull: false,

@@ -9,6 +9,11 @@ const defineUsers = (sequelize, DataTypes) => {
 				foreignKey: "role_id",
 				as: "role",
 			});
+
+			Users.hasMany(models.InventoryMovements, {
+				foreignKey: "userId",
+				as: "inventoryMovements",
+			});
 		}
 
 		static hashPassword(password) {

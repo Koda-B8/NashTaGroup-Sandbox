@@ -1,28 +1,14 @@
 import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 
+import CardSkel from "../components/CardSkel";
 import Button from "../components/ui/button";
 import Card from "../components/ui/card";
+import { apiFetch } from "../libs/api";
 import { formatRupiah } from "../libs/formatRupiah";
-import { addToCart } from "../store/slices/cart";
-
-interface Product {
-	uuid: string;
-	image: null | string;
-	alt: string;
-	name: string;
-	price: number;
-	category: string;
-}
-
-interface Cart {
-	uuid: string;
-	image: null | string;
-	alt: string;
-	name: string;
-	price: number;
-	category: string;
-}
+import type { AppDispatch } from "../store";
+import { addToCart, type CartItem } from "../store/slices/cart";
 
 interface Page {
 	page: string;
@@ -40,127 +26,124 @@ const pages: Page[] = [
 	},
 ];
 
-const products: Product[] = [
-	{
-		uuid: "1",
-		image: null,
-		alt: "",
-		name: "Example",
-		price: 100_000,
-		category: "Smartphone",
-	},
-	{
-		uuid: "2",
-		image: null,
-		alt: "",
-		name: "Example",
-		price: 100_000,
-		category: "Smartphone",
-	},
-	{
-		uuid: "3",
-		image: null,
-		alt: "",
-		name: "Example",
-		price: 100_000,
-		category: "Smartphone",
-	},
-	{
-		uuid: "4",
-		image: null,
-		alt: "",
-		name: "Example",
-		price: 100_000,
-		category: "Smartphone",
-	},
-	{
-		uuid: "5",
-		image: null,
-		alt: "",
-		name: "Example",
-		price: 100_000,
-		category: "Smartphone",
-	},
-	{
-		uuid: "6",
-		image: null,
-		alt: "",
-		name: "Example",
-		price: 100_000,
-		category: "Smartphone",
-	},
-	{
-		uuid: "7",
-		image: null,
-		alt: "",
-		name: "Example",
-		price: 100_000,
-		category: "Smartphone",
-	},
-	{
-		uuid: "8",
-		image: null,
-		alt: "",
-		name: "Example",
-		price: 100_000,
-		category: "Smartphone",
-	},
-	{
-		uuid: "9",
-		image: null,
-		alt: "",
-		name: "Example",
-		price: 100_000,
-		category: "Smartphone",
-	},
-];
+interface Category {
+	id: string;
+	name: string;
+	isActive: boolean;
+}
+
+interface Brand {
+	id: string;
+	name: string;
+	isActive: boolean;
+}
+
+interface ProductItem {
+	id: string;
+	productCode: string;
+	name: string;
+	price: string;
+	isActive: boolean;
+}
+
+interface Product {
+	id: string;
+	categoryId: string;
+	brandId: string;
+	name: string;
+	description: string;
+	isActive: boolean;
+	createdAt: string;
+	updatedAt: string;
+	deletedAt: string | null;
+	category: Category;
+	brand: Brand;
+	items: ProductItem[];
+}
 
 export default function Home() {
-	const dispatch = useDispatch();
-	function addItem(uuid: string) {
-		const data: Cart | undefined = products.find((i) => i.uuid === uuid);
-		if (data !== undefined) dispatch(addToCart({ ...data, qty: 1 }));
+	const dispatch = useDispatch<AppDispatch>();
+	const [products, setProducts] = useState<Product[]>([]);
+	const [loading, setLoading] = useState<boolean>(true);
+
+	function addItem(id: string) {
+		try {
+			const data = products.find((i) => i.id === id);
+			if (!data) throw new Error("Data is unvalid");
+
+			const cart_item: CartItem | undefined = {
+				id: data.id,
+				name: data.name,
+				qty: 1,
+				image: null,
+				alt: "image",
+				price: Number.parseInt(data.items[0].price),
+			};
+
+			dispatch(addToCart(cart_item));
+		} catch (error) {
+			console.error(error);
+		}
 	}
+
+	useEffect(() => {
+		async function getProduct() {
+			setLoading(true);
+			try {
+				const data = await apiFetch("/api/v1/products");
+				const res = await data.json();
+				setProducts(res.data);
+			} catch (error) {
+				console.error(error);
+			} finally {
+				setLoading(false);
+			}
+		}
+		getProduct();
+	}, []);
 
 	return (
 		<div className="flex w-full px-3 flex-col">
 			<ParamsSection />
-			<div className="grid grid-cols-3 gap-3">
-				{products.map((item) => (
-					<Card
-						key={item.uuid}
-						padding={"none"}
-						className="p-1"
-					>
-						<header className="w-full h-45 centerized rounded-t-xl bg-base">
-							{item.image ? (
-								<img
-									src={item?.image}
-									alt={item?.alt}
-								/>
-							) : (
+			{loading ? (
+				<CardSkel count={3} />
+			) : (
+				<div className="grid grid-cols-3 gap-3">
+					{products?.map((item) => (
+						<Card
+							key={item.items[0].id}
+							padding={"none"}
+							className="p-1"
+						>
+							<header className="w-full h-45 centerized rounded-t-xl bg-base">
+								{/* {item.image ? (
+									<img
+										src={item.image ?? item.image}
+										alt={item?.alt}
+									/>
+								) : ( */}
 								<h1 className="text-base-border!">N</h1>
-							)}
-						</header>
-						<main className="w-full h-25 p-2">
-							<h6>{item.name}</h6>
-							<p className="text-sm">{item.category}</p>
-
-							<div className="flex items-center justify-between mt-1">
-								<h5>{formatRupiah(item.price)}</h5>
-								<Button
-									onClick={() => addItem(item.uuid)}
-									className="px-7 cursor-pointer"
-								>
-									<Plus size={14} />
-									<p>Add</p>
-								</Button>
-							</div>
-						</main>
-					</Card>
-				))}
-			</div>
-			<Pagination />
+								{/* )} */}
+							</header>
+							<main className="w-full h-25 p-2">
+								<p className="text-sm">{item.brand.name}</p>
+								<h6>{item.name}</h6>
+								<div className="flex items-center justify-between mt-1">
+									<h5>{formatRupiah(Number.parseInt(item.items[0].price))}</h5>
+									<Button
+										onClick={() => addItem(item.id)}
+										className="px-7 cursor-pointer"
+									>
+										<Plus size={14} />
+										<p>Add</p>
+									</Button>
+								</div>
+							</main>
+						</Card>
+					))}
+				</div>
+			)}
+			<Pagination products={products} />
 		</div>
 	);
 }
@@ -192,10 +175,10 @@ function ParamsSection() {
 	);
 }
 
-function Pagination() {
+function Pagination({ products }) {
 	return (
 		<div className="flex mt-12 mb-5 items-center w-full justify-between">
-			<p className="text-sm">Showing {products.length} of 120 products</p>
+			<p className="text-sm">Showing {products?.length} of 120 products</p>
 
 			<div className="flex items-center gap-2">
 				<Button

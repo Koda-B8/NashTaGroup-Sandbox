@@ -102,7 +102,7 @@ export default function Checkout() {
 					<main className="flex flex-col gap-3 mt-2">
 						{cart.map((item) => (
 							<div
-								key={item.uuid}
+								key={item.id}
 								className="flex items-center justify-between"
 							>
 								<div className="flex gap-3">

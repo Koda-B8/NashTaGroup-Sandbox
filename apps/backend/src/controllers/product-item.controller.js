@@ -16,6 +16,7 @@ const {
 	Products,
 	sequelize,
 } = db;
+const EMPTY_IMAGE_URL = null;
 
 const normalizeProductCode = (value) => {
 	if (typeof value !== "string") return "";
@@ -62,6 +63,46 @@ const itemIncludes = [
 	},
 ];
 
+const productItemListIncludes = [
+	{
+		model: Products,
+		as: "product",
+		attributes: ["id", "name", "categoryId", "brandId", "isActive"],
+		required: true,
+		include: [
+			{
+				model: ProductImages,
+				as: "images",
+				attributes: ["imageUrl", "alt", "isPrimary", "sortOrder"],
+				where: { productItemId: null },
+				required: false,
+				separate: true,
+				order: [
+					["isPrimary", "DESC"],
+					["sortOrder", "ASC"],
+				],
+			},
+		],
+	},
+	{
+		model: Inventories,
+		as: "inventory",
+		attributes: ["stock"],
+		required: false,
+	},
+	{
+		model: ProductImages,
+		as: "images",
+		attributes: ["imageUrl", "alt", "isPrimary", "sortOrder"],
+		required: false,
+		separate: true,
+		order: [
+			["isPrimary", "DESC"],
+			["sortOrder", "ASC"],
+		],
+	},
+];
+
 const productItemDetailIncludes = [
 	{
 		model: Products,
@@ -90,6 +131,7 @@ const productItemDetailIncludes = [
 				model: ProductImages,
 				as: "images",
 				attributes: ["imageUrl", "alt", "isPrimary", "sortOrder"],
+				where: { productItemId: null },
 				required: false,
 				separate: true,
 				order: [
@@ -121,6 +163,27 @@ const productItemDetailIncludes = [
 const findPrimaryImage = (images) =>
 	images?.find((image) => image.isPrimary) ?? images?.[0];
 
+const toImageResponse = (image, fallbackAlt) => ({
+	alt: image?.alt ?? fallbackAlt,
+	url: image?.imageUrl ?? EMPTY_IMAGE_URL,
+});
+
+const getProductItemAlt = (productName, itemName) => {
+	const normalizedProductName = productName?.trim();
+	const normalizedItemName = itemName?.trim() ?? "";
+
+	if (
+		!normalizedProductName ||
+		normalizedItemName
+			.toLowerCase()
+			.startsWith(normalizedProductName.toLowerCase())
+	) {
+		return normalizedItemName;
+	}
+
+	return `${normalizedProductName} ${normalizedItemName}`.trim();
+};
+
 const toProductItemResponse = (productItem) => {
 	const value =
 		typeof productItem?.toJSON === "function"
@@ -134,26 +197,44 @@ const toProductItemResponse = (productItem) => {
 	};
 };
 
+const toProductItemListResponse = (productItem) => {
+	const value =
+		typeof productItem?.toJSON === "function"
+			? productItem.toJSON()
+			: productItem;
+	const { images, inventory, product, ...data } = value;
+	const { images: productImages, ...productData } = product ?? {};
+	const itemImage = findPrimaryImage(images);
+	const productImage = findPrimaryImage(productImages);
+	const image = itemImage ?? productImage;
+
+	return {
+		...data,
+		product: product ? productData : undefined,
+		stock: inventory?.stock ?? 0,
+		image: toImageResponse(image, getProductItemAlt(product?.name, value.name)),
+	};
+};
+
 const toProductItemDetailResponse = (productItem) => {
 	const value =
 		typeof productItem?.toJSON === "function"
 			? productItem.toJSON()
 			: productItem;
 	const { images, inventory, product, ...itemData } = value;
+	const { images: productImages, ...productData } = product ?? {};
 	const itemImage = findPrimaryImage(images);
-	const productImage = findPrimaryImage(product?.images);
+	const productImage = findPrimaryImage(productImages);
 	const image = itemImage ?? productImage;
 
 	return {
 		...itemData,
 		stock: inventory?.stock ?? 0,
-		image: image?.imageUrl,
-		alt: image?.alt ?? `${product?.name ?? ""} ${value.name}`.trim(),
+		image: toImageResponse(image, getProductItemAlt(product?.name, value.name)),
 		product: product
 			? {
-					...product,
-					image: productImage?.imageUrl,
-					alt: productImage?.alt ?? product.name,
+					...productData,
+					image: toImageResponse(productImage, product.name),
 				}
 			: undefined,
 	};
@@ -219,14 +300,14 @@ export async function getProductItems(req, res, next) {
 
 		const productItems = await ProductItems.findAll({
 			where,
-			include: itemIncludes,
+			include: productItemListIncludes,
 			order: [["name", "ASC"]],
 		});
 
 		return res.status(constants.HTTP_STATUS_OK).json({
 			success: true,
 			message: "Product items retrieved successfully",
-			data: productItems.map((item) => toProductItemResponse(item)),
+			data: productItems.map((item) => toProductItemListResponse(item)),
 		});
 	} catch (error) {
 		return next(error);

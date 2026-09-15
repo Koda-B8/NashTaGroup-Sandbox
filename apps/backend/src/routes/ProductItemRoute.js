@@ -44,6 +44,23 @@ router.use(authMiddleware);
  *     responses:
  *       200:
  *         description: Product items retrieved successfully
+ *         content:
+ *           application/json:
+ *             example:
+ *               success: true
+ *               message: Product items retrieved successfully
+ *               data:
+ *                 - id: d7878d58-7742-4389-9c35-92d72351f200
+ *                   productCode: SAM-A55-128-NVY
+ *                   name: 8GB/128GB - Awesome Navy
+ *                   price: "5999000.00"
+ *                   stock: 10
+ *                   image:
+ *                     alt: Samsung Galaxy A55 Awesome Navy
+ *                     url: https://res.cloudinary.com/nashta/image/upload/galaxy-a55-navy.webp
+ *                   product:
+ *                     id: 3962d3bd-b9a6-4275-bf87-6cb6af71d943
+ *                     name: Samsung Galaxy A55
  *       400:
  *         description: Invalid query parameters
  *   post:
@@ -127,8 +144,9 @@ router.post("/", requireRole("admin"), createProductItem);
  *                 name: 8GB/128GB - Awesome Navy
  *                 price: "5999000.00"
  *                 stock: 10
- *                 image: https://res.cloudinary.com/nashta/image/upload/galaxy-a55-navy.webp
- *                 alt: Samsung Galaxy A55 Awesome Navy
+ *                 image:
+ *                   alt: Samsung Galaxy A55 Awesome Navy
+ *                   url: https://res.cloudinary.com/nashta/image/upload/galaxy-a55-navy.webp
  *                 product:
  *                   id: 3962d3bd-b9a6-4275-bf87-6cb6af71d943
  *                   name: Samsung Galaxy A55

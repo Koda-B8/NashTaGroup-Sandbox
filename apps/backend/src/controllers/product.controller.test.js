@@ -136,25 +136,28 @@ describe("product controller", () => {
 			data: [
 				{
 					...product,
-					image:
-						"https://res.cloudinary.com/nashta/image/upload/galaxy-a55.webp",
-					alt: "Samsung Galaxy A55 smartphone",
+					image: {
+						alt: "Samsung Galaxy A55 smartphone",
+						url: "https://res.cloudinary.com/nashta/image/upload/galaxy-a55.webp",
+					},
 					stock: 17,
 					items: [
 						{
 							id: "44444444-4444-4444-8444-444444444444",
 							name: "8GB/128GB - Awesome Navy",
-							image:
-								"https://res.cloudinary.com/nashta/image/upload/galaxy-a55-navy.webp",
-							alt: "Samsung Galaxy A55 Awesome Navy",
+							image: {
+								alt: "Samsung Galaxy A55 Awesome Navy",
+								url: "https://res.cloudinary.com/nashta/image/upload/galaxy-a55-navy.webp",
+							},
 							stock: 10,
 						},
 						{
 							id: "55555555-5555-4555-8555-555555555555",
 							name: "8GB/256GB - Ice Blue",
-							image:
-								"https://res.cloudinary.com/nashta/image/upload/galaxy-a55.webp",
-							alt: "Samsung Galaxy A55 smartphone",
+							image: {
+								alt: "Samsung Galaxy A55 smartphone",
+								url: "https://res.cloudinary.com/nashta/image/upload/galaxy-a55.webp",
+							},
 							stock: 7,
 						},
 					],
@@ -228,19 +231,19 @@ describe("product controller", () => {
 			message: "Product retrieved successfully",
 			data: expect.objectContaining({
 				...product,
-				alt: "Samsung Galaxy A55",
+				image: { alt: "Samsung Galaxy A55", url: null },
 				stock: 17,
 				items: [
 					expect.objectContaining({
 						id: "44444444-4444-4444-8444-444444444444",
 						name: "8GB/128GB - Awesome Navy",
-						alt: "8GB/128GB - Awesome Navy",
+						image: { alt: "8GB/128GB - Awesome Navy", url: null },
 						stock: 10,
 					}),
 					expect.objectContaining({
 						id: "55555555-5555-4555-8555-555555555555",
 						name: "8GB/256GB - Ice Blue",
-						alt: "8GB/256GB - Ice Blue",
+						image: { alt: "8GB/256GB - Ice Blue", url: null },
 						stock: 7,
 					}),
 				],

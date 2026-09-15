@@ -1,12 +1,11 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 export interface CartItem {
-	uuid: string;
+	id: string;
 	image: null | string;
 	alt: string;
 	name: string;
 	price: number;
-	category: string;
 	qty: number;
 }
 
@@ -24,7 +23,16 @@ const cart = createSlice({
 
 	reducers: {
 		addToCart(state, action: PayloadAction<CartItem>) {
-			state.cart.push(action.payload);
+			const data: CartItem = action.payload;
+			const persisData = state.cart;
+			const isFound = persisData.filter((item) => item.id === data.id);
+			if (isFound.length === 0) {
+				state.cart.push(action.payload);
+			} else {
+				const idx = persisData.findIndex((item) => item.id === data.id);
+				data.qty += isFound[0].qty;
+				state.cart.splice(idx, 1, data);
+			}
 		},
 
 		deleteCartItem(state, action: PayloadAction<CartItem>) {

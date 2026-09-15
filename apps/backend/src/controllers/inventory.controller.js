@@ -7,9 +7,17 @@ import db from "../models/index.cjs";
 import { createHttpError } from "../utils/http-error.js";
 import { isUuid } from "../utils/validation.js";
 
-const { Brands, Categories, Inventories, ProductItems, Products } = db;
+const {
+	Brands,
+	Categories,
+	Inventories,
+	InventoryMovements,
+	ProductItems,
+	Products,
+} = db;
 
 const STOCK_STATUSES = new Set(["available", "low", "out_of_stock"]);
+const ADJUSTMENT_TYPES = new Set(["addition", "reduction", "correction"]);
 
 const getStockStatus = (stock) => {
 	if (stock === 0) return "out_of_stock";
@@ -148,6 +156,137 @@ export async function getInventories(request, response, next) {
 			data: rows.map((row) => toInventoryResponse(row)),
 			meta: {
 				pagination,
+			},
+		});
+	} catch (error) {
+		return next(error);
+	}
+}
+
+export async function adjustStock(request, response, next) {
+	try {
+		const { productItemId } = request.params;
+		const { type, quantity, note } = request.body ?? {};
+
+		if (!isUuid(productItemId)) {
+			throw createHttpError(
+				constants.HTTP_STATUS_BAD_REQUEST,
+				"productItemId must be a valid UUID",
+			);
+		}
+
+		if (!ADJUSTMENT_TYPES.has(type)) {
+			throw createHttpError(
+				constants.HTTP_STATUS_BAD_REQUEST,
+				"type must be addition, reduction, or correction",
+			);
+		}
+
+		if (!Number.isInteger(quantity) || quantity <= 0) {
+			throw createHttpError(
+				constants.HTTP_STATUS_BAD_REQUEST,
+				"quantity must be a positive integer",
+			);
+		}
+
+		if (note !== undefined && typeof note !== "string") {
+			throw createHttpError(
+				constants.HTTP_STATUS_BAD_REQUEST,
+				"note must be a string",
+			);
+		}
+
+		const result = await db.sequelize.transaction(async (transaction) => {
+			const productItem = await ProductItems.findByPk(productItemId, {
+				attributes: ["id"],
+				transaction,
+			});
+
+			if (!productItem) {
+				throw createHttpError(
+					constants.HTTP_STATUS_NOT_FOUND,
+					"Product item not found",
+				);
+			}
+
+			const inventory = await Inventories.findOne({
+				where: { productItemId },
+				transaction,
+				lock: transaction.LOCK.UPDATE,
+			});
+
+			if (!inventory) {
+				throw createHttpError(
+					constants.HTTP_STATUS_NOT_FOUND,
+					"Inventory not found",
+				);
+			}
+
+			const stockBefore = inventory.stock;
+			let stockAfter = stockBefore;
+
+			if (type === "addition") {
+				stockAfter += quantity;
+			}
+
+			if (type === "reduction") {
+				stockAfter -= quantity;
+			}
+
+			if (type === "correction") {
+				stockAfter = quantity;
+			}
+
+			if (stockAfter < 0) {
+				throw createHttpError(
+					constants.HTTP_STATUS_BAD_REQUEST,
+					"Stock cannot be negative",
+				);
+			}
+
+			await inventory.update(
+				{
+					stock: stockAfter,
+				},
+				{ transaction },
+			);
+
+			const inventoryMovement = await InventoryMovements.create(
+				{
+					productItemId,
+					transactionId: null,
+					userId: request.user.id,
+					type,
+					quantity,
+					stockBefore,
+					stockAfter,
+					note: typeof note === "string" ? note.trim() || null : null,
+				},
+				{ transaction },
+			);
+
+			return {
+				productItemId,
+				type,
+				quantity,
+				stockBefore,
+				stockAfter,
+				note: inventoryMovement.note,
+				createdAt: inventoryMovement.createdAt,
+			};
+		});
+
+		return response.status(constants.HTTP_STATUS_CREATED).json({
+			success: true,
+			message: "Stock adjusted successfully",
+			data: {
+				product_item_id: result.productItemId,
+				type: result.type,
+				quantity: result.quantity,
+				stock_before: result.stockBefore,
+				stock_after: result.stockAfter,
+				note: result.note,
+				created_at: result.createdAt,
 			},
 		});
 	} catch (error) {

@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { paginate } from "../lib/pagination.js";
 import db from "../models/index.cjs";
-import { getInventories } from "./inventory.controller.js";
+import { adjustStock, getInventories } from "./inventory.controller.js";
 
 vi.mock("../lib/pagination.js", () => ({
 	paginate: vi.fn(),
@@ -15,9 +15,19 @@ vi.mock("../models/index.cjs", () => ({
 	default: {
 		Brands: {},
 		Categories: {},
-		Inventories: {},
-		ProductItems: {},
+		Inventories: {
+			findOne: vi.fn(),
+		},
+		InventoryMovements: {
+			create: vi.fn(),
+		},
+		ProductItems: {
+			findByPk: vi.fn(),
+		},
 		Products: {},
+		sequelize: {
+			transaction: vi.fn(),
+		},
 	},
 }));
 
@@ -40,9 +50,29 @@ const createProductItem = (stock) => ({
 	}),
 });
 
+const productItemId = "b5cbf379-0cfb-43d4-a2f3-3ddf76b4d7a3";
+const userId = "7bf0806e-daca-4afa-a2e1-643babe31176";
+
+const createInventory = (stock) => ({
+	stock,
+	update: vi.fn().mockResolvedValue(undefined),
+});
+
+const transaction = {
+	LOCK: {
+		UPDATE: "UPDATE",
+	},
+};
+
+const transactionMock = /** @type {any} */ (db.sequelize.transaction);
+
 describe("inventory controller", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
+
+		transactionMock.mockImplementation(async (callback) =>
+			callback(transaction),
+		);
 	});
 
 	it("returns paginated inventories with low stock status", async () => {
@@ -198,5 +228,201 @@ describe("inventory controller", () => {
 		await getInventories({ query: {} }, response, next);
 
 		expect(next).toHaveBeenCalledWith(error);
+	});
+
+	it("adds stock and records an inventory movement", async () => {
+		const response = createResponse();
+		const next = vi.fn();
+		const inventory = createInventory(5);
+		const createdAt = new Date("2026-09-15T03:30:00.000Z");
+
+		db.ProductItems.findByPk.mockResolvedValue({ id: productItemId });
+		db.Inventories.findOne.mockResolvedValue(inventory);
+		db.InventoryMovements.create.mockResolvedValue({
+			note: "Restock from supplier",
+			createdAt,
+		});
+
+		await adjustStock(
+			{
+				params: { productItemId },
+				body: {
+					type: "addition",
+					quantity: 10,
+					note: "Restock from supplier",
+				},
+				user: { id: userId },
+			},
+			response,
+			next,
+		);
+
+		expect(transactionMock).toHaveBeenCalledOnce();
+		expect(inventory.update).toHaveBeenCalledWith(
+			{ stock: 15 },
+			{ transaction },
+		);
+		expect(db.InventoryMovements.create).toHaveBeenCalledWith(
+			{
+				productItemId,
+				transactionId: null,
+				userId,
+				type: "addition",
+				quantity: 10,
+				stockBefore: 5,
+				stockAfter: 15,
+				note: "Restock from supplier",
+			},
+			{ transaction },
+		);
+		expect(response.status).toHaveBeenCalledWith(constants.HTTP_STATUS_CREATED);
+		expect(response.json).toHaveBeenCalledWith({
+			success: true,
+			message: "Stock adjusted successfully",
+			data: {
+				product_item_id: productItemId,
+				type: "addition",
+				quantity: 10,
+				stock_before: 5,
+				stock_after: 15,
+				note: "Restock from supplier",
+				created_at: createdAt,
+			},
+		});
+		expect(next).not.toHaveBeenCalled();
+	});
+
+	it("reduces stock without allowing a negative result", async () => {
+		const response = createResponse();
+		const next = vi.fn();
+		const inventory = createInventory(5);
+
+		db.ProductItems.findByPk.mockResolvedValue({ id: productItemId });
+		db.Inventories.findOne.mockResolvedValue(inventory);
+
+		await adjustStock(
+			{
+				params: { productItemId },
+				body: {
+					type: "reduction",
+					quantity: 6,
+				},
+				user: { id: userId },
+			},
+			response,
+			next,
+		);
+
+		expect(inventory.update).not.toHaveBeenCalled();
+		expect(db.InventoryMovements.create).not.toHaveBeenCalled();
+		expect(next).toHaveBeenCalledWith(
+			expect.objectContaining({
+				statusCode: constants.HTTP_STATUS_BAD_REQUEST,
+				message: "Stock cannot be negative",
+			}),
+		);
+	});
+
+	it("sets the final stock for a correction adjustment", async () => {
+		const response = createResponse();
+		const next = vi.fn();
+		const inventory = createInventory(12);
+
+		db.ProductItems.findByPk.mockResolvedValue({ id: productItemId });
+		db.Inventories.findOne.mockResolvedValue(inventory);
+		db.InventoryMovements.create.mockResolvedValue({
+			note: "Stock opname",
+			createdAt: new Date("2026-09-15T03:30:00.000Z"),
+		});
+
+		await adjustStock(
+			{
+				params: { productItemId },
+				body: {
+					type: "correction",
+					quantity: 8,
+					note: "Stock opname",
+				},
+				user: { id: userId },
+			},
+			response,
+			next,
+		);
+
+		expect(inventory.update).toHaveBeenCalledWith(
+			{ stock: 8 },
+			{ transaction },
+		);
+		expect(db.InventoryMovements.create).toHaveBeenCalledWith(
+			expect.objectContaining({
+				type: "correction",
+				quantity: 8,
+				stockBefore: 12,
+				stockAfter: 8,
+			}),
+			{ transaction },
+		);
+	});
+
+	it.each([
+		[
+			{ type: "invalid", quantity: 1 },
+			"type must be addition, reduction, or correction",
+		],
+		[{ type: "addition", quantity: 0 }, "quantity must be a positive integer"],
+		[
+			{ type: "addition", quantity: 1.5 },
+			"quantity must be a positive integer",
+		],
+		[{ type: "addition", quantity: 1, note: 123 }, "note must be a string"],
+	])(
+		"passes a 400 error for an invalid adjustment payload",
+		async (body, message) => {
+			const response = createResponse();
+			const next = vi.fn();
+
+			await adjustStock(
+				{
+					params: { productItemId },
+					body,
+					user: { id: userId },
+				},
+				response,
+				next,
+			);
+
+			expect(next).toHaveBeenCalledWith(
+				expect.objectContaining({
+					statusCode: constants.HTTP_STATUS_BAD_REQUEST,
+					message,
+				}),
+			);
+			expect(db.sequelize.transaction).not.toHaveBeenCalled();
+		},
+	);
+
+	it("passes a 404 error when the product item does not exist", async () => {
+		const response = createResponse();
+		const next = vi.fn();
+
+		db.ProductItems.findByPk.mockResolvedValue(null);
+
+		await adjustStock(
+			{
+				params: { productItemId },
+				body: { type: "addition", quantity: 1 },
+				user: { id: userId },
+			},
+			response,
+			next,
+		);
+
+		expect(next).toHaveBeenCalledWith(
+			expect.objectContaining({
+				statusCode: constants.HTTP_STATUS_NOT_FOUND,
+				message: "Product item not found",
+			}),
+		);
+		expect(db.Inventories.findOne).not.toHaveBeenCalled();
 	});
 });

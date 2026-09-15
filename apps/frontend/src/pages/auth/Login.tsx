@@ -6,44 +6,15 @@ import { useLocation, useNavigate } from "react-router";
 import Button from "../../components/ui/button";
 import Checkbox from "../../components/ui/checkbox";
 import Input from "../../components/ui/input";
-import { setCsrfToken } from "../../libs/api";
+import { login } from "../../features/auth/api";
 import type { AppDispatch } from "../../store";
-import { setCredentials, type AuthUser } from "../../store/slices/auth";
+import { setCredentials } from "../../store/slices/auth";
 
 interface LocationState {
 	from?: string;
 }
 
-interface LoginPayload {
-	username: string;
-	password: string;
-}
-
-interface LoginResponse {
-	data: AuthUser & { csrfToken?: string };
-	message?: string;
-}
-
 const CURRENT_YEAR = new Date().getFullYear();
-
-async function loginRequest(payload: LoginPayload): Promise<LoginResponse> {
-	const res = await fetch("/api/v1/auth/login", {
-		method: "POST",
-		credentials: "include",
-		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify(payload),
-	});
-
-	const body = (await res.json()) as LoginResponse & { message?: string };
-
-	if (!res.ok) {
-		throw new Error(
-			body?.message ?? "Login failed. Silakan periksa kredensial Anda.",
-		);
-	}
-
-	return body;
-}
 
 function BrandingPanel() {
 	return (
@@ -101,12 +72,8 @@ export default function LoginPage() {
 		const password = String(formData.get("password") ?? "");
 
 		try {
-			const resData = await loginRequest({ username, password });
-			const { csrfToken, ...user } = resData.data as AuthUser & {
-				csrfToken?: string;
-			};
-			if (csrfToken) setCsrfToken(csrfToken);
-			dispatch(setCredentials(user as AuthUser));
+			const user = await login({ username, password });
+			dispatch(setCredentials(user));
 			navigate(redirectTo, { replace: true });
 		} catch (error) {
 			const message =

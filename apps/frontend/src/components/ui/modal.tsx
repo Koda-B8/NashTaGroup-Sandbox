@@ -3,6 +3,8 @@ import { XIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { tv } from "tailwind-variants";
 
+import Button from "./button";
+
 const overlay = tv({
 	base: "fixed inset-0 bg-black/40 backdrop-blur-[2px] opacity-0 transition-opacity duration-200 data-open:opacity-100 data-closed:opacity-0",
 });
@@ -11,10 +13,11 @@ const popup = tv({
 	base: "fixed top-1/2 left-1/2 w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-base-border bg-white shadow-xl outline-none max-h-[calc(100dvh-2rem)] overflow-hidden flex flex-col data-open:animate-in data-closed:animate-out",
 	variants: {
 		size: {
-			sm: "max-w-sm",
-			md: "max-w-md",
-			lg: "max-w-lg",
-			xl: "max-w-xl",
+			"sm": "max-w-sm",
+			"md": "max-w-md",
+			"lg": "max-w-lg",
+			"xl": "max-w-xl",
+			"2xl": "max-w-2xl",
 		},
 	},
 	defaultVariants: { size: "md" },
@@ -25,7 +28,7 @@ export interface ModalProps {
 	onOpenChange: (open: boolean) => void;
 	title?: string;
 	description?: string;
-	size?: "sm" | "md" | "lg" | "xl";
+	size?: "sm" | "md" | "lg" | "xl" | "2xl";
 	children: ReactNode;
 	/** show close button in header, defaults true when title is set */
 	showClose?: boolean;
@@ -101,5 +104,61 @@ export function ModalBody({
 			className={`flex flex-col gap-4 ${className}`}
 			{...props}
 		/>
+	);
+}
+
+export interface ConfirmModalProps {
+	open: boolean;
+	onOpenChange: (o: boolean) => void;
+	title: string;
+	description?: string | undefined;
+	body: string;
+	confirmLabel?: string;
+	loadingLabel?: string;
+	loading?: boolean;
+	onConfirm: () => void;
+}
+
+export function ConfirmModal({
+	open,
+	onOpenChange,
+	title,
+	description,
+	body,
+	confirmLabel = "Delete",
+	loadingLabel = "Deleting...",
+	loading = false,
+	onConfirm,
+}: ConfirmModalProps) {
+	return (
+		<Modal
+			open={open}
+			onOpenChange={onOpenChange}
+			title={title}
+			description={description}
+			size="sm"
+		>
+			<ModalBody>
+				<p className="text-sm text-text">{body}</p>
+			</ModalBody>
+			<ModalFooter className="mt-4 -mx-5 -mb-4">
+				<Button
+					variant="outline"
+					size="sm"
+					onClick={() => onOpenChange(false)}
+					disabled={loading}
+				>
+					Cancel
+				</Button>
+				<Button
+					variant="danger"
+					size="sm"
+					onClick={onConfirm}
+					disabled={loading}
+				>
+					{loading ? loadingLabel : confirmLabel}
+				</Button>
+			</ModalFooter>
+		</Modal>
 	);
 }

@@ -212,7 +212,6 @@ describe("product item controller", () => {
 		);
 
 		expect(productImageInclude.where).toEqual({ productItemId: null });
-
 		expect(response.json).toHaveBeenCalledWith({
 			success: true,
 			message: "Product item retrieved successfully",

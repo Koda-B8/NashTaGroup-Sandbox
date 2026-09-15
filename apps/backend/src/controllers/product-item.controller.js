@@ -16,7 +16,6 @@ const {
 	Products,
 	sequelize,
 } = db;
-
 const EMPTY_IMAGE_URL = null;
 
 const normalizeProductCode = (value) => {

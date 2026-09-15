@@ -1,7 +1,10 @@
 import express from "express";
 /* oxlint-disable jsdoc/check-tag-names -- @openapi is consumed by swagger-jsdoc. */
 
-import { getInventories } from "../controllers/inventory.controller.js";
+import {
+	adjustStock,
+	getInventories,
+} from "../controllers/inventory.controller.js";
 import authMiddleware from "../middleware/auth.js";
 import { requireRole } from "../middleware/authorize.js";
 
@@ -128,5 +131,94 @@ router.use(authMiddleware, requireRole("admin"));
  *         description: Admin permission is required.
  */
 router.get("/", getInventories);
+
+/**
+ * @openapi
+ * /api/v1/inventories/{productItemId}/adjustments:
+ *   post:
+ *     tags: [Inventories]
+ *     summary: Adjust product-item stock
+ *     description: Updates stock and records one inventory movement. Correction sets the final physical stock count.
+ *     security:
+ *       - cookieAuth: []
+ *         csrfToken: []
+ *     parameters:
+ *       - in: path
+ *         name: productItemId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Product item ID.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [type, quantity]
+ *             properties:
+ *               type:
+ *                 type: string
+ *                 enum: [addition, reduction, correction]
+ *                 example: addition
+ *                 description: Addition adds stock, reduction subtracts stock, and correction sets the final stock.
+ *               quantity:
+ *                 type: integer
+ *                 minimum: 1
+ *                 example: 10
+ *               note:
+ *                 type: string
+ *                 nullable: true
+ *                 example: Restock from supplier
+ *     responses:
+ *       201:
+ *         description: Stock adjusted successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               required: [success, message, data]
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Stock adjusted successfully
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     product_item_id:
+ *                       type: string
+ *                       format: uuid
+ *                     type:
+ *                       type: string
+ *                       enum: [addition, reduction, correction]
+ *                     quantity:
+ *                       type: integer
+ *                       example: 10
+ *                     stock_before:
+ *                       type: integer
+ *                       example: 5
+ *                     stock_after:
+ *                       type: integer
+ *                       example: 15
+ *                     note:
+ *                       type: string
+ *                       nullable: true
+ *                     created_at:
+ *                       type: string
+ *                       format: date-time
+ *       400:
+ *         description: Invalid adjustment payload or negative final stock.
+ *       401:
+ *         description: Authentication is required.
+ *       403:
+ *         description: Admin permission and a valid CSRF token are required.
+ *       404:
+ *         description: Product item or inventory was not found.
+ */
+router.post("/:productItemId/adjustments", adjustStock);
 
 export default router;

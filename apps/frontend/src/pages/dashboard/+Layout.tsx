@@ -12,15 +12,23 @@ import {
 	FileDownIcon,
 	ChevronDownIcon,
 	ChevronsLeftIcon,
+	Loader2,
+	LogOutIcon,
 } from "lucide-react";
 import { useState } from "react";
-import { Outlet, Link, useLocation } from "react-router";
+import { useDispatch } from "react-redux";
+import { Outlet, Link, useLocation, useNavigate } from "react-router";
 
 import Shell from "../../components/Shell";
 import Avatar from "../../components/ui/avatar";
 import Badge from "../../components/ui/badge";
 import Breadcrumb from "../../components/ui/breadcrumb";
+import Button from "../../components/ui/button";
 import Input from "../../components/ui/input";
+import { logout } from "../../features/auth/api";
+import { clearCsrfCache } from "../../libs/api";
+import type { AppDispatch } from "../../store";
+import { clearCredentials } from "../../store/slices/auth";
 
 interface SidebarNavItem {
 	id?: string;
@@ -237,6 +245,18 @@ function SidebarNavNode({ item, depth = 0 }: SidebarNavNodeProps) {
 }
 
 function Sidebar() {
+	const dispatch = useDispatch<AppDispatch>();
+	const navigate = useNavigate();
+	const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+	const handleLogout = async () => {
+		setIsLoggingOut(true);
+		await logout();
+		dispatch(clearCredentials());
+		clearCsrfCache();
+		navigate("/login", { replace: true });
+	};
+
 	return (
 		<aside className="flex h-full w-64 shrink-0 flex-col border-r border-base-border bg-[#fcfcfd]">
 			<div className="flex-1 overflow-y-auto p-3">
@@ -272,6 +292,23 @@ function Sidebar() {
 					<p className="text-xs font-medium text-text-h">Admin User</p>
 					<p className="text-[10px] text-text">Administrator</p>
 				</div>
+				<Button
+					variant="ghost"
+					size="icon"
+					className="ml-auto"
+					aria-label="Log out"
+					disabled={isLoggingOut}
+					onClick={handleLogout}
+				>
+					{isLoggingOut ? (
+						<Loader2
+							size={16}
+							className="animate-spin"
+						/>
+					) : (
+						<LogOutIcon size={16} />
+					)}
+				</Button>
 			</div>
 		</aside>
 	);

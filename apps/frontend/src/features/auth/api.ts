@@ -1,4 +1,4 @@
-import { setCsrfToken } from "../../libs/api";
+import { apiFetch, setCsrfToken } from "../../libs/api";
 import type { AuthUser } from "../../store/slices/auth";
 
 export interface LoginPayload {
@@ -32,4 +32,13 @@ export async function login(payload: LoginPayload): Promise<AuthUser> {
 	if (csrfToken) setCsrfToken(csrfToken);
 
 	return user as AuthUser;
+}
+
+export async function logout(): Promise<boolean> {
+	try {
+		const res = await apiFetch("/api/v1/auth/logout", { method: "POST" });
+		return res.ok;
+	} catch {
+		return false;
+	}
 }

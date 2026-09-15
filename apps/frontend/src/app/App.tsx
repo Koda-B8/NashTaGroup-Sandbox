@@ -13,6 +13,7 @@ import {
 	UserManagementDashboard,
 } from "../pages/dashboard";
 import DashboardLayout from "../pages/dashboard/+Layout";
+import ProductsManagementDashboard from "../pages/dashboard/ProductsManagement";
 import StructStatus from "../pages/StructStatus";
 import { persistor, store } from "../store";
 import ProtectedRoute, { GuestRoute } from "./ProtectedRoute";
@@ -46,6 +47,10 @@ const router = createBrowserRouter([
 					{
 						path: "products/categories",
 						element: <CategoriesDashboard />,
+					},
+					{
+						path: "products",
+						element: <ProductsManagementDashboard />,
 					},
 					{
 						element: <ProtectedRoute allowedRoles={["admin"]} />,

@@ -223,7 +223,7 @@ export default function ProductItemFormModal({
 						size="sm"
 						disabled={submitting}
 					>
-						{submitting ? "Saving..." : (isEdit ? "Save" : "Create")}
+						{submitting ? "Saving..." : isEdit ? "Save" : "Create"}
 					</Button>
 				</ModalFooter>
 			</form>

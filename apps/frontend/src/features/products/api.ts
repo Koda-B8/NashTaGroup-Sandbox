@@ -131,9 +131,9 @@ export async function listProducts(
 		);
 	const rawList: ApiProduct[] = Array.isArray(json?.data)
 		? (json.data as ApiProduct[])
-		: (Array.isArray(json)
+		: Array.isArray(json)
 			? (json as unknown as ApiProduct[])
-			: []);
+			: [];
 	const data = rawList.map((product) => toProduct(product));
 	const meta: ApiMeta =
 		json?.meta ??

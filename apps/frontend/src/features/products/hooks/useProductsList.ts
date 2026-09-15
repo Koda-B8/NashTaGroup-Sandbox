@@ -70,9 +70,9 @@ export function useProductsList(params: {
 			isActive:
 				statusFilter === "Active"
 					? true
-					: (statusFilter === "Inactive"
+					: statusFilter === "Inactive"
 						? false
-						: undefined),
+						: undefined,
 		},
 		page,
 		pageSize,

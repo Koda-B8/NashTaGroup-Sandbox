@@ -133,7 +133,7 @@ export default function ProductTable({
 									Memuat products...
 								</td>
 							</tr>
-						) : (paged.length === 0 ? (
+						) : paged.length === 0 ? (
 							<tr>
 								<td
 									colSpan={9}
@@ -253,7 +253,7 @@ export default function ProductTable({
 									</tr>
 								);
 							})
-						))}
+						)}
 					</tbody>
 				</table>
 			</div>

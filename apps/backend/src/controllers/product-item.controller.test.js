@@ -12,6 +12,8 @@ import {
 	updateProductItem,
 } from "./product-item.controller.js";
 
+const databaseMocks = vi.hoisted(() => ({ transaction: vi.fn() }));
+
 vi.mock("../models/index.cjs", () => ({
 	default: {
 		Brands: {},
@@ -29,7 +31,7 @@ vi.mock("../models/index.cjs", () => ({
 			findByPk: vi.fn(),
 		},
 		sequelize: {
-			transaction: vi.fn(),
+			transaction: databaseMocks.transaction,
 		},
 	},
 }));
@@ -77,13 +79,21 @@ describe("product item controller", () => {
 		vi.clearAllMocks();
 
 		db.Products.findByPk.mockResolvedValue(product);
-		db.sequelize.transaction.mockImplementation((callback) =>
+		databaseMocks.transaction.mockImplementation((callback) =>
 			callback({ id: "database-transaction" }),
 		);
 	});
 
 	it("retrieves product items with search and filters", async () => {
-		db.ProductItems.findAll.mockResolvedValue([productItem]);
+		const itemImage = {
+			imageUrl: "https://example.com/galaxy-a55-blue.webp",
+			alt: "Samsung Galaxy A55 Blue",
+			isPrimary: true,
+			sortOrder: 0,
+		};
+		db.ProductItems.findAll.mockResolvedValue([
+			{ ...productItem, images: [itemImage] },
+		]);
 
 		const response = createResponse();
 		const next = vi.fn();
@@ -101,16 +111,65 @@ describe("product item controller", () => {
 		);
 
 		const options = db.ProductItems.findAll.mock.calls[0][0];
+		const productInclude = options.include.find(
+			(include) => include.as === "product",
+		);
+		const itemImageInclude = options.include.find(
+			(include) => include.as === "images",
+		);
 
 		expect(options.where.productId).toBe(productId);
 		expect(options.where.isActive).toBe(true);
 		expect(options.where[Op.or][0].name[Op.iLike]).toBe("%A55%");
 		expect(options.where[Op.or][1].productCode[Op.iLike]).toBe("%A55%");
+		expect(productInclude.include).toEqual([
+			expect.objectContaining({ as: "images", required: false }),
+		]);
+		expect(itemImageInclude).toEqual(
+			expect.objectContaining({ as: "images", required: false }),
+		);
 		expect(response.status).toHaveBeenCalledWith(constants.HTTP_STATUS_OK);
 		expect(response.json).toHaveBeenCalledWith({
 			success: true,
 			message: "Product items retrieved successfully",
-			data: [productItemResponse],
+			data: [
+				{
+					...productItemResponse,
+					image: { alt: itemImage.alt, url: itemImage.imageUrl },
+				},
+			],
+		});
+		expect(next).not.toHaveBeenCalled();
+	});
+
+	it("uses the product image when a product item has no image", async () => {
+		const productImage = {
+			imageUrl: "https://example.com/galaxy-a55.webp",
+			alt: "Samsung Galaxy A55",
+			isPrimary: true,
+			sortOrder: 0,
+		};
+		db.ProductItems.findAll.mockResolvedValue([
+			{
+				...productItem,
+				images: [],
+				product: { ...product, images: [productImage] },
+			},
+		]);
+		const response = createResponse();
+		const next = vi.fn();
+
+		await getProductItems({ query: {} }, response, next);
+
+		expect(response.json).toHaveBeenCalledWith({
+			success: true,
+			message: "Product items retrieved successfully",
+			data: [
+				{
+					...productItemResponse,
+					image: { alt: productImage.alt, url: productImage.imageUrl },
+				},
+			],
 		});
 		expect(next).not.toHaveBeenCalled();
 	});
@@ -144,6 +203,16 @@ describe("product item controller", () => {
 
 		await getProductItemById({ params: { id: productItemId } }, response, next);
 
+		const options = db.ProductItems.findByPk.mock.calls[0][1];
+		const productInclude = options.include.find(
+			(include) => include.as === "product",
+		);
+		const productImageInclude = productInclude.include.find(
+			(include) => include.as === "images",
+		);
+
+		expect(productImageInclude.where).toEqual({ productItemId: null });
+
 		expect(response.json).toHaveBeenCalledWith({
 			success: true,
 			message: "Product item retrieved successfully",
@@ -155,12 +224,12 @@ describe("product item controller", () => {
 				price: "6499000.00",
 				isActive: true,
 				stock: 10,
-				image: itemImage.imageUrl,
-				alt: itemImage.alt,
+				image: { alt: itemImage.alt, url: itemImage.imageUrl },
 				product: {
-					...detailProduct,
-					image: productImage.imageUrl,
-					alt: productImage.alt,
+					...product,
+					category: detailProduct.category,
+					brand: detailProduct.brand,
+					image: { alt: productImage.alt, url: productImage.imageUrl },
 				},
 			},
 		});

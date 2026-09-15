@@ -20,6 +20,11 @@ const {
 // oxlint-disable-next-line unicorn/no-null -- The API represents a missing image explicitly as null.
 const EMPTY_IMAGE = null;
 
+const toImageResponse = (image, fallbackAlt) => ({
+	alt: image?.alt ?? fallbackAlt,
+	url: image?.imageUrl ?? EMPTY_IMAGE,
+});
+
 const productIncludes = [
 	{
 		model: Categories,
@@ -67,6 +72,11 @@ const productListIncludes = [
 					as: "images",
 					attributes: ["imageUrl", "alt", "isPrimary", "sortOrder"],
 					required: false,
+					separate: true,
+					order: [
+						["isPrimary", "DESC"],
+						["sortOrder", "ASC"],
+					],
 				},
 			],
 		};
@@ -119,11 +129,10 @@ const toProductResponse = (product) => {
 
 				return {
 					...item,
-					image:
-						primaryItemImage?.imageUrl ??
-						primaryProductImage?.imageUrl ??
-						EMPTY_IMAGE,
-					alt: primaryItemImage?.alt ?? primaryProductImage?.alt ?? item.name,
+					image: toImageResponse(
+						primaryItemImage ?? primaryProductImage,
+						item.name,
+					),
 					stock: inventory?.stock ?? 0,
 				};
 			})
@@ -131,8 +140,7 @@ const toProductResponse = (product) => {
 
 	return {
 		...productData,
-		image: primaryProductImage?.imageUrl ?? EMPTY_IMAGE,
-		alt: primaryProductImage?.alt ?? value.name,
+		image: toImageResponse(primaryProductImage, value.name),
 		stock: items.reduce((total, item) => total + Number(item.stock), 0),
 		items,
 	};

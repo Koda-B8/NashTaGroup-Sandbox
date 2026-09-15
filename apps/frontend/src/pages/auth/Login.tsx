@@ -8,7 +8,7 @@ import Checkbox from "../../components/ui/checkbox";
 import Input from "../../components/ui/input";
 import { login } from "../../features/auth/api";
 import type { AppDispatch } from "../../store";
-import { setCredentials } from "../../store/slices/auth";
+import { roleHomePath, setCredentials } from "../../store/slices/auth";
 
 interface LocationState {
 	from?: string;
@@ -55,8 +55,7 @@ export default function LoginPage() {
 	const dispatch = useDispatch<AppDispatch>();
 	const navigate = useNavigate();
 	const location = useLocation();
-	const redirectTo =
-		(location.state as LocationState | null)?.from ?? "/dashboard";
+	const from = (location.state as LocationState | null)?.from;
 
 	const [showPassword, setShowPassword] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
@@ -74,7 +73,7 @@ export default function LoginPage() {
 		try {
 			const user = await login({ username, password });
 			dispatch(setCredentials(user));
-			navigate(redirectTo, { replace: true });
+			navigate(from ?? roleHomePath(user.role), { replace: true });
 		} catch (error) {
 			const message =
 				error instanceof Error

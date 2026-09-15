@@ -69,6 +69,10 @@ export function isAuthExpired(user: AuthUser | null): boolean {
 	return isExpired(user);
 }
 
+export function roleHomePath(role: string | undefined): string {
+	return role === "admin" ? "/dashboard" : "/";
+}
+
 const initialUser = readAuthCookie();
 
 const authSlice = createSlice({

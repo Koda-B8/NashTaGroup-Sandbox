@@ -7,6 +7,7 @@ import {
 	checkExpiry,
 	isAuthExpired,
 	readAuthCookie,
+	roleHomePath,
 } from "../store/slices/auth";
 
 interface ProtectedRouteProps {
@@ -63,7 +64,7 @@ export function GuestRoute() {
 		user && !isAuthExpired(user) && cookieUser && !isAuthExpired(cookieUser);
 
 	if (isValid) {
-		const redirectTo = location.state?.from ?? "/dashboard";
+		const redirectTo = location.state?.from ?? roleHomePath(user?.role);
 		return (
 			<Navigate
 				to={redirectTo}

@@ -2,7 +2,14 @@
 const { Model } = require("sequelize");
 
 const definePaymentMethods = (sequelize, DataTypes) => {
-	class PaymentMethods extends Model {}
+	class PaymentMethods extends Model {
+		static associate(models) {
+			PaymentMethods.hasMany(models.Payments, {
+				foreignKey: "paymentMethodId",
+				as: "payments",
+			});
+		}
+	}
 
 	PaymentMethods.init(
 		{

@@ -67,7 +67,13 @@ app.use((error, _request, response, _next) => {
 
 	if (statusCode >= 500) console.error(error);
 
-	return response.status(statusCode).json({ success: false, message });
+	const body = { success: false, message };
+
+	if (statusCode < 500 && Array.isArray(error.errors)) {
+		body.errors = error.errors;
+	}
+
+	return response.status(statusCode).json(body);
 });
 
 export default app;

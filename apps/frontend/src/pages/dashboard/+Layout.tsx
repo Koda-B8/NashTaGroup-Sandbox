@@ -90,12 +90,12 @@ const SIDEBAR_NAV_GROUPS: SidebarNavGroup[] = [
 				],
 			},
 			{
-				id: "orders",
-				label: "Orders",
+				id: "transactions",
+				label: "Transactions",
 				path: "/dashboard/orders",
 				icon: <ShoppingCartIcon size={14} />,
 				children: [
-					{ label: "All Orders", path: "/dashboard/orders" },
+					{ label: "All Transactions", path: "/dashboard/orders" },
 					{ label: "Pending", path: "/dashboard/orders/pending" },
 				],
 			},
@@ -327,7 +327,7 @@ function Header() {
 			<Breadcrumb
 				items={[
 					{ label: "Nashta Group", to: "/dashboard" },
-					{ label: "Orders" },
+					{ label: "Transactions" },
 				]}
 			/>
 			<div className="ml-auto flex items-center gap-3">

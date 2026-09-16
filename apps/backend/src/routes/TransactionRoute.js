@@ -11,7 +11,7 @@ import { requireRole } from "../middleware/authorize.js";
 const router = express.Router();
 
 router.use(authMiddleware);
-router.use(requireRole("admin", "cashier"));
+router.use(requireRole("admin"));
 
 /**
  * @openapi
@@ -131,7 +131,7 @@ router.use(requireRole("admin", "cashier"));
  *       401:
  *         description: Token is invalid or unavailable
  *       403:
- *         description: Only admins and cashiers can retrieve transactions
+ *         description: Only admins can retrieve transactions
  */
 router.get("/", getTransactions);
 

@@ -3,6 +3,10 @@ import { constants } from "node:http2";
 import { Op } from "sequelize";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import {
+	deleteProductImage as deleteCloudinaryImage,
+	uploadProductImage as uploadCloudinaryImage,
+} from "../lib/cloudinary.js";
 import db from "../models/index.cjs";
 import {
 	createProduct,
@@ -12,18 +16,34 @@ import {
 	updateProduct,
 } from "./product.controller.js";
 
+const databaseMocks = vi.hoisted(() => ({ transaction: vi.fn() }));
+
+vi.mock("../lib/cloudinary.js", () => ({
+	deleteProductImage: vi.fn(),
+	uploadProductImage: vi.fn(),
+}));
+
 vi.mock("../models/index.cjs", () => ({
 	default: {
 		Brands: { findByPk: vi.fn() },
 		Categories: { findByPk: vi.fn() },
 		Inventories: {},
-		ProductImages: {},
+		ProductImageCleanups: {
+			findOrCreate: vi.fn(),
+			destroy: vi.fn(),
+		},
+		ProductImages: {
+			create: vi.fn(),
+			findOne: vi.fn(),
+			update: vi.fn(),
+		},
 		ProductItems: {},
 		Products: {
 			create: vi.fn(),
 			findAll: vi.fn(),
 			findByPk: vi.fn(),
 		},
+		sequelize: { transaction: databaseMocks.transaction },
 	},
 }));
 
@@ -58,6 +78,14 @@ const productWithStock = {
 	items: [],
 };
 
+const cloudinaryImage = {
+	publicId: "Sandbox/products/galaxy-a55",
+	url: "https://res.cloudinary.com/nashta/image/upload/f_auto,q_auto/galaxy-a55",
+};
+
+const uploadCloudinaryImageMock = vi.mocked(uploadCloudinaryImage);
+const deleteCloudinaryImageMock = vi.mocked(deleteCloudinaryImage);
+
 const createResponse = () => ({
 	status: vi.fn().mockReturnThis(),
 	json: vi.fn(),
@@ -69,6 +97,13 @@ describe("product controller", () => {
 
 		db.Categories.findByPk.mockResolvedValue(activeCategory);
 		db.Brands.findByPk.mockResolvedValue(activeBrand);
+		databaseMocks.transaction.mockImplementation((callback) =>
+			callback({ id: "database-transaction" }),
+		);
+		uploadCloudinaryImageMock.mockResolvedValue(cloudinaryImage);
+		deleteCloudinaryImageMock.mockResolvedValue({ result: "ok" });
+		db.ProductImageCleanups.findOrCreate.mockResolvedValue([]);
+		db.ProductImageCleanups.destroy.mockResolvedValue(1);
 	});
 
 	it("retrieves products with search and filters", async () => {
@@ -205,6 +240,67 @@ describe("product controller", () => {
 		expect(next).not.toHaveBeenCalled();
 	});
 
+	it("creates a product and optional image in one multipart request", async () => {
+		db.Products.create.mockResolvedValue({ id: productId });
+		db.Products.findByPk.mockResolvedValue({ ...product, items: [] });
+		const response = createResponse();
+		const next = vi.fn();
+
+		await createProduct(
+			{
+				body: { categoryId, brandId, name: product.name, isActive: "false" },
+				file: { buffer: Buffer.from("image") },
+			},
+			response,
+			next,
+		);
+
+		expect(db.Products.create).toHaveBeenCalledWith(
+			expect.objectContaining({ name: product.name, isActive: false }),
+			{ transaction: { id: "database-transaction" } },
+		);
+		expect(db.ProductImages.create).toHaveBeenCalledWith(
+			{
+				productId,
+				productItemId: null,
+				imageUrl: cloudinaryImage.url,
+				publicId: cloudinaryImage.publicId,
+				alt: product.name,
+				isPrimary: true,
+				sortOrder: 0,
+			},
+			{ transaction: { id: "database-transaction" } },
+		);
+		expect(response.json).toHaveBeenCalledWith({
+			success: true,
+			message: "Product created successfully",
+			data: {
+				...productWithStock,
+				image: { alt: product.name, url: cloudinaryImage.url },
+			},
+		});
+		expect(next).not.toHaveBeenCalled();
+	});
+
+	it("cleans up a newly uploaded asset when product creation fails", async () => {
+		db.Products.create.mockRejectedValue(new Error("Database unavailable"));
+		const next = vi.fn();
+		await createProduct(
+			{
+				body: { categoryId, brandId, name: product.name },
+				file: { buffer: Buffer.from("image") },
+			},
+			createResponse(),
+			next,
+		);
+		expect(deleteCloudinaryImageMock).toHaveBeenCalledWith(
+			cloudinaryImage.publicId,
+		);
+		expect(next).toHaveBeenCalledWith(
+			expect.objectContaining({ message: "Database unavailable" }),
+		);
+	});
+
 	it("retrieves product details with aggregate and per-item stock", async () => {
 		db.Products.findByPk.mockResolvedValue({
 			...product,
@@ -331,6 +427,129 @@ describe("product controller", () => {
 				message: "No valid field provided for update",
 			}),
 		);
+	});
+
+	it("replaces the primary product image in the same update request", async () => {
+		const update = vi.fn();
+		const primaryImage = {
+			publicId: "Sandbox/products/previous",
+			alt: "Previous alt",
+			update: vi.fn(),
+		};
+		db.Products.findByPk.mockResolvedValue({ ...product, update, items: [] });
+		db.ProductImages.findOne.mockResolvedValue(primaryImage);
+		const response = createResponse();
+		const next = vi.fn();
+
+		await updateProduct(
+			{
+				params: { id: productId },
+				body: { name: "Samsung Galaxy A56" },
+				file: { buffer: Buffer.from("replacement") },
+			},
+			response,
+			next,
+		);
+
+		expect(update).toHaveBeenCalledWith(
+			{ name: "Samsung Galaxy A56" },
+			{ transaction: { id: "database-transaction" } },
+		);
+		expect(primaryImage.update).toHaveBeenCalledWith(
+			{
+				imageUrl: cloudinaryImage.url,
+				publicId: cloudinaryImage.publicId,
+				alt: "Samsung Galaxy A56",
+			},
+			{ transaction: { id: "database-transaction" } },
+		);
+		expect(deleteCloudinaryImageMock).toHaveBeenCalledWith(
+			primaryImage.publicId,
+		);
+		expect(response.json).toHaveBeenCalledWith(
+			expect.objectContaining({
+				cleanupPending: false,
+				data: expect.objectContaining({
+					image: { alt: "Samsung Galaxy A56", url: cloudinaryImage.url },
+				}),
+			}),
+		);
+		expect(next).not.toHaveBeenCalled();
+	});
+
+	it("keeps a cleanup job when the replaced Cloudinary asset cannot be removed", async () => {
+		const previousPublicId = "Sandbox/products/previous";
+		db.Products.findByPk.mockResolvedValue({
+			...product,
+			update: vi.fn(),
+			items: [],
+		});
+		db.ProductImages.findOne.mockResolvedValue({
+			publicId: previousPublicId,
+			update: vi.fn(),
+		});
+		deleteCloudinaryImageMock.mockRejectedValue(
+			new Error("Cloudinary unavailable"),
+		);
+		const response = createResponse();
+
+		await updateProduct(
+			{
+				params: { id: productId },
+				body: {},
+				file: { buffer: Buffer.from("image") },
+			},
+			response,
+			vi.fn(),
+		);
+
+		expect(db.ProductImageCleanups.findOrCreate).toHaveBeenCalledWith(
+			expect.objectContaining({ where: { publicId: previousPublicId } }),
+		);
+		expect(db.ProductImageCleanups.destroy).not.toHaveBeenCalled();
+		expect(response.json).toHaveBeenCalledWith(
+			expect.objectContaining({ cleanupPending: true }),
+		);
+	});
+
+	it("accepts an image-only product update", async () => {
+		const update = vi.fn();
+		db.Products.findByPk.mockResolvedValue({ ...product, update, items: [] });
+		db.ProductImages.findOne.mockResolvedValue(null);
+		const response = createResponse();
+		await updateProduct(
+			{
+				params: { id: productId },
+				body: {},
+				file: { buffer: Buffer.from("image") },
+			},
+			response,
+			vi.fn(),
+		);
+		expect(update).not.toHaveBeenCalled();
+		expect(db.ProductImages.create).toHaveBeenCalledWith(
+			expect.objectContaining({ alt: product.name, isPrimary: true }),
+			{ transaction: { id: "database-transaction" } },
+		);
+		expect(response.status).toHaveBeenCalledWith(constants.HTTP_STATUS_OK);
+	});
+
+	it("updates the primary image alt when the product name changes without a file", async () => {
+		const update = vi.fn();
+		db.Products.findByPk.mockResolvedValue({ ...product, update, items: [] });
+		const response = createResponse();
+		await updateProduct(
+			{ params: { id: productId }, body: { name: "Samsung Galaxy A56" } },
+			response,
+			vi.fn(),
+		);
+		expect(db.ProductImages.update).toHaveBeenCalledWith(
+			{ alt: "Samsung Galaxy A56" },
+			expect.objectContaining({
+				where: { productId, productItemId: null, isPrimary: true },
+			}),
+		);
+		expect(uploadCloudinaryImageMock).not.toHaveBeenCalled();
 	});
 
 	it("soft deletes an existing product", async () => {

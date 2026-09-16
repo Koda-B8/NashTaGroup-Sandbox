@@ -9,7 +9,9 @@ import {
 } from "../lib/cloudinary.js";
 import db from "../models/index.cjs";
 import {
+	createAdditionalProductImage,
 	createProductImage,
+	createProductItemImage,
 	deleteProductImage,
 	getProductImages,
 	replaceProductImage,
@@ -203,6 +205,79 @@ describe("product image controller", () => {
 				sortOrder: 1,
 			},
 		});
+		expect(next).not.toHaveBeenCalled();
+	});
+
+	it("takes the product target from the route when adding another product image", async () => {
+		const image = createImageRecord({ productItemId: null });
+		db.ProductImages.create.mockResolvedValue(image);
+		const response = createResponse();
+		const next = vi.fn();
+
+		await createAdditionalProductImage(
+			{
+				params: { id: productId },
+				body: {
+					productId: "44444444-4444-4444-8444-444444444444",
+					productItemId,
+					alt: "Gallery image",
+				},
+				file: { buffer: Buffer.from("image") },
+			},
+			response,
+			next,
+		);
+
+		expect(db.ProductImages.create).toHaveBeenCalledWith(
+			expect.objectContaining({
+				productId,
+				productItemId: null,
+				isPrimary: false,
+			}),
+			expect.any(Object),
+		);
+		expect(next).not.toHaveBeenCalled();
+	});
+
+	it("rejects primary image creation through the gallery endpoint", async () => {
+		const next = vi.fn();
+		await createAdditionalProductImage(
+			{
+				params: { id: productId },
+				body: { alt: "New primary", isPrimary: "true" },
+				file: { buffer: Buffer.from("image") },
+			},
+			createResponse(),
+			next,
+		);
+		expect(uploadCloudinaryImageMock).not.toHaveBeenCalled();
+		expect(next).toHaveBeenCalledWith(
+			expect.objectContaining({
+				statusCode: constants.HTTP_STATUS_BAD_REQUEST,
+			}),
+		);
+	});
+
+	it("derives the product target from the item route", async () => {
+		const image = createImageRecord();
+		db.ProductImages.create.mockResolvedValue(image);
+		const response = createResponse();
+		const next = vi.fn();
+
+		await createProductItemImage(
+			{
+				params: { id: productItemId },
+				body: { alt: "Variant image" },
+				file: { buffer: Buffer.from("image") },
+			},
+			response,
+			next,
+		);
+
+		expect(db.ProductImages.create).toHaveBeenCalledWith(
+			expect.objectContaining({ productId, productItemId }),
+			expect.any(Object),
+		);
 		expect(next).not.toHaveBeenCalled();
 	});
 

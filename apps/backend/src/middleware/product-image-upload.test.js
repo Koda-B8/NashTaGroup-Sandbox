@@ -42,6 +42,19 @@ describe("product image multipart upload", () => {
 		const response = await send(Buffer.from("not an image"), "image/png");
 		expect(response.status).toBe(415);
 	});
+	it("accepts multipart product fields without an image", async () => {
+		const form = new FormData();
+		for (const [name, value] of Object.entries({
+			categoryId: "category",
+			brandId: "brand",
+			name: "Product",
+			description: "Description",
+			isActive: "true",
+		}))
+			form.append(name, value);
+		const response = await fetch(url, { method: "POST", body: form });
+		expect(response.status).toBe(200);
+	});
 	it("rejects excessive form fields", async () => {
 		const response = await send(Buffer.from("ffd8ff", "hex"), "image/jpeg", {
 			a: "1",

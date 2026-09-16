@@ -319,7 +319,7 @@ export default function MainLayout() {
 												<section className="flex items-center gap-3 py-2">
 													<div className="w-10 h-10 rounded-lg bg-base relative">
 														<div
-															className="min-w-4 h-4 px-1 absolute top-0 left-0 rounded-full 
+															className="min-w-4 h-4 px-1 absolute top-0 left-0 rounded-full
 														text-[9px] font-bold bg-primary centerized text-white"
 														>
 															{item.qty}

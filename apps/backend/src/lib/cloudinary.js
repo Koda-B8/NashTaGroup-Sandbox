@@ -29,7 +29,11 @@ export const uploadProductImage = (buffer) =>
 
 				resolve({
 					publicId: result.public_id,
-					url: result.secure_url,
+					url: cloudinary.url(result.public_id, {
+						fetch_format: "auto",
+						quality: "auto",
+						secure: true,
+					}),
 				});
 			},
 		);

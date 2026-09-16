@@ -1,10 +1,26 @@
 import { constants } from "node:http2";
 
+import { rateLimit } from "express-rate-limit";
 import multer from "multer";
 
 import { createHttpError } from "../utils/http-error.js";
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+const uploadLimiter = rateLimit({
+	windowMs: 15 * 60 * 1000,
+	limit: 10,
+	standardHeaders: "draft-8",
+	legacyHeaders: false,
+	message: {
+		success: false,
+		message: "Too many image uploads. Try again later.",
+	},
+});
+
+export const limitProductImageUploads = (request, response, next) =>
+	request.is("multipart/form-data")
+		? uploadLimiter(request, response, next)
+		: next();
 const ALLOWED_IMAGE_TYPES = new Set([
 	"image/avif",
 	"image/jpeg",
@@ -42,7 +58,7 @@ const upload = multer({
 	storage: multer.memoryStorage(),
 	limits: {
 		fieldNameSize: 30,
-		fieldSize: 512,
+		fieldSize: 4096,
 		fields: 5,
 		fileSize: MAX_IMAGE_SIZE,
 		files: 1,

@@ -318,6 +318,54 @@ export async function createProductImage(request, response, next) {
 	}
 }
 
+export function createAdditionalProductImage(request, response, next) {
+	if (
+		request.body?.isPrimary !== undefined &&
+		request.body.isPrimary !== false &&
+		request.body.isPrimary !== "false"
+	) {
+		return next(
+			createHttpError(
+				constants.HTTP_STATUS_BAD_REQUEST,
+				"Use the product update endpoint to replace its primary image",
+			),
+		);
+	}
+	request.body = {
+		...request.body,
+		productId: request.params.id,
+		productItemId: undefined,
+		isPrimary: false,
+	};
+	return createProductImage(request, response, next);
+}
+
+export async function createProductItemImage(request, response, next) {
+	try {
+		if (!isUuid(request.params.id)) {
+			throw createHttpError(
+				constants.HTTP_STATUS_BAD_REQUEST,
+				"Product item id must be a valid UUID",
+			);
+		}
+		const item = await ProductItems.findByPk(request.params.id);
+		if (!item) {
+			throw createHttpError(
+				constants.HTTP_STATUS_NOT_FOUND,
+				"Product item not found",
+			);
+		}
+		request.body = {
+			...request.body,
+			productId: item.productId,
+			productItemId: item.id,
+		};
+		return createProductImage(request, response, next);
+	} catch (error) {
+		return next(error);
+	}
+}
+
 export async function updateProductImage(request, response, next) {
 	try {
 		const image = await getImage(request.params.id);

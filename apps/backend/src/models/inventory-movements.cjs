@@ -13,6 +13,11 @@ const defineInventoryMovements = (sequelize, DataTypes) => {
 				foreignKey: "userId",
 				as: "user",
 			});
+
+			InventoryMovements.belongsTo(models.Transactions, {
+				foreignKey: "transactionId",
+				as: "transaction",
+			});
 		}
 	}
 

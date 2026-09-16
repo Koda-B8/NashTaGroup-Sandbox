@@ -1,74 +1,9 @@
-import { QrCode, Wallet, CreditCard, Check } from "lucide-react";
-import type { ReactNode } from "react";
+import { Check } from "lucide-react";
 import { useSelector } from "react-redux";
 
 import Button from "../components/ui/button";
 import { formatRupiah } from "../libs/formatRupiah";
 import type { RootState } from "../store";
-
-interface Product {
-	uuid: string;
-	name: string;
-	image: null | string;
-	alt: string;
-	price: number;
-	qty: number;
-}
-
-interface PaymentMethod {
-	id: number;
-	name: string;
-	desc: string;
-	icon: ReactNode;
-}
-
-const payment_method: PaymentMethod[] = [
-	{
-		id: 1,
-		name: "Cash",
-		desc: "Tunai",
-		icon: <Wallet size={18} />,
-	},
-	{
-		id: 2,
-		name: "QRIS",
-		desc: "Scan QR",
-		icon: <QrCode size={18} />,
-	},
-	{
-		id: 3,
-		name: "Transfer",
-		desc: "Virtual Account",
-		icon: <CreditCard size={18} />,
-	},
-];
-
-const products: Product[] = [
-	{
-		uuid: "1",
-		name: "Smartphone",
-		image: "",
-		alt: "smartphone",
-		price: 4_000_000,
-		qty: 1,
-	},
-	{
-		uuid: "2",
-		name: "Smartphone",
-		image: "",
-		alt: "smartphone",
-		price: 4_000_000,
-		qty: 1,
-	},
-	{
-		uuid: "3",
-		name: "Smartphone",
-		image: "",
-		alt: "smartphone",
-		price: 4_000_000,
-		qty: 1,
-	},
-];
 
 export default function StructStatus() {
 	const cart = useSelector((state: RootState) => state.cart.cart);
@@ -124,7 +59,7 @@ export default function StructStatus() {
 						<section className="py-3 flex border-b border-base-border flex-col gap-1">
 							{cart.map((item) => (
 								<div
-									key={item.uuid}
+									key={item.id}
 									className="flex justify-between items-center"
 								>
 									<div className="flex flex-col">

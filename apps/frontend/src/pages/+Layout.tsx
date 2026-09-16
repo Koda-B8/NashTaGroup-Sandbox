@@ -1,35 +1,19 @@
 import { ArrowRight, Check, ShoppingCart } from "lucide-react";
-import { Suspense, lazy, type ReactNode } from "react";
-import { useSelector } from "react-redux";
+import { Suspense, lazy, useEffect, useState, type ReactNode } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Outlet, useLocation, useNavigate } from "react-router";
 
 import AsideContent from "../components/Aside";
+import FilterSkel from "../components/FilterSkel";
 import NavSkeleton from "../components/NavSkeleton";
 import Shell from "../components/Shell";
 import Button from "../components/ui/button";
+import { apiFetch } from "../libs/api";
 import { formatRupiah } from "../libs/formatRupiah";
-import type { RootState } from "../store";
+import type { AppDispatch, RootState } from "../store";
+import { clearCart, type CartItem } from "../store/slices/cart";
 
 const Navbar = lazy(() => import("../components/Navbar"));
-
-const FILTER_GROUPS = [
-	{
-		title: "KATEGORI",
-		options: [
-			{ id: "smartphone", label: "Smartphone" },
-			{ id: "laptop", label: "Laptop" },
-			{ id: "tv", label: "Tv" },
-		],
-	},
-	{
-		title: "STATUS",
-		options: [
-			{ id: "instock", label: "In Stock" },
-			{ id: "promo", label: "Promo" },
-			{ id: "bestseller", label: "Best Seller" },
-		],
-	},
-];
 
 interface SummaryProps {
 	rows: [label: string, amount: number][];
@@ -81,7 +65,12 @@ const ORDER_STEPS = [
 	{ title: "Selesai", caption: "Struk dan status" },
 ];
 
-function OrderSteps({ current }: Readonly<{ current: number }>) {
+interface OrderStep {
+	current: number;
+	nextAction: () => void;
+}
+
+function OrderSteps({ current, nextAction }: Readonly<OrderStep>) {
 	return (
 		<AsideContent
 			headerName={"Proses Pesanan"}
@@ -139,6 +128,7 @@ function OrderSteps({ current }: Readonly<{ current: number }>) {
 						<p>Batal</p>
 					</Button>
 					<Button
+						onClick={nextAction}
 						variant={"primary"}
 						className="px-6"
 					>
@@ -150,31 +140,106 @@ function OrderSteps({ current }: Readonly<{ current: number }>) {
 	);
 }
 
-const checkoutSummary = (
-	<AsideContent
-		headerName={"Ringkasan"}
-		Content={
-			<div>
-				<Summary
-					rows={[
-						["Subtotal", 15_000],
-						["Pajak", 1000],
-						["Diskon", 1000],
-					]}
-					total={13_000}
-				/>
-			</div>
-		}
-		Footer={<p className="text-center">Aman dan terenskripsi</p>}
-	/>
-);
+function CheckoutSummary({ cart }: Readonly<{ cart: CartItem[] }>) {
+	return (
+		<AsideContent
+			headerName={"Ringkasan"}
+			Content={
+				<div>
+					<Summary
+						rows={[
+							[
+								"Subtotal",
+								cart.reduce((total, item) => total + item.qty * item.price, 0),
+							],
+							["Pajak", 1000],
+							["Diskon", 1000],
+						]}
+						total={
+							cart.length > 0
+								? cart.reduce(
+										(total, item) => total + item.qty * item.price,
+										0,
+									) -
+									(5000 - 1000)
+								: 0
+						}
+					/>
+				</div>
+			}
+			Footer={<p className="text-center">Aman dan terenskripsi</p>}
+		/>
+	);
+}
+
+interface Categories {
+	id: string;
+	name: string;
+}
+
+interface FilterCats {
+	title: string;
+	options: Categories[];
+}
 
 export default function MainLayout() {
 	const path = useLocation().pathname;
+	const dispatch = useDispatch<AppDispatch>();
 	const navigate = useNavigate();
+	const [loading, setLoading] = useState<boolean>(true);
 	const cart = useSelector((state: RootState) => state.cart.cart);
+	const [filterGroups, setFilterGroups] = useState<FilterCats[]>([]);
 
-	const panels: Record<string, { left?: ReactNode; right: ReactNode }> = {
+	function handleCheckout(): void {
+		navigate("/struct");
+	}
+
+	function handleBack(): void {
+		dispatch(clearCart());
+		navigate("/");
+	}
+
+	useEffect(() => {
+		async function getCategories() {
+			setLoading(true);
+			try {
+				const data = await apiFetch("/api/v1/categories");
+				const res = await data.json();
+
+				const cat: FilterCats = {
+					title: "Kategori",
+					options: res.data,
+				};
+				setFilterGroups([cat]);
+
+				// const FILTER_GROUPS = [
+				// 	{
+				// 		title: "KATEGORI",
+				// 		options: [
+				// 			{ id: "smartphone", label: "Smartphone" },
+				// 			{ id: "laptop", label: "Laptop" },
+				// 			{ id: "tv", label: "Tv" },
+				// 		],
+				// 	},
+				// 	{
+				// 		title: "STATUS",
+				// 		options: [
+				// 			{ id: "instock", label: "In Stock" },
+				// 			{ id: "promo", label: "Promo" },
+				// 			{ id: "bestseller", label: "Best Seller" },
+				// 		],
+				// 	},
+				// ];
+			} catch (error) {
+				console.error(error);
+			} finally {
+				setLoading(false);
+			}
+		}
+		getCategories();
+	}, []);
+
+	const panels: Record<string, { left?: ReactNode; right?: ReactNode }> = {
 		"/": {
 			left: (
 				<AsideContent
@@ -182,35 +247,41 @@ export default function MainLayout() {
 					Attribute={<ClearButton />}
 					Content={
 						<div>
-							{FILTER_GROUPS.map((group) => (
-								<section
-									key={group.title}
-									className="border-b border-base-border py-3"
-								>
-									<p className="text-sm font-semibold">{group.title}</p>
-									<ul className="flex flex-col text-[15px] mt-2 w-full ml-0">
-										{group.options.map((option) => (
-											<li
-												key={option.id}
-												className="flex gap-2 items-center justify-start list-outside"
-											>
-												<input
-													type="checkbox"
-													name={option.id}
-													id={option.id}
-													className="peer"
-												/>
-												<label
-													htmlFor={option.id}
-													className="peer-checked:text-text-h"
-												>
-													{option.label}
-												</label>
-											</li>
-										))}
-									</ul>
-								</section>
-							))}
+							{loading ? (
+								<FilterSkel count={4} />
+							) : (
+								<>
+									{filterGroups.map((group) => (
+										<section
+											key={group.title}
+											className="border-b border-base-border py-3"
+										>
+											<p className="text-sm font-semibold">{group.title}</p>
+											<ul className="flex flex-col gap-1 text-[15px] mt-2 w-full ml-0">
+												{group.options.map((option) => (
+													<li
+														key={option.id}
+														className="flex gap-2 items-center justify-start list-outside"
+													>
+														<input
+															type="checkbox"
+															name={option.id}
+															id={option.id}
+															className="peer"
+														/>
+														<label
+															htmlFor={option.id}
+															className="peer-checked:text-text-h text-sm"
+														>
+															{option.name}
+														</label>
+													</li>
+												))}
+											</ul>
+										</section>
+									))}
+								</>
+							)}
 						</div>
 					}
 					Footer={
@@ -242,11 +313,18 @@ export default function MainLayout() {
 									<div className="flex flex-col gap-2">
 										{cart.map((item) => (
 											<div
-												key={item.uuid}
+												key={item.id}
 												className="flex items-center justify-between"
 											>
 												<section className="flex items-center gap-3 py-2">
-													<div className="w-10 h-10 rounded-lg bg-base"></div>
+													<div className="w-10 h-10 rounded-lg bg-base relative">
+														<div
+															className="min-w-4 h-4 px-1 absolute top-0 left-0 rounded-full
+														text-[9px] font-bold bg-primary centerized text-white"
+														>
+															{item.qty}
+														</div>
+													</div>
 													<div className="flex flex-col justify-center text-left">
 														<p className="text-text-h text-sm">{item.name}</p>
 														<p className="text-sm">
@@ -270,10 +348,23 @@ export default function MainLayout() {
 
 							<Summary
 								rows={[
-									["Subtotal", 15_000],
+									[
+										"Subtotal",
+										cart.reduce(
+											(total, item) => total + item.qty * item.price,
+											0,
+										),
+									],
 									["Diskon", 5000],
 								]}
-								total={10_000}
+								total={
+									cart.length > 0
+										? cart.reduce(
+												(total, item) => total + item.qty * item.price,
+												0,
+											) - 5000
+										: 0
+								}
 							/>
 						</div>
 					}
@@ -289,8 +380,25 @@ export default function MainLayout() {
 				/>
 			),
 		},
-		"/checkout": { left: <OrderSteps current={2} />, right: checkoutSummary },
-		"/struct": { left: <OrderSteps current={3} />, right: checkoutSummary },
+
+		"/checkout": {
+			left: (
+				<OrderSteps
+					current={2}
+					nextAction={handleCheckout}
+				/>
+			),
+			right: <CheckoutSummary cart={cart} />,
+		},
+		"/struct": {
+			left: (
+				<OrderSteps
+					nextAction={handleBack}
+					current={3}
+				/>
+			),
+			right: <CheckoutSummary cart={cart} />,
+		},
 	};
 
 	const { left, right } = panels[path] ?? {

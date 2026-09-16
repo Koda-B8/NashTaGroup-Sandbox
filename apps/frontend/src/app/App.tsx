@@ -14,6 +14,7 @@ import {
 } from "../pages/dashboard";
 import DashboardLayout from "../pages/dashboard/+Layout";
 import ProductsManagementDashboard from "../pages/dashboard/ProductsManagement";
+import OrdersManagementDashboard from "../pages/dashboard/TranscationsManagement";
 import StructStatus from "../pages/StructStatus";
 import { persistor, store } from "../store";
 import ProtectedRoute, { GuestRoute } from "./ProtectedRoute";
@@ -51,6 +52,10 @@ const router = createBrowserRouter([
 					{
 						path: "products",
 						element: <ProductsManagementDashboard />,
+					},
+					{
+						path: "orders",
+						element: <OrdersManagementDashboard />,
 					},
 					{
 						element: <ProtectedRoute allowedRoles={["admin"]} />,

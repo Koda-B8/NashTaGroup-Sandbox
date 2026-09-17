@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import ErrorBanner from "../../components/ui/error-banner";
+import Section from "../../components/ui/section";
+import Toast from "../../components/ui/toast";
 import TransactionDetailPanel from "../../features/transactions/components/TransactionDetailPanel";
 import TransactionFiltersBar from "../../features/transactions/components/TransactionFiltersBar";
 import TransactionOverview from "../../features/transactions/components/TransactionOverview";
@@ -15,6 +18,8 @@ import {
 	useTransactionsList,
 } from "../../features/transactions/hooks/useTransactionsList";
 import { useDebouncedValue } from "../../hooks/useDebouncedValue";
+import { useFlash } from "../../hooks/useFlash";
+import { useRowSelection, useSelectedItem } from "../../hooks/useRowSelection";
 
 const EMPTY_FILTERS: TransactionFilters = {
 	month: "",
@@ -31,13 +36,9 @@ export default function OrdersManagementDashboard() {
 	const [sortBy, setSortBy] = useState<SortBy>("newest");
 	const [filters, setFilters] = useState<TransactionFilters>(EMPTY_FILTERS);
 	const [page, setPage] = useState(0);
-	const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
-	const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-	const [toast, setToast] = useState<string | undefined>(undefined);
-	const [toastVariant, setToastVariant] = useState<"success" | "error">(
-		"success",
-	);
 	const pageSize = 8;
+
+	const { flash, show, clear } = useFlash();
 
 	const {
 		transactions,
@@ -68,69 +69,25 @@ export default function OrdersManagementDashboard() {
 		loading: optionsLoading,
 	} = useTransactionFilterOptions(transactions);
 
+	const {
+		selectedId,
+		setSelectedId,
+		selectedIds,
+		allPageSelected,
+		somePageSelected,
+		toggleAllPage,
+		toggleOne,
+	} = useRowSelection(paged, transactions.length);
+
+	const selected = useSelectedItem(
+		transactions,
+		selectedId,
+		paged[0] ?? transactions[0],
+	);
+
 	useEffect(() => {
 		queueMicrotask(() => setPage(0));
 	}, [debouncedSearch, statusFilter, memberFilter, filters]);
-
-	useEffect(() => {
-		queueMicrotask(() => {
-			if (paged.length > 0)
-				setSelectedId((prev) =>
-					prev && paged.some((transaction) => transaction.id === prev)
-						? prev
-						: paged[0]!.id,
-				);
-			else if (transactions.length === 0) setSelectedId(undefined);
-		});
-	}, [paged, transactions.length]);
-
-	const flash = useCallback(
-		(message: string, variant: "success" | "error" = "success") => {
-			setToast(message);
-			setToastVariant(variant);
-			setTimeout(() => setToast(undefined), 2800);
-		},
-		[],
-	);
-
-	const selected = useMemo(() => {
-		if (!selectedId) return paged[0] ?? transactions[0] ?? undefined;
-		return (
-			transactions.find((transaction) => transaction.id === selectedId) ??
-			paged[0] ??
-			transactions[0] ??
-			undefined
-		);
-	}, [selectedId, paged, transactions]);
-
-	const allPageSelected =
-		paged.length > 0 &&
-		paged.every((transaction) => selectedIds.has(transaction.id));
-	const somePageSelected =
-		paged.some((transaction) => selectedIds.has(transaction.id)) &&
-		!allPageSelected;
-
-	const toggleAllPage = useCallback(
-		(checked: boolean) =>
-			setSelectedIds((prev) => {
-				const next = new Set(prev);
-				if (checked) paged.forEach((transaction) => next.add(transaction.id));
-				else paged.forEach((transaction) => next.delete(transaction.id));
-				return next;
-			}),
-		[paged],
-	);
-
-	const toggleOne = useCallback(
-		(id: string, checked: boolean) =>
-			setSelectedIds((prev) => {
-				const next = new Set(prev);
-				if (checked) next.add(id);
-				else next.delete(id);
-				return next;
-			}),
-		[],
-	);
 
 	const handleStatusChange = useCallback(
 		(value: string) => setStatusFilter(value as StatusFilter),
@@ -181,17 +138,16 @@ export default function OrdersManagementDashboard() {
 		setMemberFilter("All");
 		setFilters(EMPTY_FILTERS);
 	}, []);
-	const handlePageChange = useCallback((next: number) => setPage(next), []);
 	const handleCopyNumber = useCallback(
 		async (value: string) => {
 			try {
 				await navigator.clipboard.writeText(value);
-				flash(`Nomor transaksi ${value} disalin`);
+				show(`Nomor transaksi ${value} disalin`);
 			} catch {
-				flash("Gagal menyalin nomor transaksi", "error");
+				show("Gagal menyalin nomor transaksi", "error");
 			}
 		},
-		[flash],
+		[show],
 	);
 
 	const totalLabel = `Showing ${paged.length} of ${
@@ -200,32 +156,16 @@ export default function OrdersManagementDashboard() {
 
 	return (
 		<div className="flex flex-col gap-6">
-			{toast && (
-				<div
-					className={`rounded-lg border px-4 py-2 text-sm ${
-						toastVariant === "success"
-							? "border-valid bg-valid text-deep-valid"
-							: "border-danger bg-danger text-deep-danger"
-					}`}
-					role={toastVariant === "error" ? "alert" : "status"}
-				>
-					{toast}
-				</div>
-			)}
+			<Toast
+				message={flash?.message}
+				variant={flash?.variant}
+				onDismiss={clear}
+			/>
 			{fetchError && (
-				<div
-					className="rounded-lg border border-danger bg-danger px-4 py-3 text-sm text-deep-danger"
-					role="alert"
-				>
-					{fetchError}{" "}
-					<button
-						type="button"
-						onClick={fetchTransactions}
-						className="ml-2 font-semibold underline"
-					>
-						Coba lagi
-					</button>
-				</div>
+				<ErrorBanner
+					message={fetchError}
+					onRetry={fetchTransactions}
+				/>
 			)}
 
 			<TransactionOverview
@@ -233,17 +173,10 @@ export default function OrdersManagementDashboard() {
 				loading={loading}
 			/>
 
-			<section
-				aria-labelledby="transactions-heading"
-				className="@container flex flex-col gap-3"
+			<Section
+				title="Transactions"
+				className="@container"
 			>
-				<h2
-					id="transactions-heading"
-					className="text-[11px] font-semibold tracking-wider text-text uppercase"
-				>
-					Transactions
-				</h2>
-
 				<TransactionFiltersBar
 					search={search}
 					onSearchChange={setSearch}
@@ -286,7 +219,7 @@ export default function OrdersManagementDashboard() {
 						onToggleOne={toggleOne}
 						pageCount={pageCount}
 						safePage={safePage}
-						onPageChange={handlePageChange}
+						onPageChange={setPage}
 						totalLabel={totalLabel}
 					/>
 					<TransactionDetailPanel
@@ -294,7 +227,7 @@ export default function OrdersManagementDashboard() {
 						onCopyNumber={handleCopyNumber}
 					/>
 				</div>
-			</section>
+			</Section>
 		</div>
 	);
 }

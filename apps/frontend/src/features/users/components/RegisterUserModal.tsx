@@ -238,7 +238,7 @@ export default function RegisterUserModal({
 						<span className="text-[11px] text-text">— isActive</span>
 					</label>
 				</ModalBody>
-				<ModalFooter className="mt-4 -mx-5 -mb-4">
+				<ModalFooter>
 					<Button
 						type="button"
 						variant="outline"

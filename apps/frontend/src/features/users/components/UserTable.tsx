@@ -4,6 +4,7 @@ import Avatar from "../../../components/ui/avatar";
 import Badge from "../../../components/ui/badge";
 import Card from "../../../components/ui/card";
 import Checkbox from "../../../components/ui/checkbox";
+import { ActiveBadge } from "../../../components/ui/status-badge";
 import { formatDate, getRoleName } from "../../../libs/format";
 import type { User } from "../api";
 
@@ -176,12 +177,7 @@ export default function UserTable({
 											</Badge>
 										</td>
 										<td className="px-3 py-3">
-											<Badge
-												variant={status === "Active" ? "primary" : "neutral"}
-												size="sm"
-											>
-												{status}
-											</Badge>
+											<ActiveBadge isActive={row.isActive} />
 										</td>
 										<td className="px-3 py-3 text-sm text-text">
 											{formatDate(row.createdAt)}

@@ -173,27 +173,35 @@ const normalizeCheckoutPayload = (request) => {
 	}
 
 	const hasCustomerId = Object.hasOwn(body, "customer_id");
+	const hasCustomerPhone = Object.hasOwn(body, "customer_phone");
 	const hasCustomer = Object.hasOwn(body, "customer");
 
-	if (hasCustomerId && hasCustomer) {
+	if (hasCustomerId) {
 		throw createHttpError(
 			constants.HTTP_STATUS_BAD_REQUEST,
-			"customer_id and customer cannot be provided together",
+			"customer_id is no longer supported; use customer_phone",
 		);
 	}
 
-	let customerId = null;
+	if (hasCustomerPhone && hasCustomer) {
+		throw createHttpError(
+			constants.HTTP_STATUS_BAD_REQUEST,
+			"customer_phone and customer cannot be provided together",
+		);
+	}
+
+	let customerPhone = null;
 	let customer = null;
 
-	if (hasCustomerId) {
-		if (!isUuid(body.customer_id)) {
+	if (hasCustomerPhone) {
+		customerPhone = normalizePhone(body.customer_phone);
+
+		if (!PHONE_PATTERN.test(customerPhone)) {
 			throw createHttpError(
 				constants.HTTP_STATUS_BAD_REQUEST,
-				"customer_id must be a valid UUID",
+				"customer_phone must be a valid phone number",
 			);
 		}
-
-		customerId = body.customer_id;
 	}
 
 	if (hasCustomer) {
@@ -218,7 +226,7 @@ const normalizeCheckoutPayload = (request) => {
 
 	return {
 		idempotencyKey,
-		customerId,
+		customerPhone,
 		customer,
 		items: normalizeItems(body.items),
 		paidAmount,
@@ -320,8 +328,8 @@ const hasSamePayload = (existingTransaction, payload, userId) => {
 		return false;
 	}
 
-	if (payload.customerId) {
-		return transaction.customerId === payload.customerId;
+	if (payload.customerPhone) {
+		return Boolean(customer) && customer.phone === payload.customerPhone;
 	}
 
 	if (payload.customer) {
@@ -385,8 +393,9 @@ const toCheckoutResponse = (record) => {
 };
 
 const getCustomerForCheckout = async (payload, transaction) => {
-	if (payload.customerId) {
-		const customer = await Customers.findByPk(payload.customerId, {
+	if (payload.customerPhone) {
+		const customer = await Customers.findOne({
+			where: { phone: payload.customerPhone },
 			transaction,
 			lock: transaction.LOCK.UPDATE,
 		});

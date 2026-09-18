@@ -50,6 +50,7 @@ const productItemId = "b5cbf379-0cfb-43d4-a2f3-3ddf76b4d7a3";
 const productId = "8d2ce5f1-1ab3-4e5f-862c-bcfaa4e3122e";
 const paymentMethodId = "dfda501e-21ba-4dda-af16-9f843fa29d59";
 const transactionId = "641a3031-e0db-4497-a032-a2a2545b5ac9";
+const customerId = "2f13fc74-ec91-4a88-959d-aed84de60132";
 
 const databaseTransaction = {
 	LOCK: {
@@ -152,6 +153,7 @@ describe("checkout controller", () => {
 		vi.mocked(db.Transactions.findByPk).mockResolvedValue(
 			createCheckoutRecord(),
 		);
+		vi.mocked(db.Customers.findOne).mockResolvedValue(null);
 		vi.mocked(db.PaymentMethods.findOne).mockResolvedValue({
 			id: paymentMethodId,
 			type: "cash",
@@ -339,7 +341,42 @@ describe("checkout controller", () => {
 		expect(db.Payments.create).not.toHaveBeenCalled();
 	});
 
-	it("rejects customer_id and customer in the same request", async () => {
+	it("completes an existing-member checkout using a normalized phone", async () => {
+		vi.mocked(db.Customers.findOne).mockResolvedValue({
+			id: customerId,
+			phone: "08123456789",
+		});
+
+		const response = createResponse();
+		const next = vi.fn();
+
+		await checkout(
+			createRequest(
+				{ ...validBody, customer_phone: " 0812-345-6789 " },
+				"1faa2779-19de-4395-8fa7-a86259c14d17",
+			),
+			response,
+			next,
+		);
+
+		expect(db.Customers.findOne).toHaveBeenCalledWith({
+			where: { phone: "08123456789" },
+			transaction: databaseTransaction,
+			lock: databaseTransaction.LOCK.UPDATE,
+		});
+		expect(transactionRecord.update).toHaveBeenCalledWith(
+			expect.objectContaining({ customerId }),
+			{ transaction: databaseTransaction },
+		);
+		expect(next).not.toHaveBeenCalled();
+	});
+
+	it("keeps new-member checkout behavior", async () => {
+		vi.mocked(db.Customers.create).mockResolvedValue({
+			id: customerId,
+			phone: "08123456789",
+		});
+
 		const response = createResponse();
 		const next = vi.fn();
 
@@ -347,12 +384,32 @@ describe("checkout controller", () => {
 			createRequest(
 				{
 					...validBody,
-					customer_id: "2f13fc74-ec91-4a88-959d-aed84de60132",
-					customer: {
-						name: "Budi",
-						phone: "08123456789",
-					},
+					customer: { name: "Budi", phone: "08123456789" },
 				},
+				"1faa2779-19de-4395-8fa7-a86259c14d17",
+			),
+			response,
+			next,
+		);
+
+		expect(db.Customers.create).toHaveBeenCalledWith(
+			{ name: "Budi", phone: "08123456789" },
+			{ transaction: databaseTransaction },
+		);
+		expect(transactionRecord.update).toHaveBeenCalledWith(
+			expect.objectContaining({ customerId }),
+			{ transaction: databaseTransaction },
+		);
+		expect(next).not.toHaveBeenCalled();
+	});
+
+	it("returns 404 for an unregistered existing-member phone", async () => {
+		const response = createResponse();
+		const next = vi.fn();
+
+		await checkout(
+			createRequest(
+				{ ...validBody, customer_phone: "08123456789" },
 				"1faa2779-19de-4395-8fa7-a86259c14d17",
 			),
 			response,
@@ -361,8 +418,87 @@ describe("checkout controller", () => {
 
 		expect(next).toHaveBeenCalledWith(
 			expect.objectContaining({
+				statusCode: constants.HTTP_STATUS_NOT_FOUND,
+				message: "Customer not found",
+			}),
+		);
+	});
+
+	it("replays an existing-member checkout only for the same normalized phone", async () => {
+		const existingTransaction = createCheckoutRecord({
+			customerId,
+			customer: { id: customerId, name: "Budi", phone: "08123456789" },
+		});
+		vi.mocked(db.Transactions.findOne).mockResolvedValue(existingTransaction);
+		vi.mocked(db.Transactions.findByPk).mockResolvedValue(existingTransaction);
+
+		const response = createResponse();
+		const next = vi.fn();
+
+		await checkout(
+			createRequest(
+				{ ...validBody, customer_phone: "0812-345-6789" },
+				"1faa2779-19de-4395-8fa7-a86259c14d17",
+			),
+			response,
+			next,
+		);
+
+		expect(db.Transactions.create).not.toHaveBeenCalled();
+		expect(inventory.update).not.toHaveBeenCalled();
+		expect(db.InventoryMovements.create).not.toHaveBeenCalled();
+		expect(db.Payments.create).not.toHaveBeenCalled();
+		expect(response.status).toHaveBeenCalledWith(constants.HTTP_STATUS_OK);
+
+		await checkout(
+			createRequest(
+				{ ...validBody, customer_phone: "08123456780" },
+				"1faa2779-19de-4395-8fa7-a86259c14d17",
+			),
+			createResponse(),
+			next,
+		);
+
+		expect(next).toHaveBeenCalledWith(
+			expect.objectContaining({
+				statusCode: constants.HTTP_STATUS_CONFLICT,
+				message:
+					"Idempotency-Key has already been used with a different payload",
+			}),
+		);
+	});
+
+	it.each([
+		[
+			{ ...validBody, customer_phone: "invalid" },
+			"customer_phone must be a valid phone number",
+		],
+		[
+			{
+				...validBody,
+				customer_phone: "08123456789",
+				customer: { name: "Budi", phone: "08123456789" },
+			},
+			"customer_phone and customer cannot be provided together",
+		],
+		[
+			{ ...validBody, customer_id: customerId },
+			"customer_id is no longer supported; use customer_phone",
+		],
+	])("rejects invalid member selection: %s", async (body, message) => {
+		const response = createResponse();
+		const next = vi.fn();
+
+		await checkout(
+			createRequest(body, "1faa2779-19de-4395-8fa7-a86259c14d17"),
+			response,
+			next,
+		);
+
+		expect(next).toHaveBeenCalledWith(
+			expect.objectContaining({
 				statusCode: constants.HTTP_STATUS_BAD_REQUEST,
-				message: "customer_id and customer cannot be provided together",
+				message,
 			}),
 		);
 		expect(db.sequelize.transaction).not.toHaveBeenCalled();

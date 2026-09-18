@@ -89,7 +89,7 @@ export function ModalFooter({
 }: React.ComponentProps<"div">) {
 	return (
 		<div
-			className={`flex items-center justify-end gap-2 border-t border-base-border bg-base/50 px-5 py-3 ${className}`}
+			className={`-mx-5 -mb-4 mt-4 flex items-center justify-end gap-2 border-t border-base-border bg-base/50 px-5 py-3 ${className}`}
 			{...props}
 		/>
 	);
@@ -141,7 +141,7 @@ export function ConfirmModal({
 			<ModalBody>
 				<p className="text-sm text-text">{body}</p>
 			</ModalBody>
-			<ModalFooter className="mt-4 -mx-5 -mb-4">
+			<ModalFooter>
 				<Button
 					variant="outline"
 					size="sm"

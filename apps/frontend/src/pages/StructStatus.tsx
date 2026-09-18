@@ -1,13 +1,41 @@
 import { Check } from "lucide-react";
-import { useLocation } from "react-router";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router";
 
 import Button from "../components/ui/button";
 import { formatRupiah } from "../libs/formatRupiah";
+import type { CartItem } from "../store/slices/cart";
+
+interface StateData {
+	paymentMethod: string;
+	items: CartItem[];
+	phone: string;
+}
 
 export default function StructStatus() {
 	const location = useLocation();
+	const navigate = useNavigate();
+	const [stateData, setStateData] = useState<StateData>({
+		paymentMethod: "",
+		items: [],
+		phone: "",
+	});
 
-	const { paymentMethod, items } = location.state;
+	useEffect(() => {
+		function dataState() {
+			if (location.state) {
+				const { paymentMethod, items, phone } = location.state;
+				setStateData({
+					paymentMethod,
+					items,
+					phone,
+				});
+			} else {
+				navigate("/");
+			}
+		}
+		dataState();
+	}, [location]);
 
 	return (
 		<form className="w-full flex flex-col gap-2 px-3">
@@ -61,8 +89,8 @@ export default function StructStatus() {
 						<section className="border-b py-3 border-base-border flex items-start justify-between">
 							<div className="flex flex-col">
 								<h6>#RTX-8731</h6>
-								<p>No telp: 08212312</p>
-								<p>Pembayaran: {paymentMethod}</p>
+								<p>No telp: {stateData?.phone}</p>
+								<p>Pembayaran: {stateData?.paymentMethod}</p>
 							</div>
 							<div className="felx h-full ">
 								<p>
@@ -80,7 +108,7 @@ export default function StructStatus() {
 						</section>
 
 						<section className="py-3 flex border-b border-base-border flex-col gap-3">
-							{items.map((item) => (
+							{stateData.items?.map((item) => (
 								<div
 									key={item.id}
 									className="flex justify-between items-center"
@@ -109,7 +137,10 @@ export default function StructStatus() {
 									<p>Subtotal</p>
 									<p>
 										{formatRupiah(
-											items.reduce((total, curr) => total + curr.total, 0),
+											stateData?.items.reduce(
+												(total, curr) => total + curr.total,
+												0,
+											),
 										)}
 									</p>
 								</li>
@@ -121,8 +152,10 @@ export default function StructStatus() {
 									<p>Total</p>
 									<p>
 										{formatRupiah(
-											items.reduce((total, curr) => total + curr.total, 0) -
-												1000,
+											stateData?.items.reduce(
+												(total, curr) => total + curr.total,
+												0,
+											) - 1000,
 										)}
 									</p>
 								</li>

@@ -359,7 +359,7 @@ export default function Home() {
 									<header className="w-full flex justify-between text-[12px] items-center h-fit">
 										<p className="font-semibold">
 											<span className="border-l-5 border-primary mr-3 rounded-lg bg-primary"></span>
-											Kapasitas
+											Tambahan
 										</p>
 										<p className="text-primary">Optional</p>
 									</header>

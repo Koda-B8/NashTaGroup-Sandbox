@@ -1,12 +1,13 @@
 import { Check } from "lucide-react";
-import { useSelector } from "react-redux";
+import { useLocation } from "react-router";
 
 import Button from "../components/ui/button";
 import { formatRupiah } from "../libs/formatRupiah";
-import type { RootState } from "../store";
 
 export default function StructStatus() {
-	const cart = useSelector((state: RootState) => state.cart.cart);
+	const location = useLocation();
+
+	const { paymentMethod, items } = location.state;
 
 	return (
 		<form className="w-full flex flex-col gap-2 px-3">
@@ -34,8 +35,19 @@ export default function StructStatus() {
 						<h6>
 							Pembayaran Berhasil <span>Lunas</span>
 						</h6>
-						<p>#TRX-8421 • Cash Rp 100.000 → Kembalian Rp 30.700</p>
-						<p>05 Sep 14:32 • Kasir: Budi Santoso</p>
+						<p className="text-sm">#TRX-8421</p>
+						<p className="text-sm">
+							{" "}
+							{new Date().toLocaleString("en-GB", {
+								day: "2-digit",
+								month: "short",
+								year: "numeric",
+								hour: "2-digit",
+								minute: "2-digit",
+								hour12: false,
+							})}{" "}
+							• Kasir: Budi Santoso
+						</p>
 					</div>
 				</section>
 
@@ -50,20 +62,36 @@ export default function StructStatus() {
 							<div className="flex flex-col">
 								<h6>#RTX-8731</h6>
 								<p>No telp: 08212312</p>
+								<p>Pembayaran: {paymentMethod}</p>
 							</div>
 							<div className="felx h-full ">
-								<p>05 Sep 2026, 12:00</p>
+								<p>
+									{" "}
+									{new Date().toLocaleString("en-GB", {
+										day: "2-digit",
+										month: "short",
+										year: "numeric",
+										hour: "2-digit",
+										minute: "2-digit",
+										hour12: false,
+									})}
+								</p>
 							</div>
 						</section>
 
-						<section className="py-3 flex border-b border-base-border flex-col gap-1">
-							{cart.map((item) => (
+						<section className="py-3 flex border-b border-base-border flex-col gap-3">
+							{items.map((item) => (
 								<div
 									key={item.id}
 									className="flex justify-between items-center"
 								>
 									<div className="flex flex-col">
 										<p className="text-text-h">{item.name}</p>
+										<div className="flex items-center gap-1">
+											<p className="text-sm ">{item.color}</p>
+											<p className="text-xs">•</p>
+											<p className="text-sm ">{item.specs}</p>
+										</div>
 										<p>
 											{item.qty}x <span>{formatRupiah(item.price)}</span>
 										</p>
@@ -79,7 +107,11 @@ export default function StructStatus() {
 							<ul className="flex flex-col w-full">
 								<li className="flex items-center justify-between">
 									<p>Subtotal</p>
-									<p>{formatRupiah(50_000)}</p>
+									<p>
+										{formatRupiah(
+											items.reduce((total, curr) => total + curr.total, 0),
+										)}
+									</p>
 								</li>
 								<li className="flex items-center justify-between">
 									<p>Pajak 10%</p>
@@ -87,7 +119,12 @@ export default function StructStatus() {
 								</li>
 								<li className="flex items-center justify-between">
 									<p>Total</p>
-									<p>{formatRupiah(40_000)}</p>
+									<p>
+										{formatRupiah(
+											items.reduce((total, curr) => total + curr.total, 0) -
+												1000,
+										)}
+									</p>
 								</li>
 								<li className="flex items-center justify-between">
 									<p>Tunai</p>

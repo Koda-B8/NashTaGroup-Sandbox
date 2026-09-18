@@ -1,7 +1,7 @@
 import { Dialog } from "@base-ui/react/dialog";
 import { XIcon } from "lucide-react";
 import type { ReactNode } from "react";
-import { tv } from "tailwind-variants";
+import { cn, tv } from "tailwind-variants";
 
 import Button from "./button";
 
@@ -84,24 +84,27 @@ export default function Modal({
 
 // composition helpers for consumers that want custom sections
 export function ModalFooter({
-	className = "",
+	className,
 	...props
 }: React.ComponentProps<"div">) {
 	return (
 		<div
-			className={`-mx-5 -mb-4 mt-4 flex items-center justify-end gap-2 border-t border-base-border bg-base/50 px-5 py-3 ${className}`}
+			className={cn(
+				"-mx-5 -mb-4 mt-4 flex items-center justify-end gap-2 border-t border-base-border bg-base/50 px-5 py-3",
+				className,
+			)}
 			{...props}
 		/>
 	);
 }
 
 export function ModalBody({
-	className = "",
+	className,
 	...props
 }: React.ComponentProps<"div">) {
 	return (
 		<div
-			className={`flex flex-col gap-4 ${className}`}
+			className={cn("flex flex-col gap-4", className)}
 			{...props}
 		/>
 	);

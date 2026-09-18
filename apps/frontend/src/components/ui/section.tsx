@@ -1,11 +1,10 @@
 import { type ReactNode, useId } from "react";
+import { cn } from "tailwind-variants";
 
 interface SectionProps {
 	title: ReactNode;
 	children: ReactNode;
 	description?: ReactNode;
-	action?: ReactNode;
-	level?: 2 | 3;
 	className?: string;
 }
 
@@ -13,31 +12,23 @@ export default function Section({
 	title,
 	children,
 	description,
-	action,
-	level = 2,
-	className = "",
+	className,
 }: SectionProps) {
 	const headingId = useId();
-	const headingProps = {
-		id: headingId,
-		className: "text-[11px] font-semibold tracking-wider text-text uppercase",
-	};
 
 	return (
 		<section
 			aria-labelledby={headingId}
-			className={`flex flex-col gap-3 ${className}`.trim()}
+			className={cn("flex flex-col gap-3", className)}
 		>
-			<div className="flex items-center justify-between gap-3">
-				<div className="flex flex-col gap-0.5">
-					{level === 3 ? (
-						<h3 {...headingProps}>{title}</h3>
-					) : (
-						<h2 {...headingProps}>{title}</h2>
-					)}
-					{description && <p className="text-xs text-text">{description}</p>}
-				</div>
-				{action}
+			<div className="flex flex-col gap-0.5">
+				<h2
+					id={headingId}
+					className="text-[11px] font-semibold tracking-wider text-text uppercase"
+				>
+					{title}
+				</h2>
+				{description && <p className="text-xs text-text">{description}</p>}
 			</div>
 			{children}
 		</section>

@@ -1,21 +1,21 @@
 import PaginationControls from "../../../components/PaginationControls";
 import ActionMenu from "../../../components/ui/action-menu";
-import Avatar from "../../../components/ui/avatar";
-import Badge from "../../../components/ui/badge";
 import Card from "../../../components/ui/card";
 import Checkbox from "../../../components/ui/checkbox";
 import { ActiveBadge } from "../../../components/ui/status-badge";
-import { formatDate, getRoleName } from "../../../libs/format";
-import type { User } from "../api";
+import { dotColor, formatDate } from "../../../libs/format";
+import type { Category } from "../api";
 
 interface Props {
 	loading: boolean;
-	paged: User[];
+	paged: Category[];
 	selectedId: string | undefined;
 	selectedIds: Set<string>;
 	allPageSelected: boolean;
 	somePageSelected: boolean;
 	onSelect: (id: string) => void;
+	onEdit: (category: Category) => void;
+	onDelete: (category: Category) => void;
 	onToggleAll: (checked: boolean) => void;
 	onToggleOne: (id: string, checked: boolean) => void;
 	pageCount: number;
@@ -24,7 +24,9 @@ interface Props {
 	totalLabel: string;
 }
 
-export default function UserTable({
+const HEAD_CELL = "px-3 py-3 text-xs font-semibold text-text";
+
+export default function CategoryTable({
 	loading,
 	paged,
 	selectedId,
@@ -32,6 +34,8 @@ export default function UserTable({
 	allPageSelected,
 	somePageSelected,
 	onSelect,
+	onEdit,
+	onDelete,
 	onToggleAll,
 	onToggleOne,
 	pageCount,
@@ -47,7 +51,7 @@ export default function UserTable({
 			<div className="overflow-x-auto">
 				<table
 					className="w-full text-left text-sm"
-					aria-label="Users"
+					aria-label="Categories"
 				>
 					<thead className="border-b border-base-border bg-base">
 						<tr>
@@ -59,38 +63,32 @@ export default function UserTable({
 									checked={allPageSelected}
 									indeterminate={somePageSelected}
 									onCheckedChange={(c) => onToggleAll(c === true)}
-									aria-label="Select all users on this page"
+									aria-label="Select all categories on this page"
 								/>
 							</th>
 							<th
 								scope="col"
-								className="px-3 py-3 text-xs font-semibold text-text"
+								className={HEAD_CELL}
 							>
 								Name
 							</th>
 							<th
 								scope="col"
-								className="px-3 py-3 text-xs font-semibold text-text"
-							>
-								Username
-							</th>
-							<th
-								scope="col"
-								className="px-3 py-3 text-xs font-semibold text-text"
-							>
-								Role
-							</th>
-							<th
-								scope="col"
-								className="px-3 py-3 text-xs font-semibold text-text"
+								className={HEAD_CELL}
 							>
 								Status
 							</th>
 							<th
 								scope="col"
-								className="px-3 py-3 text-xs font-semibold text-text"
+								className={HEAD_CELL}
 							>
 								Created
+							</th>
+							<th
+								scope="col"
+								className={HEAD_CELL}
+							>
+								Last Updated
 							</th>
 							<th
 								scope="col"
@@ -103,25 +101,24 @@ export default function UserTable({
 						{loading ? (
 							<tr>
 								<td
-									colSpan={7}
+									colSpan={6}
 									className="px-4 py-10 text-center text-sm text-text"
 								>
-									Memuat users...
+									Memuat categories...
 								</td>
 							</tr>
 						) : paged.length === 0 ? (
 							<tr>
 								<td
-									colSpan={7}
+									colSpan={6}
 									className="px-4 py-10 text-center text-sm text-text"
 								>
-									No users found.
+									No categories found.
 								</td>
 							</tr>
 						) : (
 							paged.map((row) => {
 								const isActiveRow = row.id === selectedId;
-								const status = row.isActive ? "Active" : "Inactive";
 								return (
 									<tr
 										key={row.id}
@@ -133,7 +130,9 @@ export default function UserTable({
 											}
 										}}
 										tabIndex={0}
-										className={`cursor-pointer focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary ${isActiveRow ? "bg-primary-light/50" : "hover:bg-base/60"}`}
+										className={`cursor-pointer focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary ${
+											isActiveRow ? "bg-primary-light/50" : "hover:bg-base/60"
+										}`}
 									>
 										<td
 											className="px-3 py-3"
@@ -142,39 +141,24 @@ export default function UserTable({
 											<Checkbox
 												checked={selectedIds.has(row.id)}
 												onCheckedChange={(c) => onToggleOne(row.id, c === true)}
-												aria-label={`Select ${row.fullname}`}
+												aria-label={`Select ${row.name}`}
 											/>
 										</td>
 										<td className="px-3 py-3">
 											<div className="flex items-center gap-2.5">
-												<Avatar
-													name={row.fullname}
-													size="sm"
+												<span
+													className="size-2.5 shrink-0 rounded-full"
+													style={{ backgroundColor: dotColor(row.name) }}
+													aria-hidden
 												/>
-												<div className="min-w-0">
-													<p
-														className={`truncate text-sm font-medium ${isActiveRow ? "text-primary" : "text-text-h"}`}
-													>
-														{row.fullname}
-													</p>
-													<p className="truncate text-[11px] text-text">
-														{row.id.slice(0, 8)}…
-													</p>
-												</div>
+												<span
+													className={`text-sm font-medium ${
+														isActiveRow ? "text-primary" : "text-text-h"
+													}`}
+												>
+													{row.name}
+												</span>
 											</div>
-										</td>
-										<td className="px-3 py-3 text-sm text-text-h">
-											{row.username}
-										</td>
-										<td className="px-3 py-3">
-											<Badge
-												variant={
-													getRoleName(row.role) === "admin" ? "info" : "neutral"
-												}
-												size="sm"
-											>
-												{getRoleName(row.role)}
-											</Badge>
 										</td>
 										<td className="px-3 py-3">
 											<ActiveBadge isActive={row.isActive} />
@@ -182,23 +166,28 @@ export default function UserTable({
 										<td className="px-3 py-3 text-sm text-text">
 											{formatDate(row.createdAt)}
 										</td>
+										<td className="px-3 py-3 text-sm text-text">
+											{formatDate(row.updatedAt)}
+										</td>
 										<td
 											className="px-3 py-3"
 											onClick={(e) => e.stopPropagation()}
 										>
 											<ActionMenu
-												label={`Actions for ${row.fullname}`}
+												label={`Actions for ${row.name}`}
 												items={[
 													{
 														label: "View detail",
 														onSelect: () => onSelect(row.id),
 													},
-													{ label: "Edit", onSelect: () => onSelect(row.id) },
 													{
-														label:
-															status === "Active" ? "Deactivate" : "Activate",
-														onSelect: () => {},
-														danger: status === "Active",
+														label: "Edit",
+														onSelect: () => onEdit(row),
+													},
+													{
+														label: "Delete",
+														onSelect: () => onDelete(row),
+														danger: true,
 													},
 												]}
 											/>

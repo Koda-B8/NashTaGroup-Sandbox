@@ -6,6 +6,7 @@ import Avatar from "../../../components/ui/avatar";
 import Badge from "../../../components/ui/badge";
 import Button from "../../../components/ui/button";
 import Modal, { ModalBody, ModalFooter } from "../../../components/ui/modal";
+import StatTile from "../../../components/ui/stat-tile";
 import { formatDate } from "../../../libs/format";
 import { formatRupiah } from "../../../libs/formatRupiah";
 import type { Product, ProductItem } from "../api";
@@ -88,28 +89,22 @@ export default function ProductDetailModal({
 					<div className="border-t border-base-border" />
 
 					<div className="grid grid-cols-2 gap-2">
-						<div className="rounded-lg border border-base-border bg-base px-3 py-2.5">
-							<p className="truncate text-xs font-semibold text-text-h">
-								{product.category?.name ?? "—"}
-							</p>
-							<p className="text-[11px] text-text">Category</p>
-						</div>
-						<div className="rounded-lg border border-base-border bg-base px-3 py-2.5">
-							<p className="truncate text-xs font-semibold text-text-h">
-								{product.brand?.name ?? "—"}
-							</p>
-							<p className="text-[11px] text-text">Brand</p>
-						</div>
-						<div className="rounded-lg border border-base-border bg-base px-3 py-2.5">
-							<p className="text-xs font-semibold text-text-h">{stock} units</p>
-							<p className="text-[11px] text-text">Total Stock</p>
-						</div>
-						<div className="rounded-lg border border-base-border bg-base px-3 py-2.5">
-							<p className="text-xs font-semibold text-text-h">
-								{formatDate(product.updatedAt)}
-							</p>
-							<p className="text-[11px] text-text">Last Updated</p>
-						</div>
+						<StatTile
+							label="Category"
+							value={product.category?.name ?? "—"}
+						/>
+						<StatTile
+							label="Brand"
+							value={product.brand?.name ?? "—"}
+						/>
+						<StatTile
+							label="Total Stock"
+							value={`${stock} units`}
+						/>
+						<StatTile
+							label="Last Updated"
+							value={formatDate(product.updatedAt)}
+						/>
 					</div>
 
 					<div className="border-t border-base-border" />
@@ -192,7 +187,7 @@ export default function ProductDetailModal({
 					</div>
 				</ModalBody>
 			) : null}
-			<ModalFooter className="-mx-5 -mb-4 mt-4 justify-between">
+			<ModalFooter className="justify-between">
 				<Button
 					variant="outline"
 					size="sm"

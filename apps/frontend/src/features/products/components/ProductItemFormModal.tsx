@@ -208,7 +208,7 @@ export default function ProductItemFormModal({
 						<span className="text-[11px] text-deep-danger">{error}</span>
 					)}
 				</ModalBody>
-				<ModalFooter className="-mx-5 -mb-4 mt-4">
+				<ModalFooter>
 					<Button
 						type="button"
 						variant="outline"

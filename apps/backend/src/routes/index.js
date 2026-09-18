@@ -10,6 +10,7 @@ import paymentMethodRoute from "./PaymentMethodRoute.js";
 import productImageRoute from "./ProductImageRoute.js";
 import productItemRoute from "./ProductItemRoute.js";
 import productRoute from "./ProductRoute.js";
+import transactionRoute from "./TransactionRoute.js";
 import userRoute from "./UserRoute.js";
 
 const router = Router();
@@ -24,6 +25,7 @@ router.use("/product-images", productImageRoute);
 router.use("/inventories", inventoryRoute);
 router.use("/products", productRoute);
 router.use("/product-items", productItemRoute);
+router.use("/transactions", transactionRoute);
 router.use("/users", userRoute);
 
 export default router;

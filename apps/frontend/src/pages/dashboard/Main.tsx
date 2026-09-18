@@ -15,6 +15,7 @@ import Badge from "../../components/ui/badge";
 import Button from "../../components/ui/button";
 import Card from "../../components/ui/card";
 import FilterPills from "../../components/ui/filter-pills";
+import Section from "../../components/ui/section";
 
 const SUMMARY_CARDS = [
 	{
@@ -170,13 +171,7 @@ export default function MainDashboard() {
 				</div>
 			</div>
 
-			<section aria-labelledby="overview-heading">
-				<h2
-					id="overview-heading"
-					className="mb-3 text-[11px] font-semibold tracking-wider text-text uppercase"
-				>
-					Overview
-				</h2>
+			<Section title="Overview">
 				<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
 					{SUMMARY_CARDS.map((card) => {
 						const Icon = card.icon;
@@ -219,15 +214,9 @@ export default function MainDashboard() {
 						);
 					})}
 				</div>
-			</section>
+			</Section>
 
-			<section aria-labelledby="sales-heading">
-				<h2
-					id="sales-heading"
-					className="mb-3 text-[11px] font-semibold tracking-wider text-text uppercase"
-				>
-					Sales Performance
-				</h2>
+			<Section title="Sales Performance">
 				<Card
 					padding="lg"
 					className="flex flex-col gap-4"
@@ -257,15 +246,9 @@ export default function MainDashboard() {
 						/>
 					</div>
 				</Card>
-			</section>
+			</Section>
 
-			<section aria-labelledby="reporting-heading">
-				<h2
-					id="reporting-heading"
-					className="mb-3 text-[11px] font-semibold tracking-wider text-text uppercase"
-				>
-					Reporting
-				</h2>
+			<Section title="Reporting">
 				<div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
 					<Card
 						padding="md"
@@ -408,7 +391,7 @@ export default function MainDashboard() {
 						</div>
 					</Card>
 				</div>
-			</section>
+			</Section>
 		</div>
 	);
 }

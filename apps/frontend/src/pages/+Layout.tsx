@@ -258,7 +258,7 @@ export default function MainLayout() {
 										>
 											<p className="text-sm font-semibold">{group.title}</p>
 											<ul className="flex flex-col gap-1 text-[15px] mt-2 w-full ml-0">
-												{group.options.map((option) => (
+												{group?.options?.map((option) => (
 													<li
 														key={option.id}
 														className="flex gap-2 items-center justify-start list-outside"
@@ -305,13 +305,13 @@ export default function MainLayout() {
 			right: (
 				<AsideContent
 					headerName={"Keranjang"}
-					Attribute={`${cart.length} item`}
+					Attribute={`${cart?.length} item`}
 					Content={
 						<div>
-							{cart.length > 0 ? (
+							{cart?.length > 0 ? (
 								<section className="min-h-2 border-b py-2 border-base-border">
 									<div className="flex flex-col gap-2">
-										{cart.map((item) => (
+										{cart?.map((item) => (
 											<div
 												key={item.id}
 												className="flex items-center justify-between"

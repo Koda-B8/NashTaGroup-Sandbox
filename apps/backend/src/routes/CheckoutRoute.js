@@ -41,13 +41,12 @@ router.use(authMiddleware);
  *             type: object
  *             required: [payment_method_id, paid_amount, items]
  *             properties:
- *               customer_id:
+ *               customer_phone:
  *                 type: string
- *                 format: uuid
- *                 description: Existing member ID. Cannot be sent with customer.
+ *                 description: Existing member phone number. Cannot be sent with customer.
  *               customer:
  *                 type: object
- *                 description: New member data. Cannot be sent with customer_id.
+ *                 description: New member data. Cannot be sent with customer_phone.
  *                 required: [phone]
  *                 properties:
  *                   name:
@@ -88,7 +87,7 @@ router.use(authMiddleware);
  *             existingMember:
  *               summary: Existing member checkout
  *               value:
- *                 customer_id: 2f13fc74-ec91-4a88-959d-aed84de60132
+ *                 customer_phone: "08123456789"
  *                 payment_method_id: dfda501e-21ba-4dda-af16-9f843fa29d59
  *                 paid_amount: "6000000.00"
  *                 items:

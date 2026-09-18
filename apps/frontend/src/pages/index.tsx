@@ -257,10 +257,7 @@ export default function Home() {
 													name="color"
 													className="peer hidden"
 												/>
-												<div
-													className="w-13.5 h-13.5 centerized border border-white peer-checked:border-primary 
-												rounded-full"
-												>
+												<div className="w-13.5 h-13.5 centerized border border-white peer-checked:border-primary rounded-full">
 													<div className="w-10 rounded-full h-10 px-4 bg-primary"></div>
 												</div>
 												<p className="peer-checked:text-primary text-xs font-semibold">
@@ -440,8 +437,8 @@ export default function Home() {
 										<div className="flex justify-between items-center">
 											<div className="flex gap-4 items-center">
 												<div
-													className="flex items-center justify-between w-35 h-11 
-													rounded-lg border border-base-border"
+													className="flex items-center justify-between w-35 h-11
+											rounded-lg border border-base-border"
 												>
 													<Button
 														variant="inverse"

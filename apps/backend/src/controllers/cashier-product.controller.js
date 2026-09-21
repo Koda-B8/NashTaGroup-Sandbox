@@ -2,7 +2,10 @@ import { constants } from "node:http2";
 
 import { Op } from "sequelize";
 
-import { paginate } from "../lib/pagination.js";
+import {
+	createPaginationMetadata,
+	parsePagination,
+} from "../lib/pagination.js";
 import db from "../models/index.cjs";
 import { createHttpError } from "../utils/http-error.js";
 import { parseBoolean, parseSearch } from "../utils/query.js";
@@ -11,26 +14,23 @@ import { isUuid } from "../utils/validation.js";
 const {
 	Brands,
 	Categories,
+	CategoryAttributeOptions,
+	CategoryAttributes,
 	Inventories,
 	ProductImages,
+	ProductItemAttributeValues,
 	ProductItems,
 	Products,
 } = db;
 
 // oxlint-disable-next-line unicorn/no-null -- The API represents a missing image explicitly as null.
 const EMPTY_IMAGE = null;
-const SORT_OPTIONS = {
-	name_asc: [
-		[{ model: Products, as: "product" }, "name", "ASC"],
-		["name", "ASC"],
-	],
-	name_desc: [
-		[{ model: Products, as: "product" }, "name", "DESC"],
-		["name", "DESC"],
-	],
-	price_asc: [["price", "ASC"]],
-	price_desc: [["price", "DESC"]],
-};
+const SORT_OPTIONS = new Set([
+	"name_asc",
+	"name_desc",
+	"price_asc",
+	"price_desc",
+]);
 
 const parsePrice = (value, field) => {
 	if (value === undefined) return;
@@ -40,37 +40,203 @@ const parsePrice = (value, field) => {
 			`${field} must be a non-negative number with up to 2 decimal places`,
 		);
 	}
-
 	return Number(value);
 };
 
 const findPrimaryImage = (images) =>
 	images?.find((image) => image.isPrimary) ?? images?.[0];
 
-const toCashierProductResponse = (productItem) => {
-	const item =
-		typeof productItem?.toJSON === "function"
-			? productItem.toJSON()
-			: productItem;
-	const itemImage = findPrimaryImage(item.images);
-	const productImage = findPrimaryImage(item.product?.images);
-	const image = itemImage ?? productImage;
+const toCashierProductResponse = (product) => {
+	const value =
+		typeof product?.toJSON === "function" ? product.toJSON() : product;
+	const productImage = findPrimaryImage(value.images);
+	const items = (value.items ?? []).map((item) => {
+		const itemImage = findPrimaryImage(item.images) ?? productImage;
+		const colorValue = item.attributeValues?.find((entry) =>
+			/(?:color|colour|warna)/i.test(entry.attribute?.name ?? ""),
+		);
+		const specificationValue = item.attributeValues?.find(
+			(entry) => !/(?:color|colour|warna)/i.test(entry.attribute?.name ?? ""),
+		);
+		return {
+			id: item.id,
+			productCode: item.productCode,
+			price: item.price,
+			colorId: colorValue?.categoryAttributeOptionId ?? "",
+			specsId: specificationValue?.categoryAttributeOptionId ?? "",
+			isActive: item.isActive,
+			image: {
+				alt: itemImage?.alt ?? `${value.name} ${item.name}`.trim(),
+				url: itemImage?.imageUrl ?? EMPTY_IMAGE,
+			},
+			stock: item.inventory?.stock ?? 0,
+		};
+	});
+	const { attributes: categoryAttributes, ...category } = value.category ?? {};
 
 	return {
-		product_item_id: item.id,
-		product_id: item.productId,
-		product_code: item.productCode,
-		name: item.product?.name,
-		variant_name: item.name,
-		category: item.product?.category,
-		brand: item.product?.brand,
-		price: item.price,
-		stock: item.inventory?.stock ?? 0,
-		image: image?.imageUrl ?? EMPTY_IMAGE,
-		alt: image?.alt ?? `${item.product?.name} ${item.name}`.trim(),
-		is_available: (item.inventory?.stock ?? 0) > 0,
+		id: value.id,
+		categoryId: value.categoryId,
+		brandId: value.brandId,
+		name: value.name,
+		description: value.description,
+		isActive: value.isActive,
+		createdAt: value.createdAt,
+		updatedAt: value.updatedAt,
+		deletedAt: value.deletedAt,
+		category,
+		brand: value.brand,
+		attributes: [...(categoryAttributes ?? [])]
+			.toSorted((left, right) => left.sortOrder - right.sortOrder)
+			.map((attribute) => ({
+				title: attribute.name,
+				...(attribute.value ? { desc: attribute.value } : {}),
+				items: (attribute.options ?? []).map((option) => ({
+					id: option.id,
+					name: option.name,
+					...(option.hex ? { hex: option.hex } : {}),
+				})),
+			})),
+		items,
+		image: {
+			alt: productImage?.alt ?? value.name,
+			url: productImage?.imageUrl ?? EMPTY_IMAGE,
+		},
+		stock: items.reduce((total, item) => total + Number(item.stock), 0),
 	};
 };
+
+const sortCandidates = (candidates, sort) => {
+	const products = [...candidates.values()];
+	if (sort === "name_asc") {
+		return products.toSorted((left, right) =>
+			left.name.localeCompare(right.name),
+		);
+	}
+	if (sort === "name_desc") {
+		return products.toSorted((left, right) =>
+			right.name.localeCompare(left.name),
+		);
+	}
+	if (sort === "price_asc") {
+		return products.toSorted(
+			(left, right) => left.minimumPrice - right.minimumPrice,
+		);
+	}
+	return products.toSorted(
+		(left, right) => right.minimumPrice - left.minimumPrice,
+	);
+};
+
+const productDetailIncludes = [
+	{
+		model: Categories,
+		as: "category",
+		attributes: ["id", "name", "isActive"],
+		where: { isActive: true },
+		required: true,
+		include: [
+			{
+				model: CategoryAttributes,
+				as: "attributes",
+				attributes: [
+					"id",
+					"name",
+					"value",
+					"isRequired",
+					"isVariant",
+					"sortOrder",
+				],
+				required: false,
+				separate: true,
+				order: [["sortOrder", "ASC"]],
+				include: [
+					{
+						model: CategoryAttributeOptions,
+						as: "options",
+						attributes: ["id", "name", "hex", "sortOrder"],
+						required: false,
+						separate: true,
+						order: [["sortOrder", "ASC"]],
+					},
+				],
+			},
+		],
+	},
+	{
+		model: Brands,
+		as: "brand",
+		attributes: ["id", "name", "isActive"],
+		where: { isActive: true },
+		required: true,
+	},
+	{
+		model: ProductImages,
+		as: "images",
+		attributes: ["imageUrl", "alt", "isPrimary", "sortOrder"],
+		// oxlint-disable-next-line unicorn/no-null -- Null selects product-level images only.
+		where: { productItemId: null },
+		required: false,
+		separate: true,
+		order: [
+			["isPrimary", "DESC"],
+			["sortOrder", "ASC"],
+		],
+	},
+	{
+		model: ProductItems,
+		as: "items",
+		attributes: ["id", "productCode", "name", "price", "isActive"],
+		where: { isActive: true },
+		required: false,
+		separate: true,
+		order: [["price", "ASC"]],
+		include: [
+			{
+				model: Inventories,
+				as: "inventory",
+				attributes: ["stock"],
+				required: true,
+			},
+			{
+				model: ProductImages,
+				as: "images",
+				attributes: ["imageUrl", "alt", "isPrimary", "sortOrder"],
+				required: false,
+				separate: true,
+				order: [
+					["isPrimary", "DESC"],
+					["sortOrder", "ASC"],
+				],
+			},
+			{
+				model: ProductItemAttributeValues,
+				as: "attributeValues",
+				attributes: [
+					"categoryAttributeId",
+					"categoryAttributeOptionId",
+					"value",
+				],
+				required: false,
+				separate: true,
+				include: [
+					{
+						model: CategoryAttributes,
+						as: "attribute",
+						attributes: ["id", "name", "isVariant", "sortOrder"],
+						required: true,
+					},
+					{
+						model: CategoryAttributeOptions,
+						as: "option",
+						attributes: ["id", "name", "hex"],
+						required: true,
+					},
+				],
+			},
+		],
+	},
+];
 
 export async function getCashierProducts(request, response, next) {
 	try {
@@ -110,7 +276,7 @@ export async function getCashierProducts(request, response, next) {
 				"min_price must not be greater than max_price",
 			);
 		}
-		if (typeof sort !== "string" || !Object.hasOwn(SORT_OPTIONS, sort)) {
+		if (typeof sort !== "string" || !SORT_OPTIONS.has(sort)) {
 			throw createHttpError(
 				constants.HTTP_STATUS_BAD_REQUEST,
 				"sort must be name_asc, name_desc, price_asc, or price_desc",
@@ -134,26 +300,20 @@ export async function getCashierProducts(request, response, next) {
 		const productWhere = { isActive: true };
 		if (categoryId !== undefined) productWhere.categoryId = categoryId;
 		if (brandId !== undefined) productWhere.brandId = brandId;
-
 		const inventoryWhere = {};
 		if (inStock === true) inventoryWhere.stock = { [Op.gt]: 0 };
 		if (inStock === false) inventoryWhere.stock = { [Op.lte]: 0 };
 
-		const { rows, pagination } = await paginate(ProductItems, request.query, {
+		const matchingItems = await ProductItems.findAll({
+			attributes: ["productId", "price"],
 			where: itemWhere,
 			include: [
 				{
 					model: Inventories,
 					as: "inventory",
-					attributes: ["stock"],
+					attributes: [],
 					where: inventoryWhere,
 					required: true,
-				},
-				{
-					model: ProductImages,
-					as: "images",
-					attributes: ["imageUrl", "alt", "isPrimary", "sortOrder"],
-					required: false,
 				},
 				{
 					model: Products,
@@ -165,38 +325,68 @@ export async function getCashierProducts(request, response, next) {
 						{
 							model: Categories,
 							as: "category",
-							attributes: ["id", "name"],
+							attributes: [],
 							where: { isActive: true },
 							required: true,
 						},
 						{
 							model: Brands,
 							as: "brand",
-							attributes: ["id", "name"],
+							attributes: [],
 							where: { isActive: true },
 							required: true,
-						},
-						{
-							model: ProductImages,
-							as: "images",
-							attributes: ["imageUrl", "alt", "isPrimary", "sortOrder"],
-							// oxlint-disable-next-line unicorn/no-null -- Null selects product-level images only.
-							where: { productItemId: null },
-							required: false,
 						},
 					],
 				},
 			],
-			order: SORT_OPTIONS[sort],
-			distinct: true,
-			subQuery: false,
 		});
+
+		const candidates = new Map();
+		for (const item of matchingItems) {
+			const price = Number(item.price);
+			const current = candidates.get(item.productId);
+			if (current) {
+				current.minimumPrice = Math.min(current.minimumPrice, price);
+				current.maximumPrice = Math.max(current.maximumPrice, price);
+			} else {
+				candidates.set(item.productId, {
+					id: item.productId,
+					name: item.product?.name ?? "",
+					minimumPrice: price,
+					maximumPrice: price,
+				});
+			}
+		}
+
+		const orderedCandidates = sortCandidates(candidates, sort);
+		const { page, limit, offset } = parsePagination(request.query);
+		const pageCandidates = orderedCandidates.slice(offset, offset + limit);
+		const pageIds = pageCandidates.map((candidate) => candidate.id);
+		const foundProducts =
+			pageIds.length === 0
+				? []
+				: await Products.findAll({
+						where: { id: { [Op.in]: pageIds }, isActive: true },
+						include: productDetailIncludes,
+					});
+		const productsById = new Map(
+			foundProducts.map((product) => [product.id, product]),
+		);
+		const rows = pageIds
+			.map((id) => productsById.get(id))
+			.filter((product) => product !== undefined);
 
 		return response.status(constants.HTTP_STATUS_OK).json({
 			success: true,
 			message: "Cashier products retrieved successfully",
-			data: rows.map((item) => toCashierProductResponse(item)),
-			meta: { pagination },
+			data: rows.map((product) => toCashierProductResponse(product)),
+			meta: {
+				pagination: createPaginationMetadata({
+					count: orderedCandidates.length,
+					page,
+					limit,
+				}),
+			},
 		});
 	} catch (error) {
 		return next(error);

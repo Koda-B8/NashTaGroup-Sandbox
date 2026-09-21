@@ -1,6 +1,7 @@
 /* oxlint-disable jsdoc/check-tag-names -- @openapi is consumed by swagger-jsdoc. */
 import { Router } from "express";
 
+import { exportReportPdf } from "../controllers/report-pdf.controller.js";
 import {
 	getCashierReport,
 	getCustomerReport,
@@ -167,5 +168,32 @@ router.get("/payment-methods", getPaymentMethodReport);
  *       403: { description: Admin role required }
  */
 router.get("/cashiers", getCashierReport);
+
+/**
+ * @openapi
+ * /api/v1/reports/{report}/export/pdf:
+ *   get:
+ *     tags: [Reports]
+ *     summary: Download a filtered report as PDF
+ *     description: Exports the summary and all matching rows for the selected report, up to 5000 rows. The date filters use WIB business dates. The sales period applies only to the sales report. The PDF also includes the nonmember product totals or latest activity shown by the JSON report. Page and limit are not used for PDF exports.
+ *     security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+ *     parameters:
+ *       - { in: path, name: report, required: true, description: Report to export, schema: { type: string, enum: [customers, products, inventory, sales, payment-methods, cashiers] } }
+ *       - { in: query, name: from, description: First date inclusive in WIB, schema: { type: string, format: date, example: 2026-09-01 } }
+ *       - { in: query, name: to, description: Last date inclusive in WIB, schema: { type: string, format: date, example: 2026-09-30 } }
+ *       - { in: query, name: period, description: Sales grouping interval, schema: { type: string, enum: [day, week, month, year], default: day } }
+ *     responses:
+ *       200:
+ *         description: Downloadable PDF file
+ *         content:
+ *           application/pdf:
+ *             schema: { type: string, format: binary }
+ *       400: { description: Invalid date or sales period }
+ *       401: { description: Authentication required }
+ *       403: { description: Admin role required }
+ *       404: { description: Unknown report }
+ *       413: { description: More than 5000 matching rows; narrow the date range }
+ */
+router.get("/:report/export/pdf", exportReportPdf);
 
 export default router;

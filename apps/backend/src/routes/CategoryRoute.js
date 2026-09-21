@@ -187,10 +187,9 @@ router.post("/", requireRole("admin"), createCategory);
  *                 example: true
  *               attributes:
  *                 type: array
- *                 description: Full replacement of the category attribute definitions.
+ *                 description: Full synchronization. Existing attributes omitted from this array are removed; unchanged attributes are not written again. Omit the entire attributes field to keep all attributes unchanged. Existing options are synchronized only when their options field is supplied.
  *                 items:
  *                   type: object
- *                   required: [name]
  *                   properties:
  *                     id:
  *                       type: string
@@ -218,8 +217,6 @@ router.post("/", requireRole("admin"), createCategory);
  *                             type: string
  *                             nullable: true
  *           example:
- *             name: Laptop
- *             isActive: true
  *             attributes:
  *               - id: 11111111-1111-4111-8111-111111111111
  *                 name: Colors
@@ -233,16 +230,13 @@ router.post("/", requireRole("admin"), createCategory);
  *                   - id: 33333333-3333-4333-8333-333333333333
  *                     name: Black
  *                     hex: "#111827"
- *               - id: 44444444-4444-4444-8444-444444444444
- *                 name: Spesifikasi
+ *               - name: Spesifikasi
  *                 value: Storage
  *                 isRequired: true
  *                 isVariant: true
  *                 options:
- *                   - id: 55555555-5555-4555-8555-555555555555
- *                     name: 256GB
- *                   - id: 66666666-6666-4666-8666-666666666666
- *                     name: 512GB
+ *                   - name: 256GB
+ *                   - name: 512GB
  *     responses:
  *       200:
  *         description: Category updated successfully

@@ -373,6 +373,168 @@ describe("category controller", () => {
 		);
 	});
 
+	it("adds an attribute while retaining an unchanged attribute by id", async () => {
+		const colorId = "55555555-5555-4555-8555-555555555555";
+		const specId = "66666666-6666-4666-8666-666666666666";
+		const existingColor = {
+			id: colorId,
+			name: "Color",
+			sortOrder: 0,
+			update: vi.fn(),
+		};
+		db.Categories.findByPk
+			.mockResolvedValueOnce({ ...category, update: vi.fn() })
+			.mockResolvedValueOnce({
+				...category,
+				attributes: [existingColor, { id: specId, name: "Spesifikasi" }],
+			});
+		db.CategoryAttributes.findAll.mockResolvedValue([existingColor]);
+		db.CategoryAttributes.create.mockResolvedValue({ id: specId });
+		const response = createResponse();
+		const next = vi.fn();
+
+		await updateCategory(
+			{
+				params: { id: categoryId },
+				body: {
+					attributes: [
+						{ id: colorId, name: "Color" },
+						{
+							name: "Spesifikasi",
+							value: "Storage",
+							isRequired: true,
+							isVariant: true,
+							options: [{ name: "256GB" }, { name: "512GB" }],
+						},
+					],
+				},
+			},
+			response,
+			next,
+		);
+
+		expect(existingColor.update).not.toHaveBeenCalled();
+		expect(db.CategoryAttributes.destroy).not.toHaveBeenCalled();
+		expect(db.CategoryAttributes.create).toHaveBeenCalledWith(
+			expect.objectContaining({
+				categoryId,
+				name: "Spesifikasi",
+				value: "Storage",
+				sortOrder: 1,
+			}),
+			{ transaction: { id: "database-transaction" } },
+		);
+		expect(db.CategoryAttributeOptions.bulkCreate).toHaveBeenCalledWith(
+			[
+				{ categoryAttributeId: specId, name: "256GB", sortOrder: 0 },
+				{ categoryAttributeId: specId, name: "512GB", sortOrder: 1 },
+			],
+			{ transaction: { id: "database-transaction" } },
+		);
+		expect(next).not.toHaveBeenCalled();
+	});
+
+	it("updates changed option fields and removes an omitted unused option", async () => {
+		const colorId = "55555555-5555-4555-8555-555555555555";
+		const blueId = "66666666-6666-4666-8666-666666666666";
+		const blackId = "77777777-7777-4777-8777-777777777777";
+		const color = { id: colorId, name: "Color", sortOrder: 0, update: vi.fn() };
+		const blue = { id: blueId, name: "Blue", sortOrder: 0, update: vi.fn() };
+		const black = { id: blackId, name: "Black", sortOrder: 1, update: vi.fn() };
+		db.Categories.findByPk.mockResolvedValue({ ...category, update: vi.fn() });
+		db.CategoryAttributes.findAll.mockResolvedValue([color]);
+		db.CategoryAttributeOptions.findAll.mockResolvedValue([blue, black]);
+		db.ProductItemAttributeValues.count.mockResolvedValue(0);
+		const next = vi.fn();
+
+		await updateCategory(
+			{
+				params: { id: categoryId },
+				body: {
+					attributes: [
+						{
+							id: colorId,
+							options: [{ id: blueId, hex: "#3b82f6" }],
+						},
+					],
+				},
+			},
+			createResponse(),
+			next,
+		);
+
+		expect(color.update).not.toHaveBeenCalled();
+		expect(blue.update).toHaveBeenCalledWith(
+			{ hex: "#3B82F6" },
+			{ transaction: { id: "database-transaction" } },
+		);
+		expect(black.update).not.toHaveBeenCalled();
+		expect(db.CategoryAttributeOptions.destroy).toHaveBeenCalledWith({
+			where: { id: { [Op.in]: [blackId] } },
+			transaction: { id: "database-transaction" },
+		});
+		expect(next).not.toHaveBeenCalled();
+	});
+
+	it("does not write an unchanged attribute or option", async () => {
+		const colorId = "55555555-5555-4555-8555-555555555555";
+		const blueId = "66666666-6666-4666-8666-666666666666";
+		const color = { id: colorId, name: "Color", sortOrder: 0, update: vi.fn() };
+		const blue = { id: blueId, name: "Blue", sortOrder: 0, update: vi.fn() };
+		db.Categories.findByPk.mockResolvedValue({ ...category, update: vi.fn() });
+		db.CategoryAttributes.findAll.mockResolvedValue([color]);
+		db.CategoryAttributeOptions.findAll.mockResolvedValue([blue]);
+		const next = vi.fn();
+
+		await updateCategory(
+			{
+				params: { id: categoryId },
+				body: {
+					attributes: [
+						{
+							id: colorId,
+							name: "Color",
+							options: [{ id: blueId, name: "Blue" }],
+						},
+					],
+				},
+			},
+			createResponse(),
+			next,
+		);
+
+		expect(color.update).not.toHaveBeenCalled();
+		expect(blue.update).not.toHaveBeenCalled();
+		expect(db.CategoryAttributes.destroy).not.toHaveBeenCalled();
+		expect(db.CategoryAttributeOptions.destroy).not.toHaveBeenCalled();
+		expect(next).not.toHaveBeenCalled();
+	});
+
+	it("rejects omission of an attribute used by a product variant", async () => {
+		const colorId = "55555555-5555-4555-8555-555555555555";
+		db.Categories.findByPk.mockResolvedValue({ ...category, update: vi.fn() });
+		db.CategoryAttributes.findAll.mockResolvedValue([
+			{ id: colorId, name: "Color", sortOrder: 0 },
+		]);
+		db.ProductItemAttributeValues.count.mockResolvedValue(1);
+		const next = vi.fn();
+
+		await updateCategory(
+			{ params: { id: categoryId }, body: { attributes: [] } },
+			createResponse(),
+			next,
+		);
+
+		expect(db.CategoryAttributes.destroy).not.toHaveBeenCalled();
+		expect(next).toHaveBeenCalledWith(
+			expect.objectContaining({
+				statusCode: constants.HTTP_STATUS_CONFLICT,
+				message:
+					"Category attributes already used by product variants cannot be removed",
+			}),
+		);
+	});
+
 	it("soft deletes an existing category", async () => {
 		const response = createResponse();
 		const next = vi.fn();

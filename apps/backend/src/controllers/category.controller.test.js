@@ -19,6 +19,24 @@ vi.mock("../models/index.cjs", () => ({
 			findAll: vi.fn(),
 			findByPk: vi.fn(),
 		},
+		CategoryAttributeOptions: {
+			bulkCreate: vi.fn(),
+			create: vi.fn(),
+			destroy: vi.fn(),
+			findAll: vi.fn(),
+		},
+		CategoryAttributes: {
+			bulkCreate: vi.fn(),
+			create: vi.fn(),
+			destroy: vi.fn(),
+			findAll: vi.fn(),
+		},
+		ProductItemAttributeValues: { count: vi.fn() },
+		sequelize: {
+			transaction: vi.fn((callback) =>
+				callback({ id: "database-transaction" }),
+			),
+		},
 	},
 }));
 
@@ -64,6 +82,7 @@ describe("category controller", () => {
 				},
 				isActive: true,
 			},
+			include: [expect.objectContaining({ as: "attributes" })],
 			order: [["name", "ASC"]],
 		});
 		expect(response.status).toHaveBeenCalledWith(constants.HTTP_STATUS_OK);
@@ -106,7 +125,9 @@ describe("category controller", () => {
 
 		await getCategoryById({ params: { id: categoryId } }, response, next);
 
-		expect(db.Categories.findByPk).toHaveBeenCalledWith(categoryId);
+		expect(db.Categories.findByPk).toHaveBeenCalledWith(categoryId, {
+			include: [expect.objectContaining({ as: "attributes" })],
+		});
 		expect(response.status).toHaveBeenCalledWith(constants.HTTP_STATUS_OK);
 		expect(response.json).toHaveBeenCalledWith({
 			success: true,
@@ -185,6 +206,81 @@ describe("category controller", () => {
 			}),
 		);
 		expect(db.Categories.create).not.toHaveBeenCalled();
+	});
+
+	it("creates category attribute definitions in the same transaction", async () => {
+		const colorId = "55555555-5555-4555-8555-555555555555";
+		db.CategoryAttributes.bulkCreate.mockResolvedValue([{ id: colorId }]);
+		db.Categories.create.mockResolvedValue({ ...category, id: categoryId });
+		db.Categories.findByPk.mockResolvedValue({
+			...category,
+			attributes: [
+				{
+					id: colorId,
+					name: "Color",
+					value: "Blue",
+					isRequired: true,
+					isVariant: true,
+					sortOrder: 0,
+					options: [
+						{
+							id: "66666666-6666-4666-8666-666666666666",
+							name: "Blue",
+							hex: "#3B82F6",
+							sortOrder: 0,
+						},
+					],
+				},
+			],
+		});
+		const response = createResponse();
+		const next = vi.fn();
+
+		await createCategory(
+			{
+				body: {
+					name: "Smartphone",
+					attributes: [
+						{
+							name: " Color ",
+							value: " Blue ",
+							isRequired: true,
+							isVariant: true,
+							options: [{ name: "Blue", hex: "#3b82f6" }],
+						},
+					],
+				},
+			},
+			response,
+			next,
+		);
+
+		expect(db.CategoryAttributes.bulkCreate).toHaveBeenCalledWith(
+			[
+				{
+					categoryId,
+					name: "Color",
+					value: "Blue",
+					isRequired: true,
+					isVariant: true,
+					sortOrder: 0,
+				},
+			],
+			{ transaction: { id: "database-transaction" } },
+		);
+		expect(db.CategoryAttributeOptions.bulkCreate).toHaveBeenCalledWith(
+			[
+				{
+					categoryAttributeId: colorId,
+					name: "Blue",
+					hex: "#3B82F6",
+					sortOrder: 0,
+				},
+			],
+			{ transaction: { id: "database-transaction" } },
+		);
+		expect(response.status).toHaveBeenCalledWith(constants.HTTP_STATUS_CREATED);
+		expect(next).not.toHaveBeenCalled();
 	});
 
 	it("returns 409 when creating a duplicate category name", async () => {

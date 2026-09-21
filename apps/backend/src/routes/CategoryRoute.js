@@ -90,6 +90,57 @@ router.get("/:id", getCategoryById);
  *               name:
  *                 type: string
  *                 example: Gaming
+ *               attributes:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   required: [name]
+ *                   properties:
+ *                     name:
+ *                       type: string
+ *                       example: Color
+ *                     value:
+ *                       type: string
+ *                       nullable: true
+ *                       example: Storage
+ *                     isRequired:
+ *                       type: boolean
+ *                       default: false
+ *                     isVariant:
+ *                       type: boolean
+ *                       default: true
+ *                     options:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         required: [name]
+ *                         properties:
+ *                           name:
+ *                             type: string
+ *                             example: Blue
+ *                           hex:
+ *                             type: string
+ *                             nullable: true
+ *                             example: "#3B82F6"
+ *           example:
+ *             name: Laptop
+ *             attributes:
+ *               - name: Colors
+ *                 value: null
+ *                 isRequired: true
+ *                 isVariant: true
+ *                 options:
+ *                   - name: Blue
+ *                     hex: "#3B82F6"
+ *                   - name: Black
+ *                     hex: "#111827"
+ *               - name: Spesifikasi
+ *                 value: Storage
+ *                 isRequired: true
+ *                 isVariant: true
+ *                 options:
+ *                   - name: 256GB
+ *                   - name: 512GB
  *     responses:
  *       201:
  *         description: Category created successfully
@@ -134,6 +185,64 @@ router.post("/", requireRole("admin"), createCategory);
  *               isActive:
  *                 type: boolean
  *                 example: true
+ *               attributes:
+ *                 type: array
+ *                 description: Full replacement of the category attribute definitions.
+ *                 items:
+ *                   type: object
+ *                   required: [name]
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       format: uuid
+ *                     name:
+ *                       type: string
+ *                     value:
+ *                       type: string
+ *                       nullable: true
+ *                     isRequired:
+ *                       type: boolean
+ *                     isVariant:
+ *                       type: boolean
+ *                     options:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                             format: uuid
+ *                           name:
+ *                             type: string
+ *                           hex:
+ *                             type: string
+ *                             nullable: true
+ *           example:
+ *             name: Laptop
+ *             isActive: true
+ *             attributes:
+ *               - id: 11111111-1111-4111-8111-111111111111
+ *                 name: Colors
+ *                 value: null
+ *                 isRequired: true
+ *                 isVariant: true
+ *                 options:
+ *                   - id: 22222222-2222-4222-8222-222222222222
+ *                     name: Blue
+ *                     hex: "#3B82F6"
+ *                   - id: 33333333-3333-4333-8333-333333333333
+ *                     name: Black
+ *                     hex: "#111827"
+ *               - id: 44444444-4444-4444-8444-444444444444
+ *                 name: Spesifikasi
+ *                 value: Storage
+ *                 isRequired: true
+ *                 isVariant: true
+ *                 options:
+ *                   - id: 55555555-5555-4555-8555-555555555555
+ *                     name: 256GB
+ *                   - id: 66666666-6666-4666-8666-666666666666
+ *                     name: 512GB
  *     responses:
  *       200:
  *         description: Category updated successfully

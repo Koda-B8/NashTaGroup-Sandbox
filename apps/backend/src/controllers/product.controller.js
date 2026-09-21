@@ -8,6 +8,7 @@ import {
 	deleteProductImage as deleteCloudinaryImage,
 	uploadProductImage as uploadCloudinaryImage,
 } from "../lib/cloudinary.js";
+import { paginate } from "../lib/pagination.js";
 import db from "../models/index.cjs";
 import { createHttpError } from "../utils/http-error.js";
 import {
@@ -467,16 +468,18 @@ export async function getProducts(req, res, next) {
 		if (brandId) where.brandId = brandId;
 		if (isActive !== undefined) where.isActive = isActive;
 
-		const products = await Products.findAll({
+		const { rows, pagination } = await paginate(Products, req.query, {
 			where,
 			include: productListIncludes,
 			order: [["name", "ASC"]],
+			distinct: true,
 		});
 
 		return res.status(constants.HTTP_STATUS_OK).json({
 			success: true,
 			message: "Products retrieved successfully",
-			data: products.map((product) => toProductResponse(product)),
+			data: rows.map((row) => toProductResponse(row)),
+			meta: { pagination },
 		});
 	} catch (error) {
 		return next(error);

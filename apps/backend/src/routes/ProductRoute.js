@@ -51,6 +51,21 @@ router.use(authMiddleware);
  *         schema:
  *           type: boolean
  *         description: Filter products by active status
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Page number.
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 20
+ *         description: Number of records per page.
  *     responses:
  *       200:
  *         description: Products retrieved successfully
@@ -73,6 +88,12 @@ router.use(authMiddleware);
  *                         alt: Samsung Galaxy A55 smartphone
  *                         url: https://res.cloudinary.com/nashta/image/upload/galaxy-a55.webp
  *                       stock: 10
+ *               meta:
+ *                 pagination:
+ *                   page: 1
+ *                   limit: 20
+ *                   total_items: 1
+ *                   total_pages: 1
  *       400:
  *         description: Invalid query parameters
  *   post:

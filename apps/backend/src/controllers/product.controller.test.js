@@ -7,6 +7,7 @@ import {
 	deleteProductImage as deleteCloudinaryImage,
 	uploadProductImage as uploadCloudinaryImage,
 } from "../lib/cloudinary.js";
+import { paginate } from "../lib/pagination.js";
 import db from "../models/index.cjs";
 import {
 	createProduct,
@@ -22,6 +23,8 @@ vi.mock("../lib/cloudinary.js", () => ({
 	deleteProductImage: vi.fn(),
 	uploadProductImage: vi.fn(),
 }));
+
+vi.mock("../lib/pagination.js", () => ({ paginate: vi.fn() }));
 
 vi.mock("../models/index.cjs", () => ({
 	default: {
@@ -43,7 +46,6 @@ vi.mock("../models/index.cjs", () => ({
 		ProductItems: { count: vi.fn(), create: vi.fn() },
 		Products: {
 			create: vi.fn(),
-			findAll: vi.fn(),
 			findByPk: vi.fn(),
 		},
 		sequelize: { transaction: databaseMocks.transaction },
@@ -111,41 +113,44 @@ describe("product controller", () => {
 	});
 
 	it("retrieves products with search and filters", async () => {
-		db.Products.findAll.mockResolvedValue([
-			{
-				...product,
-				images: [
-					{
-						imageUrl:
-							"https://res.cloudinary.com/nashta/image/upload/galaxy-a55.webp",
-						alt: "Samsung Galaxy A55 smartphone",
-						isPrimary: true,
-						sortOrder: 0,
-					},
-				],
-				items: [
-					{
-						id: "44444444-4444-4444-8444-444444444444",
-						name: "8GB/128GB - Awesome Navy",
-						inventory: { stock: 10 },
-						images: [
-							{
-								imageUrl:
-									"https://res.cloudinary.com/nashta/image/upload/galaxy-a55-navy.webp",
-								alt: "Samsung Galaxy A55 Awesome Navy",
-								isPrimary: true,
-								sortOrder: 0,
-							},
-						],
-					},
-					{
-						id: "55555555-5555-4555-8555-555555555555",
-						name: "8GB/256GB - Ice Blue",
-						inventory: { stock: 7 },
-					},
-				],
-			},
-		]);
+		vi.mocked(paginate).mockResolvedValue({
+			rows: [
+				{
+					...product,
+					images: [
+						{
+							imageUrl:
+								"https://res.cloudinary.com/nashta/image/upload/galaxy-a55.webp",
+							alt: "Samsung Galaxy A55 smartphone",
+							isPrimary: true,
+							sortOrder: 0,
+						},
+					],
+					items: [
+						{
+							id: "44444444-4444-4444-8444-444444444444",
+							name: "8GB/128GB - Awesome Navy",
+							inventory: { stock: 10 },
+							images: [
+								{
+									imageUrl:
+										"https://res.cloudinary.com/nashta/image/upload/galaxy-a55-navy.webp",
+									alt: "Samsung Galaxy A55 Awesome Navy",
+									isPrimary: true,
+									sortOrder: 0,
+								},
+							],
+						},
+						{
+							id: "55555555-5555-4555-8555-555555555555",
+							name: "8GB/256GB - Ice Blue",
+							inventory: { stock: 7 },
+						},
+					],
+				},
+			],
+			pagination: { page: 2, limit: 10, total_items: 1, total_pages: 1 },
+		});
 		const response = createResponse();
 		const next = vi.fn();
 
@@ -156,18 +161,24 @@ describe("product controller", () => {
 					categoryId,
 					brandId,
 					isActive: "true",
+					page: "2",
+					limit: "10",
 				},
 			},
 			response,
 			next,
 		);
 
-		const options = db.Products.findAll.mock.calls[0][0];
+		const options = vi.mocked(paginate).mock.calls[0]?.[2];
 
-		expect(options.where.categoryId).toBe(categoryId);
-		expect(options.where.brandId).toBe(brandId);
-		expect(options.where.isActive).toBe(true);
-		expect(options.where.name[Op.iLike]).toBe("%Galaxy%");
+		expect(options?.where.categoryId).toBe(categoryId);
+		expect(options?.where.brandId).toBe(brandId);
+		expect(options?.where.isActive).toBe(true);
+		expect(options?.where.name[Op.iLike]).toBe("%Galaxy%");
+		expect(options).toMatchObject({
+			order: [["name", "ASC"]],
+			distinct: true,
+		});
 		expect(response.status).toHaveBeenCalledWith(constants.HTTP_STATUS_OK);
 		expect(response.json).toHaveBeenCalledWith({
 			success: true,
@@ -202,6 +213,9 @@ describe("product controller", () => {
 					],
 				},
 			],
+			meta: {
+				pagination: { page: 2, limit: 10, total_items: 1, total_pages: 1 },
+			},
 		});
 		expect(next).not.toHaveBeenCalled();
 	});

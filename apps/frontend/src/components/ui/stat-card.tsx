@@ -1,8 +1,18 @@
 import { ArrowDownRightIcon, ArrowUpRightIcon } from "lucide-react";
 import type { ReactNode } from "react";
+import { cn, tv } from "tailwind-variants";
 
 import Badge from "./badge";
 import Card from "./card";
+
+const statCard = tv({
+	base: "flex flex-col justify-between gap-1",
+	variants: {
+		accent: {
+			true: "border-l-4 border-l-primary transition-shadow hover:shadow-sm",
+		},
+	},
+});
 
 export interface StatTrend {
 	value: string;
@@ -27,27 +37,26 @@ export default function StatCard({
 	note,
 	trend,
 	icon,
-	iconClassName = "",
+	iconClassName,
 	accent = false,
 	loading = false,
-	className = "",
+	className,
 }: StatCardProps) {
 	const display = loading ? "—" : String(value);
 
 	return (
 		<Card
 			padding="md"
-			className={`flex flex-col justify-between gap-1 ${
-				accent
-					? "border-l-4 border-l-primary transition-shadow hover:shadow-sm"
-					: ""
-			} ${className}`.trim()}
+			className={statCard({ accent, className })}
 		>
 			<div className="flex items-start justify-between gap-2">
 				<div className="flex min-w-0 items-center gap-2">
 					{icon && (
 						<span
-							className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${iconClassName}`.trim()}
+							className={cn(
+								"flex size-8 shrink-0 items-center justify-center rounded-lg",
+								iconClassName,
+							)}
 						>
 							{icon}
 						</span>
@@ -82,14 +91,17 @@ export default function StatCard({
 
 export function StatGrid({
 	children,
-	className = "",
+	className,
 }: {
 	children: ReactNode;
 	className?: string;
 }) {
 	return (
 		<div
-			className={`grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 ${className}`.trim()}
+			className={cn(
+				"grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4",
+				className,
+			)}
 		>
 			{children}
 		</div>

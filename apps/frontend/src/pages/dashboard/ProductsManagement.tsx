@@ -10,6 +10,7 @@ import { ConfirmModal } from "../../components/ui/modal";
 import Section from "../../components/ui/section";
 import Select from "../../components/ui/select";
 import Toast from "../../components/ui/toast";
+import AdjustStockModal from "../../features/inventories/components/AdjustStockModal";
 import {
 	type Product,
 	type ProductItem,
@@ -23,6 +24,7 @@ import ProductOverview from "../../features/products/components/ProductOverview"
 import ProductTable from "../../features/products/components/ProductTable";
 import {
 	SORT_OPTIONS,
+	toNumber,
 	type SortBy,
 	type StatusFilter,
 } from "../../features/products/format";
@@ -45,6 +47,8 @@ export default function ProductsManagementDashboard() {
 	const [formItem, setFormItem] = useState<ProductItem | null>(null);
 	const [itemToDelete, setItemToDelete] = useState<ProductItem | null>(null);
 	const [deletingItem, setDeletingItem] = useState(false);
+	const [showAdjust, setShowAdjust] = useState(false);
+	const [adjustItem, setAdjustItem] = useState<ProductItem | null>(null);
 	const [showDelete, setShowDelete] = useState(false);
 	const [deleting, setDeleting] = useState(false);
 	const pageSize = 8;
@@ -127,6 +131,24 @@ export default function ProductsManagementDashboard() {
 		setShowDetail(false);
 		setShowItemForm(true);
 	}, []);
+
+	const handleAdjustVariant = useCallback((item: ProductItem) => {
+		setAdjustItem(item);
+		setReturnToDetail(true);
+		setShowDetail(false);
+		setShowAdjust(true);
+	}, []);
+
+	const handleAdjustOpenChange = useCallback(
+		(o: boolean) => {
+			setShowAdjust(o);
+			if (!o && returnToDetail) {
+				setReturnToDetail(false);
+				setShowDetail(true);
+			}
+		},
+		[returnToDetail],
+	);
 
 	const handleEditProductFromDetail = useCallback(() => {
 		setShowDetail(false);
@@ -285,6 +307,7 @@ export default function ProductsManagementDashboard() {
 					onAddVariant={handleAddVariant}
 					onEditVariant={handleEditVariant}
 					onDeleteVariant={setItemToDelete}
+					onAdjustStock={handleAdjustVariant}
 				/>
 			</Section>
 
@@ -306,6 +329,25 @@ export default function ProductsManagementDashboard() {
 				item={formItem}
 				onSuccess={() => {
 					show("Varian berhasil disimpan");
+					fetchProducts();
+				}}
+			/>
+			<AdjustStockModal
+				open={showAdjust}
+				onOpenChange={handleAdjustOpenChange}
+				target={
+					adjustItem
+						? {
+								id: adjustItem.id,
+								label: `${selected?.name ?? ""} · ${adjustItem.name}`,
+								stock: toNumber(adjustItem.stock),
+							}
+						: null
+				}
+				onSuccess={(adjustment) => {
+					show(
+						`Stok diperbarui: ${adjustment.stockBefore} → ${adjustment.stockAfter}`,
+					);
 					fetchProducts();
 				}}
 			/>

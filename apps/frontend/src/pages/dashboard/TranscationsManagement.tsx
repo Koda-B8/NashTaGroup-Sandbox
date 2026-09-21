@@ -36,7 +36,7 @@ export default function OrdersManagementDashboard() {
 	const [sortBy, setSortBy] = useState<SortBy>("newest");
 	const [filters, setFilters] = useState<TransactionFilters>(EMPTY_FILTERS);
 	const [page, setPage] = useState(0);
-	const pageSize = 8;
+	const pageSize = 10;
 
 	const { flash, show, clear } = useFlash();
 

@@ -22,6 +22,7 @@ interface Props {
 	onAddVariant: () => void;
 	onEditVariant: (item: ProductItem) => void;
 	onDeleteVariant: (item: ProductItem) => void;
+	onAdjustStock: (item: ProductItem) => void;
 }
 
 export default function ProductDetailModal({
@@ -33,6 +34,7 @@ export default function ProductDetailModal({
 	onAddVariant,
 	onEditVariant,
 	onDeleteVariant,
+	onAdjustStock,
 }: Props) {
 	const inventoryValue = useMemo(() => {
 		if (!product) return 0;
@@ -157,6 +159,10 @@ export default function ProductDetailModal({
 											<ActionMenu
 												label={`Actions for ${item.name}`}
 												items={[
+													{
+														label: "Adjust Stock",
+														onSelect: () => onAdjustStock(item),
+													},
 													{
 														label: "Edit",
 														onSelect: () => onEditVariant(item),

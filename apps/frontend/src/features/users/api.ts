@@ -11,7 +11,7 @@ export interface User {
 	username: string;
 	role?: string | { id: string; name: string };
 	role_id?: string;
-	isActive: boolean;
+	is_active: boolean;
 	createdAt: string;
 	updatedAt?: string;
 }

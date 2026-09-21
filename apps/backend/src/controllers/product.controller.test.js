@@ -27,7 +27,9 @@ vi.mock("../models/index.cjs", () => ({
 	default: {
 		Brands: { findByPk: vi.fn() },
 		Categories: { findByPk: vi.fn() },
-		Inventories: {},
+		CategoryAttributeOptions: {},
+		CategoryAttributes: {},
+		Inventories: { create: vi.fn() },
 		ProductImageCleanups: {
 			findOrCreate: vi.fn(),
 			destroy: vi.fn(),
@@ -37,7 +39,8 @@ vi.mock("../models/index.cjs", () => ({
 			findOne: vi.fn(),
 			update: vi.fn(),
 		},
-		ProductItems: {},
+		ProductItemAttributeValues: { bulkCreate: vi.fn() },
+		ProductItems: { count: vi.fn(), create: vi.fn() },
 		Products: {
 			create: vi.fn(),
 			findAll: vi.fn(),
@@ -97,6 +100,7 @@ describe("product controller", () => {
 
 		db.Categories.findByPk.mockResolvedValue(activeCategory);
 		db.Brands.findByPk.mockResolvedValue(activeBrand);
+		db.ProductItems.count.mockResolvedValue(0);
 		databaseMocks.transaction.mockImplementation((callback) =>
 			callback({ id: "database-transaction" }),
 		);
@@ -222,7 +226,10 @@ describe("product controller", () => {
 			next,
 		);
 
-		expect(db.Categories.findByPk).toHaveBeenCalledWith(categoryId);
+		expect(db.Categories.findByPk).toHaveBeenCalledWith(
+			categoryId,
+			expect.objectContaining({ include: expect.any(Array) }),
+		);
 		expect(db.Brands.findByPk).toHaveBeenCalledWith(brandId);
 		expect(db.Products.create).toHaveBeenCalledWith({
 			categoryId,
@@ -237,6 +244,91 @@ describe("product controller", () => {
 			message: "Product created successfully",
 			data: productWithStock,
 		});
+		expect(next).not.toHaveBeenCalled();
+	});
+
+	it("creates product items with names derived from category attributes", async () => {
+		const colorAttributeId = "44444444-4444-4444-8444-444444444444";
+		const storageAttributeId = "55555555-5555-4555-8555-555555555555";
+		const blueOptionId = "66666666-6666-4666-8666-666666666666";
+		const storageOptionId = "77777777-7777-4777-8777-777777777777";
+		db.Categories.findByPk.mockResolvedValue({
+			...activeCategory,
+			attributes: [
+				{
+					id: colorAttributeId,
+					name: "Colors",
+					isRequired: true,
+					isVariant: true,
+					sortOrder: 0,
+					options: [{ id: blueOptionId, name: "Blue" }],
+				},
+				{
+					id: storageAttributeId,
+					name: "Spesifikasi",
+					isRequired: true,
+					isVariant: true,
+					sortOrder: 1,
+					options: [{ id: storageOptionId, name: "512GB" }],
+				},
+			],
+		});
+		db.Products.create.mockResolvedValue({ id: productId });
+		db.ProductItems.create.mockResolvedValue({
+			id: "88888888-8888-4888-8888-888888888888",
+		});
+		db.Products.findByPk.mockResolvedValue({ ...product, items: [] });
+		const response = createResponse();
+		const next = vi.fn();
+
+		await createProduct(
+			{
+				body: {
+					categoryId,
+					brandId,
+					name: product.name,
+					items: [
+						{
+							productCode: "SAM-A55-BLU-512",
+							price: "6499000",
+							stock: 10,
+							attributes: [
+								{ attributeId: colorAttributeId, optionId: blueOptionId },
+								{
+									attributeId: storageAttributeId,
+									optionId: storageOptionId,
+								},
+							],
+						},
+					],
+				},
+			},
+			response,
+			next,
+		);
+
+		expect(db.ProductItems.create).toHaveBeenCalledWith(
+			expect.objectContaining({
+				productId,
+				name: "Blue 512GB",
+				productCode: "SAM-A55-BLU-512",
+				variantSignature: expect.any(String),
+			}),
+			{ transaction: { id: "database-transaction" } },
+		);
+		expect(db.Inventories.create).toHaveBeenCalledWith(
+			expect.objectContaining({ stock: 10 }),
+			{ transaction: { id: "database-transaction" } },
+		);
+		expect(db.ProductItemAttributeValues.bulkCreate).toHaveBeenCalledWith(
+			expect.arrayContaining([
+				expect.objectContaining({
+					categoryAttributeOptionId: blueOptionId,
+					value: "Blue",
+				}),
+			]),
+			{ transaction: { id: "database-transaction" } },
+		);
 		expect(next).not.toHaveBeenCalled();
 	});
 
@@ -425,6 +517,34 @@ describe("product controller", () => {
 			expect.objectContaining({
 				statusCode: constants.HTTP_STATUS_BAD_REQUEST,
 				message: "No valid field provided for update",
+			}),
+		);
+	});
+
+	it("rejects changing category while product items still exist", async () => {
+		const nextCategoryId = "99999999-9999-4999-8999-999999999999";
+		db.Products.findByPk.mockResolvedValue({ ...product, update: vi.fn() });
+		db.ProductItems.count.mockResolvedValue(1);
+		const response = createResponse();
+		const next = vi.fn();
+
+		await updateProduct(
+			{
+				params: { id: productId },
+				body: { categoryId: nextCategoryId },
+			},
+			response,
+			next,
+		);
+
+		expect(db.ProductItems.count).toHaveBeenCalledWith({
+			where: { productId },
+		});
+		expect(next).toHaveBeenCalledWith(
+			expect.objectContaining({
+				statusCode: constants.HTTP_STATUS_CONFLICT,
+				message:
+					"Product category cannot be changed while product items still exist",
 			}),
 		);
 	});

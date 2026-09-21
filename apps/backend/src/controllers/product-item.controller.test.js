@@ -18,14 +18,21 @@ vi.mock("../models/index.cjs", () => ({
 	default: {
 		Brands: {},
 		Categories: {},
+		CategoryAttributeOptions: {},
+		CategoryAttributes: {},
 		Inventories: {
 			create: vi.fn(),
 		},
 		ProductImages: {},
+		ProductItemAttributeValues: {
+			bulkCreate: vi.fn(),
+			destroy: vi.fn(),
+		},
 		ProductItems: {
 			create: vi.fn(),
 			findAll: vi.fn(),
 			findByPk: vi.fn(),
+			findOne: vi.fn(),
 		},
 		Products: {
 			findByPk: vi.fn(),
@@ -79,6 +86,7 @@ describe("product item controller", () => {
 		vi.clearAllMocks();
 
 		db.Products.findByPk.mockResolvedValue(product);
+		db.ProductItems.findOne.mockResolvedValue(null);
 		databaseMocks.transaction.mockImplementation((callback) =>
 			callback({ id: "database-transaction" }),
 		);
@@ -256,13 +264,17 @@ describe("product item controller", () => {
 			next,
 		);
 
-		expect(db.Products.findByPk).toHaveBeenCalledWith(productId);
+		expect(db.Products.findByPk).toHaveBeenCalledWith(
+			productId,
+			expect.objectContaining({ include: expect.any(Array) }),
+		);
 		expect(db.ProductItems.create).toHaveBeenCalledWith(
 			{
 				productId,
 				productCode: "SAM-A55-256-BLU",
 				name: "Samsung Galaxy A55 256GB Blue",
 				price: "6499000.00",
+				variantSignature: null,
 				isActive: true,
 			},
 			{ transaction: { id: "database-transaction" } },
@@ -278,6 +290,138 @@ describe("product item controller", () => {
 			data: productItemResponse,
 		});
 		expect(next).not.toHaveBeenCalled();
+	});
+
+	it("stores values for the attributes defined by the product category", async () => {
+		const colorAttributeId = "55555555-5555-4555-8555-555555555555";
+		const colorOptionId = "66666666-6666-4666-8666-666666666666";
+		db.Products.findByPk.mockResolvedValue({
+			...product,
+			category: {
+				id: product.categoryId,
+				name: "Smartphone",
+				attributes: [
+					{
+						id: colorAttributeId,
+						name: "Color",
+						isRequired: true,
+						isVariant: true,
+						sortOrder: 0,
+						options: [{ id: colorOptionId, name: "Blue" }],
+					},
+				],
+			},
+		});
+		db.ProductItems.create.mockResolvedValue({ id: productItemId });
+		db.ProductItems.findByPk.mockResolvedValue({
+			...productItem,
+			attributeValues: [
+				{
+					categoryAttributeId: colorAttributeId,
+					categoryAttributeOptionId: colorOptionId,
+					value: "Blue",
+					attribute: {
+						id: colorAttributeId,
+						name: "Color",
+						isRequired: true,
+						isVariant: true,
+						sortOrder: 0,
+					},
+				},
+			],
+		});
+
+		const response = createResponse();
+		const next = vi.fn();
+		await createProductItem(
+			{
+				body: {
+					productId,
+					productCode: "SAM-A55-BLU",
+					name: "Samsung Galaxy A55 Blue",
+					price: "6499000",
+					attributes: [{ attributeId: colorAttributeId, value: " Blue " }],
+				},
+			},
+			response,
+			next,
+		);
+
+		expect(db.ProductItemAttributeValues.bulkCreate).toHaveBeenCalledWith(
+			[
+				{
+					productItemId,
+					categoryAttributeId: colorAttributeId,
+					categoryAttributeOptionId: colorOptionId,
+					value: "Blue",
+				},
+			],
+			{ transaction: { id: "database-transaction" } },
+		);
+		expect(db.ProductItems.create).toHaveBeenCalledWith(
+			expect.objectContaining({ name: "Blue" }),
+			expect.any(Object),
+		);
+		expect(response.json).toHaveBeenCalledWith(
+			expect.objectContaining({
+				data: expect.objectContaining({
+					attributes: [
+						expect.objectContaining({
+							id: colorAttributeId,
+							name: "Color",
+							value: "Blue",
+						}),
+					],
+				}),
+			}),
+		);
+		expect(next).not.toHaveBeenCalled();
+	});
+
+	it("rejects a duplicate variant combination for the same product", async () => {
+		const colorAttributeId = "55555555-5555-4555-8555-555555555555";
+		const colorOptionId = "66666666-6666-4666-8666-666666666666";
+		db.Products.findByPk.mockResolvedValue({
+			...product,
+			category: {
+				attributes: [
+					{
+						id: colorAttributeId,
+						name: "Color",
+						isRequired: true,
+						isVariant: true,
+						sortOrder: 0,
+						options: [{ id: colorOptionId, name: "Blue" }],
+					},
+				],
+			},
+		});
+		db.ProductItems.findOne.mockResolvedValue({ id: productItemId });
+		const response = createResponse();
+		const next = vi.fn();
+
+		await createProductItem(
+			{
+				body: {
+					productId,
+					productCode: "SAM-A55-BLU-2",
+					price: "6499000",
+					attributes: [
+						{ attributeId: colorAttributeId, optionId: colorOptionId },
+					],
+				},
+			},
+			response,
+			next,
+		);
+
+		expect(db.ProductItems.create).not.toHaveBeenCalled();
+		expect(next).toHaveBeenCalledWith(
+			expect.objectContaining({
+				statusCode: constants.HTTP_STATUS_CONFLICT,
+				message: "Product variant combination already exists",
+			}),
+		);
 	});
 
 	it.each([0, -1, "6499000.999", "invalid-price"])(

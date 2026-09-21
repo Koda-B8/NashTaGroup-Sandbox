@@ -14,7 +14,7 @@ router.use(authMiddleware, requireRole("cashier", "admin"));
  * /api/v1/cashier/products:
  *   get:
  *     tags: [Cashier]
- *     summary: Retrieve sellable product variants for the cashier browser
+ *     summary: Retrieve products and their SKU combinations for the cashier browser
  *     security:
  *       - cookieAuth: []
  *       - bearerAuth: []
@@ -59,18 +59,26 @@ router.use(authMiddleware, requireRole("cashier", "admin"));
  *               success: true
  *               message: Cashier products retrieved successfully
  *               data:
- *                 - product_item_id: d7878d58-7742-4389-9c35-92d72351f200
- *                   product_id: 3962d3bd-b9a6-4275-bf87-6cb6af71d943
- *                   product_code: SAM-A55-128-NVY
+ *                 - id: 3962d3bd-b9a6-4275-bf87-6cb6af71d943
+ *                   categoryId: a8fc757d-d382-498b-b91a-afad8ad7cc31
+ *                   brandId: 1524d65a-df46-4edf-ae6d-d4dd62607d89
  *                   name: Samsung Galaxy A55
- *                   variant_name: 8GB/128GB - Awesome Navy
- *                   category: { id: a8fc757d-d382-498b-b91a-afad8ad7cc31, name: Smartphone }
- *                   brand: { id: 1524d65a-df46-4edf-ae6d-d4dd62607d89, name: Samsung }
- *                   price: "5999000.00"
+ *                   category: { id: a8fc757d-d382-498b-b91a-afad8ad7cc31, name: Smartphone, isActive: true }
+ *                   brand: { id: 1524d65a-df46-4edf-ae6d-d4dd62607d89, name: Samsung, isActive: true }
+ *                   attributes:
+ *                     - title: Colors
+ *                       items:
+ *                         - { id: 76a36755-1905-483b-a7d1-dcd65ad43768, name: Blue, hex: "#3B82F6" }
+ *                   items:
+ *                     - id: d7878d58-7742-4389-9c35-92d72351f200
+ *                       productCode: SAM-A55-128-NVY
+ *                       price: "5999000.00"
+ *                       colorId: 76a36755-1905-483b-a7d1-dcd65ad43768
+ *                       specsId: ""
+ *                       isActive: true
+ *                       stock: 10
+ *                   image: { alt: Samsung Galaxy A55, url: null }
  *                   stock: 10
- *                   image: null
- *                   alt: Samsung Galaxy A55 8GB/128GB - Awesome Navy
- *                   is_available: true
  *               meta:
  *                 pagination: { page: 1, limit: 20, total_items: 1, total_pages: 1 }
  *       400:

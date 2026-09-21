@@ -10,15 +10,22 @@ vi.mock("../models/index.cjs", () => ({
 	default: {
 		Brands: {},
 		Categories: {},
+		CategoryAttributeOptions: {},
+		CategoryAttributes: {},
 		Inventories: {},
 		ProductImages: {},
-		ProductItems: { findAndCountAll: vi.fn() },
-		Products: {},
+		ProductItemAttributeValues: {},
+		ProductItems: { findAll: vi.fn() },
+		Products: { findAll: vi.fn() },
 	},
 }));
 
 const categoryId = "11111111-1111-4111-8111-111111111111";
 const brandId = "22222222-2222-4222-8222-222222222222";
+const productId = "33333333-3333-4333-8333-333333333333";
+const itemId = "44444444-4444-4444-8444-444444444444";
+const colorId = "55555555-5555-4555-8555-555555555555";
+const colorOptionId = "66666666-6666-4666-8666-666666666666";
 
 const createResponse = () => ({
 	status: vi.fn().mockReturnThis(),
@@ -30,33 +37,67 @@ describe("cashier product controller", () => {
 		vi.clearAllMocks();
 	});
 
-	it("retrieves paginated sellable SKUs with cashier filters", async () => {
-		db.ProductItems.findAndCountAll.mockResolvedValue({
-			count: 1,
-			rows: [
-				{
-					id: "33333333-3333-4333-8333-333333333333",
-					productId: "44444444-4444-4444-8444-444444444444",
-					productCode: "SAM-A55-128-NVY",
-					name: "8GB/128GB - Awesome Navy",
-					price: "5999000.00",
-					inventory: { stock: 10 },
-					images: [
+	it("returns one product with attribute definitions and SKU items", async () => {
+		db.ProductItems.findAll.mockResolvedValue([
+			{
+				productId,
+				price: "5999000.00",
+				product: { id: productId, name: "Samsung Galaxy A55" },
+			},
+		]);
+		db.Products.findAll.mockResolvedValue([
+			{
+				id: productId,
+				name: "Samsung Galaxy A55",
+				description: "Smartphone",
+				category: {
+					id: categoryId,
+					name: "Smartphone",
+					attributes: [
 						{
-							imageUrl: "https://example.com/a55-navy.webp",
-							alt: "Samsung Galaxy A55 Awesome Navy",
-							isPrimary: true,
+							id: colorId,
+							name: "Color",
+							isRequired: true,
+							isVariant: true,
+							sortOrder: 0,
+							options: [
+								{
+									id: colorOptionId,
+									name: "Blue",
+									hex: "#3B82F6",
+								},
+							],
 						},
 					],
-					product: {
-						name: "Samsung Galaxy A55",
-						category: { id: categoryId, name: "Smartphone" },
-						brand: { id: brandId, name: "Samsung" },
-						images: [],
-					},
 				},
-			],
-		});
+				brand: { id: brandId, name: "Samsung" },
+				images: [],
+				items: [
+					{
+						id: itemId,
+						productCode: "SAM-A55-BLU",
+						name: "Blue",
+						price: "5999000.00",
+						isActive: true,
+						inventory: { stock: 10 },
+						images: [],
+						attributeValues: [
+							{
+								categoryAttributeId: colorId,
+								categoryAttributeOptionId: colorOptionId,
+								value: "Blue",
+								attribute: {
+									id: colorId,
+									name: "Color",
+									isVariant: true,
+									sortOrder: 0,
+								},
+							},
+						],
+					},
+				],
+			},
+		]);
 		const response = createResponse();
 		const next = vi.fn();
 
@@ -78,15 +119,13 @@ describe("cashier product controller", () => {
 			next,
 		);
 
-		const options = db.ProductItems.findAndCountAll.mock.calls[0][0];
-		expect(options.limit).toBe(9);
-		expect(options.offset).toBe(0);
-		expect(options.where.isActive).toBe(true);
-		expect(options.where.price[Op.gte]).toBe(1_000_000);
-		expect(options.where.price[Op.lte]).toBe(7_000_000);
-		expect(options.where[Op.or]).toHaveLength(3);
-		expect(options.include[0].where.stock[Op.gt]).toBe(0);
-		expect(options.include[2].where).toEqual({
+		const candidateOptions = db.ProductItems.findAll.mock.calls[0][0];
+		expect(candidateOptions.where.isActive).toBe(true);
+		expect(candidateOptions.where.price[Op.gte]).toBe(1_000_000);
+		expect(candidateOptions.where.price[Op.lte]).toBe(7_000_000);
+		expect(candidateOptions.where[Op.or]).toHaveLength(3);
+		expect(candidateOptions.include[0].where.stock[Op.gt]).toBe(0);
+		expect(candidateOptions.include[1].where).toEqual({
 			isActive: true,
 			categoryId,
 			brandId,
@@ -96,20 +135,31 @@ describe("cashier product controller", () => {
 			success: true,
 			message: "Cashier products retrieved successfully",
 			data: [
-				{
-					product_item_id: "33333333-3333-4333-8333-333333333333",
-					product_id: "44444444-4444-4444-8444-444444444444",
-					product_code: "SAM-A55-128-NVY",
+				expect.objectContaining({
+					id: productId,
 					name: "Samsung Galaxy A55",
-					variant_name: "8GB/128GB - Awesome Navy",
-					category: { id: categoryId, name: "Smartphone" },
-					brand: { id: brandId, name: "Samsung" },
-					price: "5999000.00",
 					stock: 10,
-					image: "https://example.com/a55-navy.webp",
-					alt: "Samsung Galaxy A55 Awesome Navy",
-					is_available: true,
-				},
+					attributes: [
+						expect.objectContaining({
+							title: "Color",
+							items: [
+								expect.objectContaining({
+									id: colorOptionId,
+									name: "Blue",
+									hex: "#3B82F6",
+								}),
+							],
+						}),
+					],
+					items: [
+						expect.objectContaining({
+							id: itemId,
+							productCode: "SAM-A55-BLU",
+							colorId: colorOptionId,
+							specsId: "",
+						}),
+					],
+				}),
 			],
 			meta: {
 				pagination: {
@@ -123,6 +173,26 @@ describe("cashier product controller", () => {
 		expect(next).not.toHaveBeenCalled();
 	});
 
+	it("paginates unique products instead of individual SKU rows", async () => {
+		db.ProductItems.findAll.mockResolvedValue([
+			{ productId, price: "100", product: { name: "Product A" } },
+			{ productId, price: "200", product: { name: "Product A" } },
+		]);
+		db.Products.findAll.mockResolvedValue([]);
+		const response = createResponse();
+		const next = vi.fn();
+
+		await getCashierProducts({ query: {} }, response, next);
+
+		expect(response.json).toHaveBeenCalledWith(
+			expect.objectContaining({
+				meta: {
+					pagination: expect.objectContaining({ total_items: 1 }),
+				},
+			}),
+		);
+	});
+
 	it("rejects an invalid price range", async () => {
 		const response = createResponse();
 		const next = vi.fn();
@@ -133,7 +203,7 @@ describe("cashier product controller", () => {
 			next,
 		);
 
-		expect(db.ProductItems.findAndCountAll).not.toHaveBeenCalled();
+		expect(db.ProductItems.findAll).not.toHaveBeenCalled();
 		expect(next).toHaveBeenCalledWith(
 			expect.objectContaining({
 				statusCode: constants.HTTP_STATUS_BAD_REQUEST,

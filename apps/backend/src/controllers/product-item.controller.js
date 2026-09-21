@@ -1,52 +1,68 @@
+// oxlint-disable unicorn/no-null -- The API and image queries intentionally represent missing values as SQL/JSON null.
 import { constants } from "node:http2";
 
 import { Op, UniqueConstraintError } from "sequelize";
 
 import db from "../models/index.cjs";
 import { createHttpError } from "../utils/http-error.js";
+import {
+	getVariantIdentity,
+	isValidProductCode,
+	normalizeProductCode,
+	parseAttributeValues,
+	parsePrice,
+	parseStock,
+	toStoredAttributeValues,
+} from "../utils/product-variant.js";
 import { parseBoolean, parseSearch } from "../utils/query.js";
 import { isUuid, normalizeText } from "../utils/validation.js";
 
 const {
 	Brands,
 	Categories,
+	CategoryAttributeOptions,
+	CategoryAttributes,
 	Inventories,
 	ProductImages,
+	ProductItemAttributeValues,
 	ProductItems,
 	Products,
 	sequelize,
 } = db;
 const EMPTY_IMAGE_URL = null;
 
-const normalizeProductCode = (value) => {
-	if (typeof value !== "string") return "";
-
-	return value.trim().toUpperCase();
+const attributeValueInclude = {
+	model: ProductItemAttributeValues,
+	as: "attributeValues",
+	attributes: [
+		"id",
+		"categoryAttributeId",
+		"categoryAttributeOptionId",
+		"value",
+	],
+	required: false,
+	include: [
+		{
+			model: CategoryAttributes,
+			as: "attribute",
+			attributes: [
+				"id",
+				"name",
+				"value",
+				"isRequired",
+				"isVariant",
+				"sortOrder",
+			],
+			required: true,
+		},
+		{
+			model: CategoryAttributeOptions,
+			as: "option",
+			attributes: ["id", "name", "hex"],
+			required: true,
+		},
+	],
 };
-
-const parsePrice = (value) => {
-	const rawValue = String(value ?? "").trim();
-
-	if (!/^\d{1,13}(\.\d{1,2})?$/.test(rawValue)) {
-		return;
-	}
-
-	const price = Number(rawValue);
-
-	if (!Number.isFinite(price) || price <= 0) {
-		return;
-	}
-
-	return rawValue;
-};
-
-const parseStock = (value) => {
-	if (!Number.isInteger(value) || value < 0) return;
-
-	return value;
-};
-
-const isValidProductCode = (value) => /^[A-Z0-9][A-Z0-9-]{0,49}$/.test(value);
 
 const itemIncludes = [
 	{
@@ -61,6 +77,7 @@ const itemIncludes = [
 		attributes: ["stock"],
 		required: false,
 	},
+	attributeValueInclude,
 ];
 
 const productItemListIncludes = [
@@ -101,6 +118,7 @@ const productItemListIncludes = [
 			["sortOrder", "ASC"],
 		],
 	},
+	attributeValueInclude,
 ];
 
 const productItemDetailIncludes = [
@@ -158,6 +176,7 @@ const productItemDetailIncludes = [
 			["sortOrder", "ASC"],
 		],
 	},
+	attributeValueInclude,
 ];
 
 const findPrimaryImage = (images) =>
@@ -184,16 +203,37 @@ const getProductItemAlt = (productName, itemName) => {
 	return `${normalizedProductName} ${normalizedItemName}`.trim();
 };
 
+const toAttributeResponse = (attributeValues) =>
+	(attributeValues ?? [])
+		.map((entry) => ({
+			id: entry.attribute?.id ?? entry.categoryAttributeId,
+			name: entry.attribute?.name,
+			value: entry.value,
+			optionId: entry.option?.id ?? entry.categoryAttributeOptionId,
+			isRequired: entry.attribute?.isRequired,
+			isVariant: entry.attribute?.isVariant,
+			sortOrder: entry.attribute?.sortOrder,
+		}))
+		.toSorted((left, right) => (left.sortOrder ?? 0) - (right.sortOrder ?? 0));
+
 const toProductItemResponse = (productItem) => {
 	const value =
 		typeof productItem?.toJSON === "function"
 			? productItem.toJSON()
 			: productItem;
-	const { inventory, ...data } = value;
+	const {
+		attributeValues,
+		inventory,
+		variantSignature: _variantSignature,
+		...data
+	} = value;
 
 	return {
 		...data,
 		stock: inventory?.stock ?? 0,
+		...(attributeValues
+			? { attributes: toAttributeResponse(attributeValues) }
+			: {}),
 	};
 };
 
@@ -202,7 +242,14 @@ const toProductItemListResponse = (productItem) => {
 		typeof productItem?.toJSON === "function"
 			? productItem.toJSON()
 			: productItem;
-	const { images, inventory, product, ...data } = value;
+	const {
+		attributeValues,
+		images,
+		inventory,
+		product,
+		variantSignature: _variantSignature,
+		...data
+	} = value;
 	const { images: productImages, ...productData } = product ?? {};
 	const itemImage = findPrimaryImage(images);
 	const productImage = findPrimaryImage(productImages);
@@ -212,6 +259,9 @@ const toProductItemListResponse = (productItem) => {
 		...data,
 		product: product ? productData : undefined,
 		stock: inventory?.stock ?? 0,
+		...(attributeValues
+			? { attributes: toAttributeResponse(attributeValues) }
+			: {}),
 		image: toImageResponse(image, getProductItemAlt(product?.name, value.name)),
 	};
 };
@@ -221,7 +271,14 @@ const toProductItemDetailResponse = (productItem) => {
 		typeof productItem?.toJSON === "function"
 			? productItem.toJSON()
 			: productItem;
-	const { images, inventory, product, ...itemData } = value;
+	const {
+		attributeValues,
+		images,
+		inventory,
+		product,
+		variantSignature: _variantSignature,
+		...itemData
+	} = value;
 	const { images: productImages, ...productData } = product ?? {};
 	const itemImage = findPrimaryImage(images);
 	const productImage = findPrimaryImage(productImages);
@@ -230,6 +287,9 @@ const toProductItemDetailResponse = (productItem) => {
 	return {
 		...itemData,
 		stock: inventory?.stock ?? 0,
+		...(attributeValues
+			? { attributes: toAttributeResponse(attributeValues) }
+			: {}),
 		image: toImageResponse(image, getProductItemAlt(product?.name, value.name)),
 		product: product
 			? {
@@ -241,7 +301,42 @@ const toProductItemDetailResponse = (productItem) => {
 };
 
 async function getProduct(productId) {
-	const product = await Products.findByPk(productId);
+	const product = await Products.findByPk(productId, {
+		include: [
+			{
+				model: Categories,
+				as: "category",
+				attributes: ["id", "name"],
+				include: [
+					{
+						model: CategoryAttributes,
+						as: "attributes",
+						attributes: [
+							"id",
+							"name",
+							"value",
+							"isRequired",
+							"isVariant",
+							"sortOrder",
+						],
+						required: false,
+						separate: true,
+						order: [["sortOrder", "ASC"]],
+						include: [
+							{
+								model: CategoryAttributeOptions,
+								as: "options",
+								attributes: ["id", "name", "hex", "sortOrder"],
+								required: false,
+								separate: true,
+								order: [["sortOrder", "ASC"]],
+							},
+						],
+					},
+				],
+			},
+		],
+	});
 
 	if (!product) {
 		throw createHttpError(constants.HTTP_STATUS_NOT_FOUND, "Product not found");
@@ -256,6 +351,23 @@ async function getProduct(productId) {
 
 	return product;
 }
+
+const ensureUniqueVariant = async (
+	productId,
+	variantSignature,
+	excludedProductItemId,
+) => {
+	if (!variantSignature) return;
+	const where = { productId, variantSignature };
+	if (excludedProductItemId) where.id = { [Op.ne]: excludedProductItemId };
+	const duplicate = await ProductItems.findOne({ where, attributes: ["id"] });
+	if (duplicate) {
+		throw createHttpError(
+			constants.HTTP_STATUS_CONFLICT,
+			"Product variant combination already exists",
+		);
+	}
+};
 
 export async function getProductItems(req, res, next) {
 	try {
@@ -347,7 +459,7 @@ export async function getProductItemById(req, res, next) {
 export async function createProductItem(req, res, next) {
 	try {
 		const { productId } = req.body ?? {};
-		const name = normalizeText(req.body?.name);
+		const requestedName = normalizeText(req.body?.name);
 		const productCode = normalizeProductCode(req.body?.productCode);
 		const price = parsePrice(req.body?.price);
 		const stock =
@@ -357,13 +469,6 @@ export async function createProductItem(req, res, next) {
 			throw createHttpError(
 				constants.HTTP_STATUS_BAD_REQUEST,
 				"productId must be a valid UUID",
-			);
-		}
-
-		if (!name) {
-			throw createHttpError(
-				constants.HTTP_STATUS_BAD_REQUEST,
-				"Product item name is required",
 			);
 		}
 
@@ -398,7 +503,14 @@ export async function createProductItem(req, res, next) {
 			);
 		}
 
-		await getProduct(productId);
+		const product = await getProduct(productId);
+		const attributes = parseAttributeValues(
+			req.body?.attributes,
+			product.category?.attributes,
+		);
+		const variant = getVariantIdentity(attributes);
+		const name = variant.name || requestedName || product.name;
+		await ensureUniqueVariant(productId, variant.signature);
 
 		const productItem = await sequelize.transaction(async (transaction) => {
 			const item = await ProductItems.create(
@@ -406,6 +518,7 @@ export async function createProductItem(req, res, next) {
 					productId,
 					name,
 					productCode,
+					variantSignature: variant.signature,
 					price,
 					isActive: req.body?.isActive ?? true,
 				},
@@ -416,6 +529,12 @@ export async function createProductItem(req, res, next) {
 				{ productItemId: item.id, stock },
 				{ transaction },
 			);
+			if (attributes.length > 0) {
+				await ProductItemAttributeValues.bulkCreate(
+					toStoredAttributeValues(attributes, item.id),
+					{ transaction },
+				);
+			}
 
 			return item;
 		});
@@ -431,10 +550,16 @@ export async function createProductItem(req, res, next) {
 		});
 	} catch (error) {
 		if (error instanceof UniqueConstraintError) {
+			const isVariantConflict =
+				error.parent?.constraint ===
+					"product_items_product_variant_signature_unique" ||
+				Object.hasOwn(error.fields ?? {}, "variant_signature");
 			return next(
 				createHttpError(
 					constants.HTTP_STATUS_CONFLICT,
-					"Product code already exists",
+					isVariantConflict
+						? "Product variant combination already exists"
+						: "Product code already exists",
 				),
 			);
 		}
@@ -462,6 +587,7 @@ export async function updateProductItem(req, res, next) {
 		}
 
 		const updates = {};
+		let targetProduct;
 
 		if (Object.hasOwn(req.body ?? {}, "productId")) {
 			if (!isUuid(req.body.productId)) {
@@ -471,7 +597,7 @@ export async function updateProductItem(req, res, next) {
 				);
 			}
 
-			await getProduct(req.body.productId);
+			targetProduct = await getProduct(req.body.productId);
 			updates.productId = req.body.productId;
 		}
 
@@ -525,14 +651,53 @@ export async function updateProductItem(req, res, next) {
 			updates.isActive = req.body.isActive;
 		}
 
-		if (Object.keys(updates).length === 0) {
+		const replacesAttributes =
+			Object.hasOwn(req.body ?? {}, "attributes") ||
+			targetProduct !== undefined;
+		let attributes;
+		if (replacesAttributes) {
+			targetProduct ??= await getProduct(productItem.productId);
+			attributes = parseAttributeValues(
+				req.body?.attributes,
+				targetProduct.category?.attributes,
+			);
+			const variant = getVariantIdentity(attributes);
+			updates.name =
+				variant.name || normalizeText(req.body?.name) || targetProduct.name;
+			updates.variantSignature = variant.signature;
+			await ensureUniqueVariant(
+				targetProduct.id,
+				variant.signature,
+				productItem.id,
+			);
+		}
+
+		if (Object.keys(updates).length === 0 && !replacesAttributes) {
 			throw createHttpError(
 				constants.HTTP_STATUS_BAD_REQUEST,
 				"No valid field provided for update",
 			);
 		}
 
-		await productItem.update(updates);
+		if (replacesAttributes) {
+			await sequelize.transaction(async (transaction) => {
+				if (Object.keys(updates).length > 0) {
+					await productItem.update(updates, { transaction });
+				}
+				await ProductItemAttributeValues.destroy({
+					where: { productItemId: productItem.id },
+					transaction,
+				});
+				if (attributes.length > 0) {
+					await ProductItemAttributeValues.bulkCreate(
+						toStoredAttributeValues(attributes, productItem.id),
+						{ transaction },
+					);
+				}
+			});
+		} else {
+			await productItem.update(updates);
+		}
 
 		const updatedProductItem = await ProductItems.findByPk(productItem.id, {
 			include: itemIncludes,
@@ -545,10 +710,16 @@ export async function updateProductItem(req, res, next) {
 		});
 	} catch (error) {
 		if (error instanceof UniqueConstraintError) {
+			const isVariantConflict =
+				error.parent?.constraint ===
+					"product_items_product_variant_signature_unique" ||
+				Object.hasOwn(error.fields ?? {}, "variant_signature");
 			return next(
 				createHttpError(
 					constants.HTTP_STATUS_CONFLICT,
-					"Product code already exists",
+					isVariantConflict
+						? "Product variant combination already exists"
+						: "Product code already exists",
 				),
 			);
 		}

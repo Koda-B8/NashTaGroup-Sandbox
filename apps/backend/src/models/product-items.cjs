@@ -27,6 +27,11 @@ const defineProductItems = (sequelize, DataTypes) => {
 				foreignKey: "productItemId",
 				as: "images",
 			});
+
+			ProductItems.hasMany(models.ProductItemAttributeValues, {
+				foreignKey: "productItemId",
+				as: "attributeValues",
+			});
 		}
 	}
 
@@ -51,6 +56,11 @@ const defineProductItems = (sequelize, DataTypes) => {
 			name: {
 				type: DataTypes.STRING(150),
 				allowNull: false,
+			},
+			variantSignature: {
+				type: DataTypes.TEXT,
+				allowNull: true,
+				field: "variant_signature",
 			},
 			price: {
 				type: DataTypes.DECIMAL(15, 2),

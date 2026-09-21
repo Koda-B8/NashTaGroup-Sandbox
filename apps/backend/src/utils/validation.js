@@ -1,8 +1,15 @@
-const UUID_PATTERN =
-	/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+// @ts-nocheck
+import { DataTypes } from "sequelize";
 
-export const isUuid = (value) =>
-	typeof value === "string" && UUID_PATTERN.test(value);
+const UUID_TYPE = new DataTypes.UUID();
+
+export const isUuid = (value) => {
+	try {
+		return UUID_TYPE.validate(value);
+	} catch {
+		return false;
+	}
+};
 
 export const normalizeText = (value) => {
 	if (typeof value !== "string") return "";

@@ -86,8 +86,8 @@ export default function FilterPills<Value extends string>({
 	variant = "outline",
 	shape = "rounded",
 	fullWidth = false,
-	className = "",
-	containerClassName = "",
+	className,
+	containerClassName,
 }: FilterPillsProps<Value>) {
 	const groupValue = useMemo(() => [value], [value]);
 	const handleChange = useCallback(
@@ -105,7 +105,7 @@ export default function FilterPills<Value extends string>({
 			className={filterPillsContainer({
 				variant,
 				fullWidth,
-				className: `${containerClassName} ${className}`.trim(),
+				className: [containerClassName, className],
 			})}
 		>
 			{items.map((item) => (

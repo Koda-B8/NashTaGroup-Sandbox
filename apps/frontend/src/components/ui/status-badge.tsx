@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { cn } from "tailwind-variants";
 
 import Badge, { type BadgeProps } from "./badge";
 
@@ -18,13 +19,13 @@ export default function StatusBadge({
 	dotColor,
 	variant = "neutral",
 	size = "sm",
-	className = "",
+	className,
 }: StatusBadgeProps) {
 	return (
 		<Badge
 			variant={variant}
 			size={size}
-			className={`gap-1.5 ${className}`.trim()}
+			className={cn("gap-1.5", className)}
 		>
 			{dotColor && (
 				<span

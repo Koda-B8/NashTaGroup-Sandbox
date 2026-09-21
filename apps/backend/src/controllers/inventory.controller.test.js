@@ -306,6 +306,7 @@ describe("inventory controller", () => {
 				body: {
 					type: "reduction",
 					quantity: 6,
+					note: "Damaged item",
 				},
 				user: { id: userId },
 			},
@@ -374,7 +375,15 @@ describe("inventory controller", () => {
 			{ type: "addition", quantity: 1.5 },
 			"quantity must be a positive integer",
 		],
-		[{ type: "addition", quantity: 1, note: 123 }, "note must be a string"],
+		[
+			{ type: "addition", quantity: 1, note: 123 },
+			"note must be a non-empty string",
+		],
+		[{ type: "addition", quantity: 1 }, "note must be a non-empty string"],
+		[
+			{ type: "addition", quantity: 1, note: "   " },
+			"note must be a non-empty string",
+		],
 	])(
 		"passes a 400 error for an invalid adjustment payload",
 		async (body, message) => {
@@ -410,7 +419,7 @@ describe("inventory controller", () => {
 		await adjustStock(
 			{
 				params: { productItemId },
-				body: { type: "addition", quantity: 1 },
+				body: { type: "addition", quantity: 1, note: "Restock" },
 				user: { id: userId },
 			},
 			response,
@@ -424,5 +433,33 @@ describe("inventory controller", () => {
 			}),
 		);
 		expect(db.Inventories.findOne).not.toHaveBeenCalled();
+	});
+
+	it("rejects source supplied by a manual adjustment request", async () => {
+		const response = createResponse();
+		const next = vi.fn();
+
+		await adjustStock(
+			{
+				params: { productItemId },
+				body: {
+					type: "addition",
+					quantity: 1,
+					note: "Restock",
+					source: "checkout",
+				},
+				user: { id: userId },
+			},
+			response,
+			next,
+		);
+
+		expect(next).toHaveBeenCalledWith(
+			expect.objectContaining({
+				statusCode: constants.HTTP_STATUS_BAD_REQUEST,
+				message: "source must not be provided",
+			}),
+		);
+		expect(db.sequelize.transaction).not.toHaveBeenCalled();
 	});
 });

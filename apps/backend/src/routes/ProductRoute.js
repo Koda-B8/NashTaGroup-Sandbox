@@ -51,6 +51,21 @@ router.use(authMiddleware);
  *         schema:
  *           type: boolean
  *         description: Filter products by active status
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Page number.
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 20
+ *         description: Number of records per page.
  *     responses:
  *       200:
  *         description: Products retrieved successfully
@@ -70,6 +85,12 @@ router.use(authMiddleware);
  *                     - id: d7878d58-7742-4389-9c35-92d72351f200
  *                       name: 8GB/128GB - Awesome Navy
  *                       stock: 10
+ *               meta:
+ *                 pagination:
+ *                   page: 1
+ *                   limit: 20
+ *                   total_items: 1
+ *                   total_pages: 1
  *       400:
  *         description: Invalid query parameters
  *   post:

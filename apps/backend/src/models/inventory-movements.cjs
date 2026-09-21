@@ -71,7 +71,7 @@ const defineInventoryMovements = (sequelize, DataTypes) => {
 			modelName: "InventoryMovements",
 			tableName: "inventory_movements",
 			underscored: true,
-			createdAt: "created_at",
+			createdAt: "createdAt",
 			updatedAt: false,
 		},
 	);

@@ -166,12 +166,20 @@ export async function getInventories(request, response, next) {
 export async function adjustStock(request, response, next) {
 	try {
 		const { productItemId } = request.params;
-		const { type, quantity, note } = request.body ?? {};
+		const body = request.body ?? {};
+		const { type, quantity, note } = body;
 
 		if (!isUuid(productItemId)) {
 			throw createHttpError(
 				constants.HTTP_STATUS_BAD_REQUEST,
 				"productItemId must be a valid UUID",
+			);
+		}
+
+		if (Object.hasOwn(body, "source")) {
+			throw createHttpError(
+				constants.HTTP_STATUS_BAD_REQUEST,
+				"source must not be provided",
 			);
 		}
 
@@ -189,10 +197,10 @@ export async function adjustStock(request, response, next) {
 			);
 		}
 
-		if (note !== undefined && typeof note !== "string") {
+		if (typeof note !== "string" || !note.trim()) {
 			throw createHttpError(
 				constants.HTTP_STATUS_BAD_REQUEST,
-				"note must be a string",
+				"note must be a non-empty string",
 			);
 		}
 
@@ -260,7 +268,7 @@ export async function adjustStock(request, response, next) {
 					quantity,
 					stockBefore,
 					stockAfter,
-					note: typeof note === "string" ? note.trim() || null : null,
+					note: note.trim(),
 				},
 				{ transaction },
 			);

@@ -138,7 +138,7 @@ router.get("/", getInventories);
  *   post:
  *     tags: [Inventories]
  *     summary: Adjust product-item stock
- *     description: Updates stock and records one inventory movement. Correction sets the final physical stock count.
+ *     description: Updates stock and records one inventory movement. Correction sets the final physical stock count. Source is determined server-side and must not be supplied.
  *     security:
  *       - cookieAuth: []
  *         csrfToken: []
@@ -156,7 +156,8 @@ router.get("/", getInventories);
  *         application/json:
  *           schema:
  *             type: object
- *             required: [type, quantity]
+ *             required: [type, quantity, note]
+ *             additionalProperties: false
  *             properties:
  *               type:
  *                 type: string
@@ -169,7 +170,7 @@ router.get("/", getInventories);
  *                 example: 10
  *               note:
  *                 type: string
- *                 nullable: true
+ *                 minLength: 1
  *                 example: Restock from supplier
  *     responses:
  *       201:

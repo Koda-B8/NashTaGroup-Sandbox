@@ -23,9 +23,9 @@ const defineProductItems = (sequelize, DataTypes) => {
 				as: "transactionDetails",
 			});
 
-			ProductItems.hasMany(models.ProductImages, {
+			ProductItems.hasMany(models.ProductItemAttributeValues, {
 				foreignKey: "productItemId",
-				as: "images",
+				as: "attributeValues",
 			});
 
 			ProductItems.hasMany(models.ProductItemAttributeValues, {

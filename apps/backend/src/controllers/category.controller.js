@@ -1,3 +1,4 @@
+// oxlint-disable unicorn/no-null
 import { constants } from "node:http2";
 
 import { Op, UniqueConstraintError } from "sequelize";
@@ -34,7 +35,7 @@ const attributeInclude = {
 	],
 };
 
-const parseOptions = (value, attributeIndex) => {
+const parseOptions = (value, attributeIndex, partial = false) => {
 	if (value === undefined) return;
 	if (!Array.isArray(value)) {
 		throw createHttpError(
@@ -45,20 +46,20 @@ const parseOptions = (value, attributeIndex) => {
 	const names = new Set();
 	return value.map((option, optionIndex) => {
 		const name = normalizeText(option?.name);
-		if (!name) {
+		if (!name && (!partial || !option?.id || option?.name !== undefined)) {
 			throw createHttpError(
 				constants.HTTP_STATUS_BAD_REQUEST,
 				`attributes[${attributeIndex}].options[${optionIndex}].name is required`,
 			);
 		}
 		const normalizedName = name.toLocaleLowerCase("id-ID");
-		if (names.has(normalizedName)) {
+		if (name && names.has(normalizedName)) {
 			throw createHttpError(
 				constants.HTTP_STATUS_BAD_REQUEST,
 				`Duplicate attribute option: ${name}`,
 			);
 		}
-		names.add(normalizedName);
+		if (name) names.add(normalizedName);
 
 		if (option?.id !== undefined && !isUuid(option.id)) {
 			throw createHttpError(
@@ -78,15 +79,17 @@ const parseOptions = (value, attributeIndex) => {
 		}
 		return {
 			...(option?.id ? { id: option.id } : {}),
-			name,
+			...(name ? { name } : {}),
 			// oxlint-disable-next-line unicorn/no-null -- Missing color metadata is stored as SQL NULL.
-			hex: option?.hex?.toUpperCase() ?? null,
-			sortOrder: optionIndex,
+			...(!partial || option?.hex !== undefined
+				? { hex: option?.hex?.toUpperCase() ?? null }
+				: {}),
+			...(partial ? {} : { sortOrder: optionIndex }),
 		};
 	});
 };
 
-const parseAttributes = (value) => {
+const parseAttributes = (value, partial = false) => {
 	if (value === undefined) return;
 	if (!Array.isArray(value)) {
 		throw createHttpError(
@@ -98,7 +101,10 @@ const parseAttributes = (value) => {
 	const names = new Set();
 	return value.map((attribute, index) => {
 		const name = normalizeText(attribute?.name);
-		if (!name) {
+		if (
+			!name &&
+			(!partial || !attribute?.id || attribute?.name !== undefined)
+		) {
 			throw createHttpError(
 				constants.HTTP_STATUS_BAD_REQUEST,
 				`attributes[${index}].name is required`,
@@ -111,13 +117,20 @@ const parseAttributes = (value) => {
 			);
 		}
 		const normalizedName = name.toLocaleLowerCase("id-ID");
-		if (names.has(normalizedName)) {
+		if (name && names.has(normalizedName)) {
 			throw createHttpError(
 				constants.HTTP_STATUS_BAD_REQUEST,
 				`Duplicate category attribute: ${name}`,
 			);
 		}
-		names.add(normalizedName);
+		if (name) names.add(normalizedName);
+
+		if (attribute?.id !== undefined && !isUuid(attribute.id)) {
+			throw createHttpError(
+				constants.HTTP_STATUS_BAD_REQUEST,
+				`attributes[${index}].id must be a valid UUID`,
+			);
+		}
 
 		if (
 			attribute?.value !== undefined &&
@@ -151,13 +164,19 @@ const parseAttributes = (value) => {
 
 		return {
 			...(attribute?.id ? { id: attribute.id } : {}),
-			name,
+			...(name ? { name } : {}),
 			// oxlint-disable-next-line unicorn/no-null -- Empty optional values are stored as SQL NULL.
-			value: attributeValue || null,
-			isRequired: attribute?.isRequired ?? false,
-			isVariant: attribute?.isVariant ?? true,
-			sortOrder: index,
-			options: parseOptions(attribute?.options, index),
+			...(!partial || attribute?.value !== undefined
+				? { value: attributeValue || null }
+				: {}),
+			...(!partial || attribute?.isRequired !== undefined
+				? { isRequired: attribute?.isRequired ?? false }
+				: {}),
+			...(!partial || attribute?.isVariant !== undefined
+				? { isVariant: attribute?.isVariant ?? true }
+				: {}),
+			...(partial ? {} : { sortOrder: index }),
+			options: parseOptions(attribute?.options, index, partial),
 		};
 	});
 };
@@ -165,13 +184,19 @@ const parseAttributes = (value) => {
 const createAttributeOptions = async (attribute, transaction) => {
 	if (!attribute.options?.length) return;
 	await CategoryAttributeOptions.bulkCreate(
-		attribute.options.map((option) => ({
+		attribute.options.map((option, index) => ({
 			...option,
 			categoryAttributeId: attribute.id,
+			sortOrder: option.sortOrder ?? index,
 		})),
 		{ transaction },
 	);
 };
+
+const getChangedFields = (current, fields) =>
+	Object.fromEntries(
+		Object.entries(fields).filter(([field, value]) => current[field] !== value),
+	);
 
 const syncAttributeOptions = async (attributeId, options, transaction) => {
 	if (options === undefined) return;
@@ -180,8 +205,29 @@ const syncAttributeOptions = async (attributeId, options, transaction) => {
 		transaction,
 	});
 	const existingById = new Map(existing.map((option) => [option.id, option]));
+	const namesByKey = new Map(
+		existing.map((option) => [
+			option.name.toLocaleLowerCase("id-ID"),
+			option.id,
+		]),
+	);
 	const retainedIds = new Set();
-	for (const option of options) {
+	for (const [index, option] of options.entries()) {
+		if (option.name) {
+			const owner = namesByKey.get(option.name.toLocaleLowerCase("id-ID"));
+			if (owner && owner !== option.id) {
+				throw createHttpError(
+					constants.HTTP_STATUS_CONFLICT,
+					`Attribute option ${option.name} already exists`,
+				);
+			}
+			if (option.id) {
+				const previousName = existingById.get(option.id)?.name;
+				if (previousName)
+					namesByKey.delete(previousName.toLocaleLowerCase("id-ID"));
+			}
+			namesByKey.set(option.name.toLocaleLowerCase("id-ID"), option.id ?? true);
+		}
 		if (option.id) {
 			const current = existingById.get(option.id);
 			if (!current) {
@@ -191,17 +237,27 @@ const syncAttributeOptions = async (attributeId, options, transaction) => {
 				);
 			}
 			retainedIds.add(option.id);
-			await current.update(option, { transaction });
+			const { id: _id, ...fields } = option;
+			const changes = { ...fields, sortOrder: index };
+			const changedFields = getChangedFields(current, changes);
+			if (Object.keys(changedFields).length > 0) {
+				await current.update(changedFields, { transaction });
+			}
 		} else {
 			await CategoryAttributeOptions.create(
-				{ ...option, categoryAttributeId: attributeId },
+				{
+					...option,
+					categoryAttributeId: attributeId,
+					sortOrder: index,
+				},
 				{ transaction },
 			);
 		}
 	}
-	const removed = existing.filter((option) => !retainedIds.has(option.id));
-	if (removed.length === 0) return;
-	const removedIds = removed.map((option) => option.id);
+	const removedIds = existing
+		.filter((option) => !retainedIds.has(option.id))
+		.map((option) => option.id);
+	if (removedIds.length === 0) return;
 	const usedCount = await ProductItemAttributeValues.count({
 		where: { categoryAttributeOptionId: { [Op.in]: removedIds } },
 		transaction,
@@ -358,7 +414,7 @@ export async function updateCategory(req, res, next) {
 		}
 
 		const updates = {};
-		const attributes = parseAttributes(req.body?.attributes);
+		const attributes = parseAttributes(req.body?.attributes, true);
 
 		if (Object.hasOwn(req.body ?? {}, "name")) {
 			const name = normalizeText(req.body.name);
@@ -392,7 +448,10 @@ export async function updateCategory(req, res, next) {
 		}
 
 		if (attributes === undefined) {
-			await category.update(updates);
+			const changedFields = getChangedFields(category, updates);
+			if (Object.keys(changedFields).length > 0) {
+				await category.update(changedFields);
+			}
 			return res.status(constants.HTTP_STATUS_OK).json({
 				success: true,
 				message: "Category updated successfully",
@@ -401,8 +460,9 @@ export async function updateCategory(req, res, next) {
 		}
 
 		await sequelize.transaction(async (transaction) => {
-			if (Object.keys(updates).length > 0) {
-				await category.update(updates, { transaction });
+			const changedFields = getChangedFields(category, updates);
+			if (Object.keys(changedFields).length > 0) {
+				await category.update(changedFields, { transaction });
 			}
 
 			{
@@ -411,10 +471,37 @@ export async function updateCategory(req, res, next) {
 					transaction,
 				});
 				const existingById = new Map(existing.map((item) => [item.id, item]));
+				const namesByKey = new Map(
+					existing.map((item) => [
+						item.name.toLocaleLowerCase("id-ID"),
+						item.id,
+					]),
+				);
 				const retainedIds = new Set();
 
-				for (const attribute of attributes) {
+				for (const [index, attribute] of attributes.entries()) {
 					const { options, ...attributeData } = attribute;
+					if (attribute.name) {
+						const owner = namesByKey.get(
+							attribute.name.toLocaleLowerCase("id-ID"),
+						);
+						if (owner && owner !== attribute.id) {
+							throw createHttpError(
+								constants.HTTP_STATUS_CONFLICT,
+								`Category attribute ${attribute.name} already exists`,
+							);
+						}
+						if (attribute.id) {
+							const previousName = existingById.get(attribute.id)?.name;
+							if (previousName) {
+								namesByKey.delete(previousName.toLocaleLowerCase("id-ID"));
+							}
+						}
+						namesByKey.set(
+							attribute.name.toLocaleLowerCase("id-ID"),
+							attribute.id ?? true,
+						);
+					}
 					if (attribute.id) {
 						const current = existingById.get(attribute.id);
 						if (!current) {
@@ -424,11 +511,20 @@ export async function updateCategory(req, res, next) {
 							);
 						}
 						retainedIds.add(attribute.id);
-						await current.update(attributeData, { transaction });
+						const { id: _id, ...fields } = attributeData;
+						const changes = { ...fields, sortOrder: index };
+						const changedFields = getChangedFields(current, changes);
+						if (Object.keys(changedFields).length > 0) {
+							await current.update(changedFields, { transaction });
+						}
 						await syncAttributeOptions(attribute.id, options, transaction);
 					} else {
 						const createdAttribute = await CategoryAttributes.create(
-							{ ...attributeData, categoryId: category.id },
+							{
+								...attributeData,
+								categoryId: category.id,
+								sortOrder: index,
+							},
 							{ transaction },
 						);
 						await createAttributeOptions(
@@ -437,13 +533,12 @@ export async function updateCategory(req, res, next) {
 						);
 					}
 				}
-
-				const removed = existing.filter((item) => !retainedIds.has(item.id));
-				if (removed.length > 0) {
+				const removedIds = existing
+					.filter((item) => !retainedIds.has(item.id))
+					.map((item) => item.id);
+				if (removedIds.length > 0) {
 					const usedCount = await ProductItemAttributeValues.count({
-						where: {
-							categoryAttributeId: { [Op.in]: removed.map((item) => item.id) },
-						},
+						where: { categoryAttributeId: { [Op.in]: removedIds } },
 						transaction,
 					});
 					if (usedCount > 0) {
@@ -453,7 +548,7 @@ export async function updateCategory(req, res, next) {
 						);
 					}
 					await CategoryAttributes.destroy({
-						where: { id: { [Op.in]: removed.map((item) => item.id) } },
+						where: { id: { [Op.in]: removedIds } },
 						transaction,
 					});
 				}

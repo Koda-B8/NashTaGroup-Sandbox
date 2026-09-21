@@ -8,11 +8,6 @@ const defineProductImages = (sequelize, DataTypes) => {
 				foreignKey: "productId",
 				as: "product",
 			});
-
-			ProductImages.belongsTo(models.ProductItems, {
-				foreignKey: "productItemId",
-				as: "productItem",
-			});
 		}
 	}
 
@@ -27,11 +22,6 @@ const defineProductImages = (sequelize, DataTypes) => {
 				type: DataTypes.UUID,
 				allowNull: false,
 				field: "product_id",
-			},
-			productItemId: {
-				type: DataTypes.UUID,
-				allowNull: true,
-				field: "product_item_id",
 			},
 			imageUrl: {
 				type: DataTypes.STRING(2048),

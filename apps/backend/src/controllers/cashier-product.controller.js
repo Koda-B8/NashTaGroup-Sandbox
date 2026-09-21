@@ -46,12 +46,13 @@ const parsePrice = (value, field) => {
 const findPrimaryImage = (images) =>
 	images?.find((image) => image.isPrimary) ?? images?.[0];
 
+const priceInCents = (price) => Math.round(Number(price) * 100);
+
 const toCashierProductResponse = (product) => {
 	const value =
 		typeof product?.toJSON === "function" ? product.toJSON() : product;
 	const productImage = findPrimaryImage(value.images);
 	const items = (value.items ?? []).map((item) => {
-		const itemImage = findPrimaryImage(item.images) ?? productImage;
 		const colorValue = item.attributeValues?.find((entry) =>
 			/(?:color|colour|warna)/i.test(entry.attribute?.name ?? ""),
 		);
@@ -66,12 +67,27 @@ const toCashierProductResponse = (product) => {
 			specsId: specificationValue?.categoryAttributeOptionId ?? "",
 			isActive: item.isActive,
 			image: {
-				alt: itemImage?.alt ?? `${value.name} ${item.name}`.trim(),
-				url: itemImage?.imageUrl ?? EMPTY_IMAGE,
+				alt: productImage?.alt ?? value.name,
+				url: productImage?.imageUrl ?? EMPTY_IMAGE,
 			},
 			stock: item.inventory?.stock ?? 0,
 		};
 	});
+	const minimumPriceByColor = new Map();
+	for (const item of items) {
+		const price = priceInCents(item.price);
+		const minimum = minimumPriceByColor.get(item.colorId);
+		if (minimum === undefined || price < minimum) {
+			minimumPriceByColor.set(item.colorId, price);
+		}
+	}
+	const itemsWithPriceDifference = items.map((item) => ({
+		...item,
+		priceDifference: (
+			(priceInCents(item.price) - minimumPriceByColor.get(item.colorId)) /
+			100
+		).toFixed(2),
+	}));
 	const { attributes: categoryAttributes, ...category } = value.category ?? {};
 
 	return {
@@ -97,7 +113,7 @@ const toCashierProductResponse = (product) => {
 					...(option.hex ? { hex: option.hex } : {}),
 				})),
 			})),
-		items,
+		items: itemsWithPriceDifference,
 		image: {
 			alt: productImage?.alt ?? value.name,
 			url: productImage?.imageUrl ?? EMPTY_IMAGE,
@@ -174,8 +190,6 @@ const productDetailIncludes = [
 		model: ProductImages,
 		as: "images",
 		attributes: ["imageUrl", "alt", "isPrimary", "sortOrder"],
-		// oxlint-disable-next-line unicorn/no-null -- Null selects product-level images only.
-		where: { productItemId: null },
 		required: false,
 		separate: true,
 		order: [
@@ -197,17 +211,6 @@ const productDetailIncludes = [
 				as: "inventory",
 				attributes: ["stock"],
 				required: true,
-			},
-			{
-				model: ProductImages,
-				as: "images",
-				attributes: ["imageUrl", "alt", "isPrimary", "sortOrder"],
-				required: false,
-				separate: true,
-				order: [
-					["isPrimary", "DESC"],
-					["sortOrder", "ASC"],
-				],
 			},
 			{
 				model: ProductItemAttributeValues,

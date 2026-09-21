@@ -91,7 +91,6 @@ const productItemListIncludes = [
 				model: ProductImages,
 				as: "images",
 				attributes: ["imageUrl", "alt", "isPrimary", "sortOrder"],
-				where: { productItemId: null },
 				required: false,
 				separate: true,
 				order: [
@@ -106,17 +105,6 @@ const productItemListIncludes = [
 		as: "inventory",
 		attributes: ["stock"],
 		required: false,
-	},
-	{
-		model: ProductImages,
-		as: "images",
-		attributes: ["imageUrl", "alt", "isPrimary", "sortOrder"],
-		required: false,
-		separate: true,
-		order: [
-			["isPrimary", "DESC"],
-			["sortOrder", "ASC"],
-		],
 	},
 	attributeValueInclude,
 ];
@@ -149,7 +137,6 @@ const productItemDetailIncludes = [
 				model: ProductImages,
 				as: "images",
 				attributes: ["imageUrl", "alt", "isPrimary", "sortOrder"],
-				where: { productItemId: null },
 				required: false,
 				separate: true,
 				order: [
@@ -165,17 +152,6 @@ const productItemDetailIncludes = [
 		attributes: ["stock"],
 		required: false,
 	},
-	{
-		model: ProductImages,
-		as: "images",
-		attributes: ["imageUrl", "alt", "isPrimary", "sortOrder"],
-		required: false,
-		separate: true,
-		order: [
-			["isPrimary", "DESC"],
-			["sortOrder", "ASC"],
-		],
-	},
 	attributeValueInclude,
 ];
 
@@ -186,22 +162,6 @@ const toImageResponse = (image, fallbackAlt) => ({
 	alt: image?.alt ?? fallbackAlt,
 	url: image?.imageUrl ?? EMPTY_IMAGE_URL,
 });
-
-const getProductItemAlt = (productName, itemName) => {
-	const normalizedProductName = productName?.trim();
-	const normalizedItemName = itemName?.trim() ?? "";
-
-	if (
-		!normalizedProductName ||
-		normalizedItemName
-			.toLowerCase()
-			.startsWith(normalizedProductName.toLowerCase())
-	) {
-		return normalizedItemName;
-	}
-
-	return `${normalizedProductName} ${normalizedItemName}`.trim();
-};
 
 const toAttributeResponse = (attributeValues) =>
 	(attributeValues ?? [])
@@ -223,6 +183,7 @@ const toProductItemResponse = (productItem) => {
 			: productItem;
 	const {
 		attributeValues,
+		images: _images,
 		inventory,
 		variantSignature: _variantSignature,
 		...data
@@ -244,16 +205,14 @@ const toProductItemListResponse = (productItem) => {
 			: productItem;
 	const {
 		attributeValues,
-		images,
+		images: _images,
 		inventory,
 		product,
 		variantSignature: _variantSignature,
 		...data
 	} = value;
 	const { images: productImages, ...productData } = product ?? {};
-	const itemImage = findPrimaryImage(images);
 	const productImage = findPrimaryImage(productImages);
-	const image = itemImage ?? productImage;
 
 	return {
 		...data,
@@ -262,7 +221,7 @@ const toProductItemListResponse = (productItem) => {
 		...(attributeValues
 			? { attributes: toAttributeResponse(attributeValues) }
 			: {}),
-		image: toImageResponse(image, getProductItemAlt(product?.name, value.name)),
+		image: toImageResponse(productImage, product?.name ?? value.name),
 	};
 };
 
@@ -273,16 +232,14 @@ const toProductItemDetailResponse = (productItem) => {
 			: productItem;
 	const {
 		attributeValues,
-		images,
+		images: _images,
 		inventory,
 		product,
 		variantSignature: _variantSignature,
 		...itemData
 	} = value;
 	const { images: productImages, ...productData } = product ?? {};
-	const itemImage = findPrimaryImage(images);
 	const productImage = findPrimaryImage(productImages);
-	const image = itemImage ?? productImage;
 
 	return {
 		...itemData,
@@ -290,7 +247,7 @@ const toProductItemDetailResponse = (productItem) => {
 		...(attributeValues
 			? { attributes: toAttributeResponse(attributeValues) }
 			: {}),
-		image: toImageResponse(image, getProductItemAlt(product?.name, value.name)),
+		image: toImageResponse(productImage, product?.name ?? value.name),
 		product: product
 			? {
 					...productData,

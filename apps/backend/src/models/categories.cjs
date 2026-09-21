@@ -2,7 +2,14 @@
 const { Model } = require("sequelize");
 
 const defineCategories = (sequelize, DataTypes) => {
-	class Categories extends Model {}
+	class Categories extends Model {
+		static associate(models) {
+			Categories.hasMany(models.CategoryAttributes, {
+				foreignKey: "categoryId",
+				as: "attributes",
+			});
+		}
+	}
 
 	Categories.init(
 		{

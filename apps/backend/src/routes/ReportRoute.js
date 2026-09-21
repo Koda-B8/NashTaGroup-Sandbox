@@ -2,8 +2,10 @@
 import { Router } from "express";
 
 import {
+	getCashierReport,
 	getCustomerReport,
 	getInventoryReport,
+	getPaymentMethodReport,
 	getProductReport,
 	getSalesReport,
 } from "../controllers/report.controller.js";
@@ -97,5 +99,73 @@ router.get("/inventory", getInventoryReport);
  *       403: { description: Admin role required }
  */
 router.get("/sales", getSalesReport);
+
+/**
+ * @openapi
+ * /api/v1/reports/payment-methods:
+ *   get:
+ *     tags: [Reports]
+ *     summary: Sales and payments by payment method
+ *     description: Completed transactions with paid payments are grouped by method, including inactive methods and methods with no sales. collected_amount uses payments.amount (the sale amount); cash_tendered and change_given show cash received and returned. The summary also counts completed transactions without a paid payment and shows payment_gap as total_sales minus collected_amount. Date filters use WIB business dates.
+ *     security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+ *     parameters:
+ *       - { in: query, name: from, description: First transaction date inclusive in WIB, schema: { type: string, format: date, example: 2026-09-01 } }
+ *       - { in: query, name: to, description: Last transaction date inclusive in WIB, schema: { type: string, format: date, example: 2026-09-30 } }
+ *       - { in: query, name: page, description: Page of payment methods, schema: { type: integer, minimum: 1, default: 1 } }
+ *       - { in: query, name: limit, description: Payment methods per page, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+ *     responses:
+ *       200:
+ *         description: Reconciliation summary and paginated payment method totals
+ *         content:
+ *           application/json:
+ *             example:
+ *               success: true
+ *               message: Report retrieved successfully
+ *               data:
+ *                 timezone: Asia/Jakarta
+ *                 summary: { transaction_count: 3, paid_transaction_count: 2, missing_payment_count: 1, gross_sales: "150000.00", discount_amount: "0.00", tax_amount: "0.00", total_sales: "150000.00", collected_amount: "100000.00", payment_gap: "50000.00" }
+ *                 methods:
+ *                   - { payment_method_id: "8de8b4cd-b2cd-491f-a772-e5c47cc9d0a0", code: CASH, name: Cash, type: cash, is_active: true, transaction_count: 2, gross_sales: "100000.00", discount_amount: "0.00", tax_amount: "0.00", total_sales: "100000.00", collected_amount: "100000.00", cash_tendered: "120000.00", change_given: "20000.00", payment_gap: "0.00", last_transaction_at: "2026-09-22T03:00:00.000Z" }
+ *               meta:
+ *                 pagination: { page: 1, limit: 20, total_items: 1, total_pages: 1 }
+ *       400: { description: Invalid date or pagination }
+ *       401: { description: Authentication required }
+ *       403: { description: Admin role required }
+ */
+router.get("/payment-methods", getPaymentMethodReport);
+
+/**
+ * @openapi
+ * /api/v1/reports/cashiers:
+ *   get:
+ *     tags: [Reports]
+ *     summary: Sales and collected payments by cashier
+ *     description: Completed transactions are grouped by the user who checked out, including admins who acted as cashiers. Member and nonmember counts, sales totals, paid transaction count, collected_amount, and payment_gap are provided per user. The summary also counts completed transactions without a paid payment. Date filters use WIB business dates.
+ *     security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+ *     parameters:
+ *       - { in: query, name: from, description: First transaction date inclusive in WIB, schema: { type: string, format: date, example: 2026-09-01 } }
+ *       - { in: query, name: to, description: Last transaction date inclusive in WIB, schema: { type: string, format: date, example: 2026-09-30 } }
+ *       - { in: query, name: page, description: Page of cashiers, schema: { type: integer, minimum: 1, default: 1 } }
+ *       - { in: query, name: limit, description: Cashiers per page, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+ *     responses:
+ *       200:
+ *         description: Reconciliation summary and paginated cashier totals
+ *         content:
+ *           application/json:
+ *             example:
+ *               success: true
+ *               message: Report retrieved successfully
+ *               data:
+ *                 timezone: Asia/Jakarta
+ *                 summary: { transaction_count: 3, paid_transaction_count: 2, missing_payment_count: 1, gross_sales: "150000.00", discount_amount: "0.00", tax_amount: "0.00", total_sales: "150000.00", collected_amount: "100000.00", payment_gap: "50000.00" }
+ *                 cashiers:
+ *                   - { cashier_id: "91fa60c8-0e62-42d3-99ad-c4e585e9fc30", fullname: Kasir Satu, username: kasir1, role: cashier, transaction_count: 3, member_transactions: 2, non_member_transactions: 1, paid_transaction_count: 2, gross_sales: "150000.00", discount_amount: "0.00", tax_amount: "0.00", total_sales: "150000.00", average_transaction: "50000.00", collected_amount: "100000.00", payment_gap: "50000.00", last_transaction_at: "2026-09-22T03:00:00.000Z" }
+ *               meta:
+ *                 pagination: { page: 1, limit: 20, total_items: 1, total_pages: 1 }
+ *       400: { description: Invalid date or pagination }
+ *       401: { description: Authentication required }
+ *       403: { description: Admin role required }
+ */
+router.get("/cashiers", getCashierReport);
 
 export default router;

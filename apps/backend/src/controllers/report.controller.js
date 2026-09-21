@@ -309,3 +309,111 @@ export async function getSalesReport(request, response, next) {
 		return next(error);
 	}
 }
+
+const completedTransactions = `t.status = 'completed' AND ${period("t")}`;
+
+async function getPaymentReconciliation(filters) {
+	const [summary] = await queryRows(
+		`SELECT COUNT(t.id)::int AS transaction_count,
+			COUNT(p.id)::int AS paid_transaction_count,
+			(COUNT(t.id) - COUNT(p.id))::int AS missing_payment_count,
+			COALESCE(SUM(t.subtotal), 0)::text AS gross_sales,
+			COALESCE(SUM(t.discount_amount), 0)::text AS discount_amount,
+			COALESCE(SUM(t.tax_amount), 0)::text AS tax_amount,
+			COALESCE(SUM(t.total_amount), 0)::text AS total_sales,
+			COALESCE(SUM(p.amount), 0)::text AS collected_amount,
+			(COALESCE(SUM(t.total_amount), 0) - COALESCE(SUM(p.amount), 0))::text AS payment_gap
+		FROM transactions t
+		LEFT JOIN payments p ON p.transaction_id = t.id AND p.status = 'paid'
+		WHERE ${completedTransactions}`,
+		filters,
+	);
+	return summary;
+}
+
+export async function getPaymentMethodReport(request, response, next) {
+	try {
+		const filters = parseReportFilters(request.query);
+		const summary = await getPaymentReconciliation(filters);
+		const [count] = await queryRows(
+			"SELECT COUNT(*)::int AS total FROM payment_methods",
+			filters,
+		);
+		const rows = await queryRows(
+			`WITH paid_sales AS (
+				SELECT p.payment_method_id, p.amount, p.paid_amount, p.change_amount,
+					t.id AS transaction_id, t.created_at, t.subtotal,
+					t.discount_amount, t.tax_amount, t.total_amount
+				FROM payments p JOIN transactions t ON t.id = p.transaction_id
+				WHERE p.status = 'paid' AND ${completedTransactions}
+			)
+			SELECT pm.id AS payment_method_id, pm.code, pm.name, pm.type, pm.is_active,
+				COUNT(s.transaction_id)::int AS transaction_count,
+				COALESCE(SUM(s.subtotal), 0)::text AS gross_sales,
+				COALESCE(SUM(s.discount_amount), 0)::text AS discount_amount,
+				COALESCE(SUM(s.tax_amount), 0)::text AS tax_amount,
+				COALESCE(SUM(s.total_amount), 0)::text AS total_sales,
+				COALESCE(SUM(s.amount), 0)::text AS collected_amount,
+				COALESCE(SUM(s.paid_amount) FILTER (WHERE pm.type = 'cash'), 0)::text AS cash_tendered,
+				COALESCE(SUM(s.change_amount) FILTER (WHERE pm.type = 'cash'), 0)::text AS change_given,
+				(COALESCE(SUM(s.total_amount), 0) - COALESCE(SUM(s.amount), 0))::text AS payment_gap,
+				MAX(s.created_at) AS last_transaction_at
+			FROM payment_methods pm
+			LEFT JOIN paid_sales s ON s.payment_method_id = pm.id
+			GROUP BY pm.id
+			ORDER BY COALESCE(SUM(s.amount), 0) DESC, pm.name, pm.id
+			LIMIT :limit OFFSET :offset`,
+			filters,
+		);
+		return respond(
+			response,
+			{ timezone: "Asia/Jakarta", summary, methods: rows },
+			{ pagination: pagination(filters.page, filters.limit, count.total) },
+		);
+	} catch (error) {
+		return next(error);
+	}
+}
+
+export async function getCashierReport(request, response, next) {
+	try {
+		const filters = parseReportFilters(request.query);
+		const summary = await getPaymentReconciliation(filters);
+		const [count] = await queryRows(
+			`SELECT COUNT(DISTINCT t.user_id)::int AS total
+			FROM transactions t WHERE ${completedTransactions}`,
+			filters,
+		);
+		const rows = await queryRows(
+			`SELECT u.id AS cashier_id, u.fullname, u.username, r.name AS role,
+				COUNT(t.id)::int AS transaction_count,
+				COUNT(t.id) FILTER (WHERE t.customer_id IS NOT NULL)::int AS member_transactions,
+				COUNT(t.id) FILTER (WHERE t.customer_id IS NULL)::int AS non_member_transactions,
+				COUNT(p.id)::int AS paid_transaction_count,
+				COALESCE(SUM(t.subtotal), 0)::text AS gross_sales,
+				COALESCE(SUM(t.discount_amount), 0)::text AS discount_amount,
+				COALESCE(SUM(t.tax_amount), 0)::text AS tax_amount,
+				COALESCE(SUM(t.total_amount), 0)::text AS total_sales,
+				COALESCE(ROUND(AVG(t.total_amount), 2), 0)::text AS average_transaction,
+				COALESCE(SUM(p.amount), 0)::text AS collected_amount,
+				(COALESCE(SUM(t.total_amount), 0) - COALESCE(SUM(p.amount), 0))::text AS payment_gap,
+				MAX(t.created_at) AS last_transaction_at
+			FROM transactions t
+			JOIN users u ON u.id = t.user_id
+			JOIN roles r ON r.id = u.role_id
+			LEFT JOIN payments p ON p.transaction_id = t.id AND p.status = 'paid'
+			WHERE ${completedTransactions}
+			GROUP BY u.id, r.id
+			ORDER BY SUM(t.total_amount) DESC, u.fullname, u.id
+			LIMIT :limit OFFSET :offset`,
+			filters,
+		);
+		return respond(
+			response,
+			{ timezone: "Asia/Jakarta", summary, cashiers: rows },
+			{ pagination: pagination(filters.page, filters.limit, count.total) },
+		);
+	} catch (error) {
+		return next(error);
+	}
+}

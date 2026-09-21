@@ -175,6 +175,7 @@ export default function Home() {
 
 	function handleModal(): void {
 		if (activeModal) {
+			setProdQty(1);
 			setActiveModal(false);
 		} else setActiveModal(true);
 	}

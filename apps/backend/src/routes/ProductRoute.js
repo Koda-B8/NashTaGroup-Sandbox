@@ -103,6 +103,50 @@ router.use(authMiddleware);
  *               isActive:
  *                 type: boolean
  *                 default: true
+ *               items:
+ *                 type: array
+ *                 description: Optional initial SKUs created atomically with the product.
+ *                 items:
+ *                   type: object
+ *                   required: [productCode, price, attributes]
+ *                   properties:
+ *                     productCode:
+ *                       type: string
+ *                     price:
+ *                       type: number
+ *                     stock:
+ *                       type: integer
+ *                       minimum: 0
+ *                     isActive:
+ *                       type: boolean
+ *                     attributes:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         required: [attributeId, optionId]
+ *                         properties:
+ *                           attributeId:
+ *                             type: string
+ *                             format: uuid
+ *                           optionId:
+ *                             type: string
+ *                             format: uuid
+ *           example:
+ *             categoryId: 77777777-7777-4777-8777-777777777777
+ *             brandId: 88888888-8888-4888-8888-888888888888
+ *             name: ASUS Vivobook 14
+ *             description: Laptop ASUS Vivobook 14.
+ *             isActive: true
+ *             items:
+ *               - productCode: ASU-VB14-BLU-512
+ *                 price: "10999000"
+ *                 stock: 22
+ *                 isActive: true
+ *                 attributes:
+ *                   - attributeId: 11111111-1111-4111-8111-111111111111
+ *                     optionId: 22222222-2222-4222-8222-222222222222
+ *                   - attributeId: 44444444-4444-4444-8444-444444444444
+ *                     optionId: 66666666-6666-4666-8666-666666666666
  *         multipart/form-data:
  *           schema:
  *             type: object
@@ -120,6 +164,10 @@ router.use(authMiddleware);
  *                 type: string
  *               isActive:
  *                 type: boolean
+ *               items:
+ *                 type: string
+ *                 description: Optional JSON array using the same item structure as application/json.
+ *                 example: '[{"productCode":"ASU-VB14-BLU-512","price":"10999000","stock":22,"isActive":true,"attributes":[{"attributeId":"11111111-1111-4111-8111-111111111111","optionId":"22222222-2222-4222-8222-222222222222"},{"attributeId":"44444444-4444-4444-8444-444444444444","optionId":"66666666-6666-4666-8666-666666666666"}]}]'
  *               image:
  *                 type: string
  *                 format: binary
@@ -133,6 +181,8 @@ router.use(authMiddleware);
  *         description: Admin access required
  *       404:
  *         description: Category or brand not found
+ *       409:
+ *         description: Product code or variant combination already exists
  *       413:
  *         description: Image exceeds 5 MB
  *       415:
@@ -279,6 +329,11 @@ router.post(
  *                 nullable: true
  *               isActive:
  *                 type: boolean
+ *           example:
+ *             brandId: 88888888-8888-4888-8888-888888888888
+ *             name: ASUS Vivobook 14 OLED
+ *             description: ASUS Vivobook 14 OLED terbaru.
+ *             isActive: true
  *         multipart/form-data:
  *           schema:
  *             type: object
@@ -308,6 +363,8 @@ router.post(
  *         description: Admin access required
  *       404:
  *         description: Product, category, or brand not found
+ *       409:
+ *         description: Category cannot be changed while product items still exist
  *       413:
  *         description: Image exceeds 5 MB
  *       415:
@@ -348,6 +405,11 @@ router.post(
  *                 nullable: true
  *               isActive:
  *                 type: boolean
+ *           example:
+ *             brandId: 88888888-8888-4888-8888-888888888888
+ *             name: ASUS Vivobook 14 OLED
+ *             description: ASUS Vivobook 14 OLED terbaru.
+ *             isActive: true
  *         multipart/form-data:
  *           schema:
  *             type: object
@@ -375,6 +437,8 @@ router.post(
  *         description: Invalid request
  *       404:
  *         description: Product, category, or brand not found
+ *       409:
+ *         description: Category cannot be changed while product items still exist
  *       413:
  *         description: Image exceeds 5 MB
  *       415:

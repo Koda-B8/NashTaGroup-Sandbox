@@ -80,7 +80,7 @@ router.use(authMiddleware);
  *         application/json:
  *           schema:
  *             type: object
- *             required: [productId, productCode, name, price]
+ *             required: [productId, productCode, price]
  *             properties:
  *               productId:
  *                 type: string
@@ -90,7 +90,7 @@ router.use(authMiddleware);
  *                 example: SAM-A55-256-BLU
  *               name:
  *                 type: string
- *                 example: Samsung Galaxy A55 256GB Blue
+ *                 description: Optional fallback when the category has no variant attributes. Otherwise generated from selected attributes.
  *               price:
  *                 type: number
  *                 format: decimal
@@ -103,6 +103,30 @@ router.use(authMiddleware);
  *               isActive:
  *                 type: boolean
  *                 default: true
+ *               attributes:
+ *                 type: array
+ *                 description: Category attribute options selected by this SKU.
+ *                 items:
+ *                   type: object
+ *                   required: [attributeId, optionId]
+ *                   properties:
+ *                     attributeId:
+ *                       type: string
+ *                       format: uuid
+ *                     optionId:
+ *                       type: string
+ *                       format: uuid
+ *           example:
+ *             productId: 99999999-9999-4999-8999-999999999999
+ *             productCode: ASU-VB14-BLU-512
+ *             price: "10999000"
+ *             stock: 22
+ *             isActive: true
+ *             attributes:
+ *               - attributeId: 11111111-1111-4111-8111-111111111111
+ *                 optionId: 22222222-2222-4222-8222-222222222222
+ *               - attributeId: 44444444-4444-4444-8444-444444444444
+ *                 optionId: 66666666-6666-4666-8666-666666666666
  *     responses:
  *       201:
  *         description: Product item created successfully
@@ -113,7 +137,7 @@ router.use(authMiddleware);
  *       404:
  *         description: Product not found
  *       409:
- *         description: Product code already exists
+ *         description: Product code or variant combination already exists
  */
 router.get("/", getProductItems);
 router.post("/", requireRole("admin"), createProductItem);
@@ -248,12 +272,35 @@ router.post(
  *                 example: SAM-A55-256-BLU
  *               name:
  *                 type: string
+ *                 description: Used only when attributes do not generate a variant name.
  *               price:
  *                 type: number
  *                 format: decimal
  *                 example: 6499000
  *               isActive:
  *                 type: boolean
+ *               attributes:
+ *                 type: array
+ *                 description: Full replacement of selected category attribute options. The item name is regenerated.
+ *                 items:
+ *                   type: object
+ *                   required: [attributeId, optionId]
+ *                   properties:
+ *                     attributeId:
+ *                       type: string
+ *                       format: uuid
+ *                     optionId:
+ *                       type: string
+ *                       format: uuid
+ *           example:
+ *             productCode: ASU-VB14-BLK-512
+ *             price: "11499000"
+ *             isActive: true
+ *             attributes:
+ *               - attributeId: 11111111-1111-4111-8111-111111111111
+ *                 optionId: 33333333-3333-4333-8333-333333333333
+ *               - attributeId: 44444444-4444-4444-8444-444444444444
+ *                 optionId: 66666666-6666-4666-8666-666666666666
  *     responses:
  *       200:
  *         description: Product item updated successfully
@@ -264,7 +311,7 @@ router.post(
  *       404:
  *         description: Product item or product not found
  *       409:
- *         description: Product code already exists
+ *         description: Product code or variant combination already exists
  *   delete:
  *     tags: [Product Items]
  *     summary: Soft delete a product item (admin only)

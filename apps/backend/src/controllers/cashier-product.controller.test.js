@@ -71,7 +71,13 @@ describe("cashier product controller", () => {
 					],
 				},
 				brand: { id: brandId, name: "Samsung" },
-				images: [],
+				images: [
+					{
+						alt: "Samsung Galaxy A55",
+						imageUrl: "https://example.com/galaxy-a55.webp",
+						isPrimary: true,
+					},
+				],
 				items: [
 					{
 						id: itemId,
@@ -80,7 +86,13 @@ describe("cashier product controller", () => {
 						price: "5999000.00",
 						isActive: true,
 						inventory: { stock: 10 },
-						images: [],
+						images: [
+							{
+								alt: "Legacy variant image",
+								imageUrl: "https://example.com/legacy-variant.webp",
+								isPrimary: true,
+							},
+						],
 						attributeValues: [
 							{
 								categoryAttributeId: colorId,
@@ -139,6 +151,10 @@ describe("cashier product controller", () => {
 					id: productId,
 					name: "Samsung Galaxy A55",
 					stock: 10,
+					image: {
+						alt: "Samsung Galaxy A55",
+						url: "https://example.com/galaxy-a55.webp",
+					},
 					attributes: [
 						expect.objectContaining({
 							title: "Color",
@@ -158,6 +174,10 @@ describe("cashier product controller", () => {
 							colorId: colorOptionId,
 							specsId: "",
 							priceDifference: "0.00",
+							image: {
+								alt: "Samsung Galaxy A55",
+								url: "https://example.com/galaxy-a55.webp",
+							},
 						}),
 					],
 				}),

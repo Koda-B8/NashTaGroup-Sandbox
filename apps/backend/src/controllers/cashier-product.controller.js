@@ -53,7 +53,6 @@ const toCashierProductResponse = (product) => {
 		typeof product?.toJSON === "function" ? product.toJSON() : product;
 	const productImage = findPrimaryImage(value.images);
 	const items = (value.items ?? []).map((item) => {
-		const itemImage = findPrimaryImage(item.images) ?? productImage;
 		const colorValue = item.attributeValues?.find((entry) =>
 			/(?:color|colour|warna)/i.test(entry.attribute?.name ?? ""),
 		);
@@ -68,8 +67,8 @@ const toCashierProductResponse = (product) => {
 			specsId: specificationValue?.categoryAttributeOptionId ?? "",
 			isActive: item.isActive,
 			image: {
-				alt: itemImage?.alt ?? `${value.name} ${item.name}`.trim(),
-				url: itemImage?.imageUrl ?? EMPTY_IMAGE,
+				alt: productImage?.alt ?? value.name,
+				url: productImage?.imageUrl ?? EMPTY_IMAGE,
 			},
 			stock: item.inventory?.stock ?? 0,
 		};
@@ -191,8 +190,6 @@ const productDetailIncludes = [
 		model: ProductImages,
 		as: "images",
 		attributes: ["imageUrl", "alt", "isPrimary", "sortOrder"],
-		// oxlint-disable-next-line unicorn/no-null -- Null selects product-level images only.
-		where: { productItemId: null },
 		required: false,
 		separate: true,
 		order: [
@@ -214,17 +211,6 @@ const productDetailIncludes = [
 				as: "inventory",
 				attributes: ["stock"],
 				required: true,
-			},
-			{
-				model: ProductImages,
-				as: "images",
-				attributes: ["imageUrl", "alt", "isPrimary", "sortOrder"],
-				required: false,
-				separate: true,
-				order: [
-					["isPrimary", "DESC"],
-					["sortOrder", "ASC"],
-				],
 			},
 			{
 				model: ProductItemAttributeValues,

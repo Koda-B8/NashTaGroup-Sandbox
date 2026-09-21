@@ -92,15 +92,24 @@ describe("product item controller", () => {
 		);
 	});
 
-	it("retrieves product items with search and filters", async () => {
+	it("retrieves product items with the product master image", async () => {
 		const itemImage = {
 			imageUrl: "https://example.com/galaxy-a55-blue.webp",
 			alt: "Samsung Galaxy A55 Blue",
 			isPrimary: true,
 			sortOrder: 0,
 		};
+		const productImage = {
+			imageUrl: "https://example.com/galaxy-a55.webp",
+			alt: "Samsung Galaxy A55",
+			isPrimary: true,
+		};
 		db.ProductItems.findAll.mockResolvedValue([
-			{ ...productItem, images: [itemImage] },
+			{
+				...productItem,
+				images: [itemImage],
+				product: { ...product, images: [productImage] },
+			},
 		]);
 
 		const response = createResponse();
@@ -133,9 +142,7 @@ describe("product item controller", () => {
 		expect(productInclude.include).toEqual([
 			expect.objectContaining({ as: "images", required: false }),
 		]);
-		expect(itemImageInclude).toEqual(
-			expect.objectContaining({ as: "images", required: false }),
-		);
+		expect(itemImageInclude).toBeUndefined();
 		expect(response.status).toHaveBeenCalledWith(constants.HTTP_STATUS_OK);
 		expect(response.json).toHaveBeenCalledWith({
 			success: true,
@@ -143,7 +150,7 @@ describe("product item controller", () => {
 			data: [
 				{
 					...productItemResponse,
-					image: { alt: itemImage.alt, url: itemImage.imageUrl },
+					image: { alt: productImage.alt, url: productImage.imageUrl },
 				},
 			],
 		});
@@ -182,7 +189,7 @@ describe("product item controller", () => {
 		expect(next).not.toHaveBeenCalled();
 	});
 
-	it("retrieves product item details with item and product images", async () => {
+	it("retrieves product item details using only the product master image", async () => {
 		const itemImage = {
 			imageUrl: "https://example.com/galaxy-a55-blue.webp",
 			alt: "Samsung Galaxy A55 Blue",
@@ -219,7 +226,7 @@ describe("product item controller", () => {
 			(include) => include.as === "images",
 		);
 
-		expect(productImageInclude.where).toEqual({ productItemId: null });
+		expect(productImageInclude.where).toBeUndefined();
 		expect(response.json).toHaveBeenCalledWith({
 			success: true,
 			message: "Product item retrieved successfully",
@@ -231,7 +238,7 @@ describe("product item controller", () => {
 				price: "6499000.00",
 				isActive: true,
 				stock: 10,
-				image: { alt: itemImage.alt, url: itemImage.imageUrl },
+				image: { alt: productImage.alt, url: productImage.imageUrl },
 				product: {
 					...product,
 					category: detailProduct.category,

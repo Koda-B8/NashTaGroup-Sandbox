@@ -11,7 +11,6 @@ import db from "../models/index.cjs";
 import {
 	createAdditionalProductImage,
 	createProductImage,
-	createProductItemImage,
 	deleteProductImage,
 	getProductImages,
 	replaceProductImage,
@@ -38,9 +37,9 @@ vi.mock("../models/index.cjs", () => ({
 			create: vi.fn(),
 			findAll: vi.fn(),
 			findByPk: vi.fn(),
+			findOne: vi.fn(),
 			update: vi.fn(),
 		},
-		ProductItems: { findByPk: vi.fn() },
 		Products: { findByPk: vi.fn() },
 		sequelize: { transaction: databaseMocks.transaction },
 	},
@@ -67,7 +66,6 @@ const createImageRecord = (overrides = {}) => {
 	const image = {
 		id: imageId,
 		productId,
-		productItemId,
 		imageUrl: cloudinaryImage.url,
 		publicId: cloudinaryImage.publicId,
 		alt: "Samsung Galaxy A55 Awesome Navy",
@@ -82,7 +80,6 @@ const createImageRecord = (overrides = {}) => {
 	image.toJSON = vi.fn(() => ({
 		id: image.id,
 		productId: image.productId,
-		productItemId: image.productItemId,
 		imageUrl: image.imageUrl,
 		publicId: image.publicId,
 		alt: image.alt,
@@ -102,10 +99,6 @@ describe("product image controller", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		db.Products.findByPk.mockResolvedValue({ id: productId });
-		db.ProductItems.findByPk.mockResolvedValue({
-			id: productItemId,
-			productId,
-		});
 		databaseMocks.transaction.mockImplementation((callback) =>
 			callback({ id: "database-transaction" }),
 		);
@@ -114,10 +107,11 @@ describe("product image controller", () => {
 		db.ProductImageCleanups.findOrCreate.mockResolvedValue([]);
 		db.ProductImageCleanups.destroy.mockResolvedValue(1);
 		db.ProductImageCleanups.count.mockResolvedValue(0);
+		db.ProductImages.findOne.mockResolvedValue(null);
 	});
 
 	it("retrieves product-level images for management", async () => {
-		const image = createImageRecord({ productItemId: null });
+		const image = createImageRecord();
 		db.ProductImages.findAll.mockResolvedValue([image]);
 		const response = createResponse();
 		const next = vi.fn();
@@ -125,7 +119,7 @@ describe("product image controller", () => {
 		await getProductImages({ query: { productId } }, response, next);
 
 		expect(db.ProductImages.findAll).toHaveBeenCalledWith({
-			where: { productId, productItemId: null },
+			where: { productId },
 			order: [
 				["isPrimary", "DESC"],
 				["sortOrder", "ASC"],
@@ -138,14 +132,31 @@ describe("product image controller", () => {
 				expect.objectContaining({
 					id: imageId,
 					productId,
-					productItemId: null,
 				}),
 			],
 		});
 		expect(next).not.toHaveBeenCalled();
 	});
 
-	it("uploads and stores a product-item image", async () => {
+	it("rejects a product item filter on the image list", async () => {
+		const next = vi.fn();
+
+		await getProductImages(
+			{ query: { productId, productItemId } },
+			createResponse(),
+			next,
+		);
+
+		expect(db.ProductImages.findAll).not.toHaveBeenCalled();
+		expect(next).toHaveBeenCalledWith(
+			expect.objectContaining({
+				statusCode: constants.HTTP_STATUS_BAD_REQUEST,
+				message: "Product item images are not supported",
+			}),
+		);
+	});
+
+	it("uploads and stores a product master image", async () => {
 		const image = createImageRecord({ sortOrder: 1 });
 		db.ProductImages.create.mockResolvedValue(image);
 		const response = createResponse();
@@ -155,7 +166,6 @@ describe("product image controller", () => {
 			{
 				body: {
 					productId,
-					productItemId,
 					alt: " Samsung Galaxy A55 Awesome Navy ",
 					isPrimary: "true",
 					sortOrder: "1",
@@ -172,7 +182,6 @@ describe("product image controller", () => {
 			expect.objectContaining({
 				where: {
 					productId,
-					productItemId,
 					isPrimary: true,
 				},
 			}),
@@ -180,7 +189,6 @@ describe("product image controller", () => {
 		expect(db.ProductImages.create).toHaveBeenCalledWith(
 			{
 				productId,
-				productItemId,
 				imageUrl: cloudinaryImage.url,
 				publicId: cloudinaryImage.publicId,
 				alt: "Samsung Galaxy A55 Awesome Navy",
@@ -196,7 +204,6 @@ describe("product image controller", () => {
 			data: {
 				id: imageId,
 				productId,
-				productItemId,
 				image: {
 					alt: image.alt,
 					url: image.imageUrl,
@@ -209,7 +216,8 @@ describe("product image controller", () => {
 	});
 
 	it("takes the product target from the route when adding another product image", async () => {
-		const image = createImageRecord({ productItemId: null });
+		const image = createImageRecord();
+		db.ProductImages.findOne.mockResolvedValue(createImageRecord());
 		db.ProductImages.create.mockResolvedValue(image);
 		const response = createResponse();
 		const next = vi.fn();
@@ -219,7 +227,6 @@ describe("product image controller", () => {
 				params: { id: productId },
 				body: {
 					productId: "44444444-4444-4444-8444-444444444444",
-					productItemId,
 					alt: "Gallery image",
 				},
 				file: { buffer: Buffer.from("image") },
@@ -231,8 +238,39 @@ describe("product image controller", () => {
 		expect(db.ProductImages.create).toHaveBeenCalledWith(
 			expect.objectContaining({
 				productId,
-				productItemId: null,
 				isPrimary: false,
+			}),
+			expect.any(Object),
+		);
+		expect(next).not.toHaveBeenCalled();
+	});
+
+	it("uses the target name as alt and makes the first image primary", async () => {
+		db.Products.findByPk.mockResolvedValue({
+			id: productId,
+			name: "ASUS Vivobook 14",
+		});
+		const image = createImageRecord({
+			alt: "ASUS Vivobook 14",
+			isPrimary: true,
+		});
+		db.ProductImages.create.mockResolvedValue(image);
+		const response = createResponse();
+		const next = vi.fn();
+
+		await createProductImage(
+			{
+				body: { productId, isPrimary: "false" },
+				file: { buffer: Buffer.from("image") },
+			},
+			response,
+			next,
+		);
+
+		expect(db.ProductImages.create).toHaveBeenCalledWith(
+			expect.objectContaining({
+				alt: "ASUS Vivobook 14",
+				isPrimary: true,
 			}),
 			expect.any(Object),
 		);
@@ -258,34 +296,30 @@ describe("product image controller", () => {
 		);
 	});
 
-	it("derives the product target from the item route", async () => {
-		const image = createImageRecord();
-		db.ProductImages.create.mockResolvedValue(image);
+	it("rejects a product item target on the gallery route", async () => {
 		const response = createResponse();
 		const next = vi.fn();
 
-		await createProductItemImage(
+		await createAdditionalProductImage(
 			{
-				params: { id: productItemId },
-				body: { alt: "Variant image" },
+				params: { id: productId },
+				body: { productItemId, alt: "Variant image" },
 				file: { buffer: Buffer.from("image") },
 			},
 			response,
 			next,
 		);
 
-		expect(db.ProductImages.create).toHaveBeenCalledWith(
-			expect.objectContaining({ productId, productItemId }),
-			expect.any(Object),
+		expect(db.ProductImages.create).not.toHaveBeenCalled();
+		expect(next).toHaveBeenCalledWith(
+			expect.objectContaining({
+				statusCode: constants.HTTP_STATUS_BAD_REQUEST,
+				message: "Product item images are not supported",
+			}),
 		);
-		expect(next).not.toHaveBeenCalled();
 	});
 
-	it("rejects a product item belonging to another product before upload", async () => {
-		db.ProductItems.findByPk.mockResolvedValue({
-			id: productItemId,
-			productId: "44444444-4444-4444-8444-444444444444",
-		});
+	it("rejects a product item target before upload", async () => {
 		const response = createResponse();
 		const next = vi.fn();
 
@@ -302,7 +336,7 @@ describe("product image controller", () => {
 		expect(next).toHaveBeenCalledWith(
 			expect.objectContaining({
 				statusCode: constants.HTTP_STATUS_BAD_REQUEST,
-				message: "Product item does not belong to the selected product",
+				message: "Product item images are not supported",
 			}),
 		);
 	});
@@ -361,6 +395,62 @@ describe("product image controller", () => {
 		expect(next).not.toHaveBeenCalled();
 	});
 
+	it("promotes the next image when the current primary is unset", async () => {
+		const image = createImageRecord({ isPrimary: true });
+		const replacement = createImageRecord({
+			id: "44444444-4444-4444-8444-444444444444",
+			isPrimary: false,
+		});
+		db.ProductImages.findByPk.mockResolvedValue(image);
+		db.ProductImages.findOne.mockResolvedValue(replacement);
+		const response = createResponse();
+		const next = vi.fn();
+
+		await updateProductImage(
+			{
+				params: { id: imageId },
+				body: { isPrimary: false },
+			},
+			response,
+			next,
+		);
+
+		expect(image.update).toHaveBeenCalledWith(
+			{ isPrimary: false },
+			{ transaction: { id: "database-transaction" } },
+		);
+		expect(replacement.update).toHaveBeenCalledWith(
+			{ isPrimary: true },
+			{ transaction: { id: "database-transaction" } },
+		);
+		expect(next).not.toHaveBeenCalled();
+	});
+
+	it("keeps the only image primary when it is unset", async () => {
+		const image = createImageRecord({ isPrimary: true });
+		db.ProductImages.findByPk.mockResolvedValue(image);
+		db.ProductImages.findOne.mockResolvedValue(null);
+		const response = createResponse();
+		const next = vi.fn();
+
+		await updateProductImage(
+			{
+				params: { id: imageId },
+				body: { isPrimary: false },
+			},
+			response,
+			next,
+		);
+
+		expect(image.update).not.toHaveBeenCalled();
+		expect(response.json).toHaveBeenCalledWith(
+			expect.objectContaining({
+				data: expect.objectContaining({ isPrimary: true }),
+			}),
+		);
+		expect(next).not.toHaveBeenCalled();
+	});
+
 	it("replaces the Cloudinary file and removes the previous asset", async () => {
 		const image = createImageRecord({
 			imageUrl: "https://example.com/old.webp",
@@ -410,6 +500,26 @@ describe("product image controller", () => {
 			message: "Product image deleted successfully",
 			cleanupPending: false,
 		});
+		expect(next).not.toHaveBeenCalled();
+	});
+
+	it("promotes the next image when deleting the primary image", async () => {
+		const image = createImageRecord({ isPrimary: true });
+		const replacement = createImageRecord({
+			id: "44444444-4444-4444-8444-444444444444",
+			isPrimary: false,
+		});
+		db.ProductImages.findByPk.mockResolvedValue(image);
+		db.ProductImages.findOne.mockResolvedValue(replacement);
+		const response = createResponse();
+		const next = vi.fn();
+
+		await deleteProductImage({ params: { id: imageId } }, response, next);
+
+		expect(replacement.update).toHaveBeenCalledWith(
+			{ isPrimary: true },
+			{ transaction: { id: "database-transaction" } },
+		);
 		expect(next).not.toHaveBeenCalled();
 	});
 

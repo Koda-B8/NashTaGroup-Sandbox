@@ -1,7 +1,6 @@
 /* oxlint-disable jsdoc/check-tag-names -- @openapi is consumed by swagger-jsdoc. */
 import express from "express";
 
-import { createProductItemImage } from "../controllers/product-image.controller.js";
 import {
 	createProductItem,
 	deleteProductItem,
@@ -11,9 +10,6 @@ import {
 } from "../controllers/product-item.controller.js";
 import authMiddleware from "../middleware/auth.js";
 import { requireRole } from "../middleware/authorize.js";
-import productImageUpload, {
-	limitProductImageUploads,
-} from "../middleware/product-image-upload.js";
 
 const router = express.Router();
 
@@ -60,8 +56,8 @@ router.use(authMiddleware);
  *                   price: "5999000.00"
  *                   stock: 10
  *                   image:
- *                     alt: Samsung Galaxy A55 Awesome Navy
- *                     url: https://res.cloudinary.com/nashta/image/upload/galaxy-a55-navy.webp
+ *                     alt: Samsung Galaxy A55 smartphone
+ *                     url: https://res.cloudinary.com/nashta/image/upload/galaxy-a55.webp
  *                   product:
  *                     id: 3962d3bd-b9a6-4275-bf87-6cb6af71d943
  *                     name: Samsung Galaxy A55
@@ -144,63 +140,6 @@ router.post("/", requireRole("admin"), createProductItem);
 
 /**
  * @openapi
- * /api/v1/product-items/{id}/images:
- *   post:
- *     tags: [Product Images]
- *     summary: Add an image to an existing product item (admin only)
- *     security:
- *       - cookieAuth: []
- *         csrfToken: []
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             required: [alt, image]
- *             properties:
- *               alt:
- *                 type: string
- *               isPrimary:
- *                 type: boolean
- *                 default: false
- *               sortOrder:
- *                 type: integer
- *                 minimum: 0
- *               image:
- *                 type: string
- *                 format: binary
- *                 description: AVIF, JPEG, PNG, or WebP; maximum 5 MB.
- *     responses:
- *       201:
- *         description: Product item image uploaded successfully
- *       400:
- *         description: Invalid image metadata
- *       404:
- *         description: Product item not found
- *       413:
- *         description: Image exceeds 5 MB
- *       415:
- *         description: Unsupported image type
- */
-router.post(
-	"/:id/images",
-	requireRole("admin"),
-	limitProductImageUploads,
-	productImageUpload,
-	createProductItemImage,
-);
-
-/**
- * @openapi
  * /api/v1/product-items/{id}:
  *   get:
  *     tags: [Product Items]
@@ -230,8 +169,8 @@ router.post(
  *                 price: "5999000.00"
  *                 stock: 10
  *                 image:
- *                   alt: Samsung Galaxy A55 Awesome Navy
- *                   url: https://res.cloudinary.com/nashta/image/upload/galaxy-a55-navy.webp
+ *                   alt: Samsung Galaxy A55 smartphone
+ *                   url: https://res.cloudinary.com/nashta/image/upload/galaxy-a55.webp
  *                 product:
  *                   id: 3962d3bd-b9a6-4275-bf87-6cb6af71d943
  *                   name: Samsung Galaxy A55

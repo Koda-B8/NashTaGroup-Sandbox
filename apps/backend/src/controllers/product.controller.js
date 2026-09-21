@@ -126,32 +126,11 @@ const productIncludes = [
 ];
 
 const productListIncludes = [
-	...productIncludes.map((include) => {
-		if (include.as !== "items") return include;
-
-		return {
-			...include,
-			include: [
-				...include.include,
-				{
-					model: ProductImages,
-					as: "images",
-					attributes: ["imageUrl", "alt", "isPrimary", "sortOrder"],
-					required: false,
-					separate: true,
-					order: [
-						["isPrimary", "DESC"],
-						["sortOrder", "ASC"],
-					],
-				},
-			],
-		};
-	}),
+	...productIncludes,
 	{
 		model: ProductImages,
 		as: "images",
 		attributes: ["imageUrl", "alt", "isPrimary", "sortOrder"],
-		where: { productItemId: null },
 		required: false,
 		separate: true,
 		order: [
@@ -317,22 +296,18 @@ const toProductResponse = (product) => {
 	const primaryProductImage =
 		images?.find((image) => image.isPrimary) ?? images?.[0];
 	const items = Array.isArray(value?.items)
-		? value.items.map(({ attributeValues, images, inventory, ...item }) => {
-				const primaryItemImage =
-					images?.find((image) => image.isPrimary) ?? images?.[0];
-
-				return {
-					...item,
-					...(attributeValues
-						? { attributes: toItemAttributes(attributeValues) }
-						: {}),
-					image: toImageResponse(
-						primaryItemImage ?? primaryProductImage,
-						item.name,
-					),
-					stock: inventory?.stock ?? 0,
-				};
-			})
+		? value.items.map(
+				({ attributeValues, images: _images, inventory, ...item }) => {
+					return {
+						...item,
+						...(attributeValues
+							? { attributes: toItemAttributes(attributeValues) }
+							: {}),
+						image: toImageResponse(primaryProductImage, value.name),
+						stock: inventory?.stock ?? 0,
+					};
+				},
+			)
 		: [];
 
 	return {
@@ -601,7 +576,6 @@ export async function createProduct(req, res, next) {
 					await ProductImages.create(
 						{
 							productId: created.id,
-							productItemId: null,
 							imageUrl: uploadedImage.url,
 							publicId: uploadedImage.publicId,
 							alt: name,
@@ -758,7 +732,6 @@ export async function updateProduct(req, res, next) {
 				const primaryImage = await ProductImages.findOne({
 					where: {
 						productId: product.id,
-						productItemId: null,
 						isPrimary: true,
 					},
 					transaction,
@@ -778,7 +751,6 @@ export async function updateProduct(req, res, next) {
 					await ProductImages.create(
 						{
 							productId: product.id,
-							productItemId: null,
 							imageUrl: uploadedImage.url,
 							publicId: uploadedImage.publicId,
 							alt: imageAlt,
@@ -797,7 +769,6 @@ export async function updateProduct(req, res, next) {
 					{
 						where: {
 							productId: product.id,
-							productItemId: null,
 							isPrimary: true,
 						},
 						transaction,

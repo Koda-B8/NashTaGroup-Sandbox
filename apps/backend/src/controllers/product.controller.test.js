@@ -185,8 +185,8 @@ describe("product controller", () => {
 							id: "44444444-4444-4444-8444-444444444444",
 							name: "8GB/128GB - Awesome Navy",
 							image: {
-								alt: "Samsung Galaxy A55 Awesome Navy",
-								url: "https://res.cloudinary.com/nashta/image/upload/galaxy-a55-navy.webp",
+								alt: "Samsung Galaxy A55 smartphone",
+								url: "https://res.cloudinary.com/nashta/image/upload/galaxy-a55.webp",
 							},
 							stock: 10,
 						},
@@ -354,7 +354,6 @@ describe("product controller", () => {
 		expect(db.ProductImages.create).toHaveBeenCalledWith(
 			{
 				productId,
-				productItemId: null,
 				imageUrl: cloudinaryImage.url,
 				publicId: cloudinaryImage.publicId,
 				alt: product.name,
@@ -425,13 +424,13 @@ describe("product controller", () => {
 					expect.objectContaining({
 						id: "44444444-4444-4444-8444-444444444444",
 						name: "8GB/128GB - Awesome Navy",
-						image: { alt: "8GB/128GB - Awesome Navy", url: null },
+						image: { alt: "Samsung Galaxy A55", url: null },
 						stock: 10,
 					}),
 					expect.objectContaining({
 						id: "55555555-5555-4555-8555-555555555555",
 						name: "8GB/256GB - Ice Blue",
-						image: { alt: "8GB/256GB - Ice Blue", url: null },
+						image: { alt: "Samsung Galaxy A55", url: null },
 						stock: 7,
 					}),
 				],
@@ -666,7 +665,7 @@ describe("product controller", () => {
 		expect(db.ProductImages.update).toHaveBeenCalledWith(
 			{ alt: "Samsung Galaxy A56" },
 			expect.objectContaining({
-				where: { productId, productItemId: null, isPrimary: true },
+				where: { productId, isPrimary: true },
 			}),
 		);
 		expect(uploadCloudinaryImageMock).not.toHaveBeenCalled();

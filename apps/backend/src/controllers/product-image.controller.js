@@ -11,13 +11,7 @@ import db from "../models/index.cjs";
 import { createHttpError } from "../utils/http-error.js";
 import { isUuid, normalizeText } from "../utils/validation.js";
 
-const {
-	ProductImageCleanups,
-	ProductImages,
-	ProductItems,
-	Products,
-	sequelize,
-} = db;
+const { ProductImageCleanups, ProductImages, Products, sequelize } = db;
 
 const parseBooleanField = (value, field) => {
 	if (value === undefined) return;
@@ -65,7 +59,6 @@ const toProductImageResponse = (image) => {
 	return {
 		id: value.id,
 		productId: value.productId,
-		productItemId: value.productItemId ?? null,
 		image: {
 			alt: value.alt,
 			url: value.imageUrl,
@@ -94,58 +87,60 @@ const getImage = async (id) => {
 	return image;
 };
 
-const validateTarget = async (productId, productItemId) => {
+const validateTarget = async (productId) => {
 	if (!isUuid(productId)) {
 		throw createHttpError(
 			constants.HTTP_STATUS_BAD_REQUEST,
 			"productId must be a valid UUID",
 		);
 	}
-	if (productItemId !== undefined && !isUuid(productItemId)) {
-		throw createHttpError(
-			constants.HTTP_STATUS_BAD_REQUEST,
-			"productItemId must be a valid UUID",
-		);
-	}
-
 	const product = await Products.findByPk(productId);
 	if (!product) {
 		throw createHttpError(constants.HTTP_STATUS_NOT_FOUND, "Product not found");
 	}
 
-	if (productItemId !== undefined) {
-		const productItem = await ProductItems.findByPk(productItemId);
-		if (!productItem) {
-			throw createHttpError(
-				constants.HTTP_STATUS_NOT_FOUND,
-				"Product item not found",
-			);
-		}
-		if (productItem.productId !== productId) {
-			throw createHttpError(
-				constants.HTTP_STATUS_BAD_REQUEST,
-				"Product item does not belong to the selected product",
-			);
-		}
-	}
+	return product;
 };
 
-const unsetCurrentPrimary = (image, transaction) => {
-	if (!image.isPrimary) return;
+const getTargetWhere = (productId) => ({ productId });
 
-	return ProductImages.update(
+const unsetOtherPrimary = (image, transaction) =>
+	ProductImages.update(
 		{ isPrimary: false },
 		{
 			where: {
 				id: { [Op.ne]: image.id },
-				productId: image.productId,
-				productItemId: image.productItemId ?? null,
+				...getTargetWhere(image.productId),
 				isPrimary: true,
 			},
 			transaction,
 		},
 	);
-};
+
+const findPrimary = (productId, transaction) =>
+	ProductImages.findOne({
+		where: {
+			...getTargetWhere(productId),
+			isPrimary: true,
+		},
+		transaction,
+	});
+
+const findPrimaryReplacement = (image, transaction) =>
+	ProductImages.findOne({
+		where: {
+			id: { [Op.ne]: image.id },
+			...getTargetWhere(image.productId),
+		},
+		order: [
+			["sortOrder", "ASC"],
+			["createdAt", "ASC"],
+		],
+		transaction,
+	});
+
+const getDefaultAlt = (product) =>
+	normalizeText(product?.name) || "Product image";
 
 const uploadImage = async (buffer) => {
 	try {
@@ -218,15 +213,17 @@ export async function retryProductImageCleanups(_request, response, next) {
 export async function getProductImages(request, response, next) {
 	try {
 		const productId = request.query?.productId;
-		const productItemId = request.query?.productItemId || undefined;
+		if (request.query?.productItemId !== undefined) {
+			throw createHttpError(
+				constants.HTTP_STATUS_BAD_REQUEST,
+				"Product item images are not supported",
+			);
+		}
 
-		await validateTarget(productId, productItemId);
+		await validateTarget(productId);
 
 		const images = await ProductImages.findAll({
-			where: {
-				productId,
-				productItemId: productItemId ?? null,
-			},
+			where: { productId },
 			order: [
 				["isPrimary", "DESC"],
 				["sortOrder", "ASC"],
@@ -255,24 +252,30 @@ export async function createProductImage(request, response, next) {
 		}
 
 		const productId = request.body?.productId;
-		const productItemId = request.body?.productItemId || undefined;
-		const alt = normalizeText(request.body?.alt);
+		if (request.body?.productItemId !== undefined) {
+			throw createHttpError(
+				constants.HTTP_STATUS_BAD_REQUEST,
+				"Product item images are not supported",
+			);
+		}
+		const requestedAlt = normalizeText(request.body?.alt);
 		const isPrimary = parseBooleanField(request.body?.isPrimary, "isPrimary");
 		const sortOrder = parseSortOrder(request.body?.sortOrder);
 
+		const product = await validateTarget(productId);
+		const alt = requestedAlt || getDefaultAlt(product);
 		validateAlt(alt, "Image alt is required");
-
-		await validateTarget(productId, productItemId);
 		uploadedImage = await uploadImage(request.file.buffer);
 
 		const image = await sequelize.transaction(async (transaction) => {
-			if (isPrimary) {
+			const currentPrimary = await findPrimary(productId, transaction);
+			const effectivePrimary = isPrimary === true || !currentPrimary;
+			if (effectivePrimary) {
 				await ProductImages.update(
 					{ isPrimary: false },
 					{
 						where: {
 							productId,
-							productItemId: productItemId ?? null,
 							isPrimary: true,
 						},
 						transaction,
@@ -283,11 +286,10 @@ export async function createProductImage(request, response, next) {
 			return ProductImages.create(
 				{
 					productId,
-					productItemId: productItemId ?? null,
 					imageUrl: uploadedImage.url,
 					publicId: uploadedImage.publicId,
 					alt,
-					isPrimary: isPrimary ?? false,
+					isPrimary: effectivePrimary,
 					sortOrder: sortOrder ?? 0,
 				},
 				{ transaction },
@@ -319,6 +321,14 @@ export async function createProductImage(request, response, next) {
 }
 
 export function createAdditionalProductImage(request, response, next) {
+	if (request.body?.productItemId !== undefined) {
+		return next(
+			createHttpError(
+				constants.HTTP_STATUS_BAD_REQUEST,
+				"Product item images are not supported",
+			),
+		);
+	}
 	if (
 		request.body?.isPrimary !== undefined &&
 		request.body.isPrimary !== false &&
@@ -334,36 +344,9 @@ export function createAdditionalProductImage(request, response, next) {
 	request.body = {
 		...request.body,
 		productId: request.params.id,
-		productItemId: undefined,
 		isPrimary: false,
 	};
 	return createProductImage(request, response, next);
-}
-
-export async function createProductItemImage(request, response, next) {
-	try {
-		if (!isUuid(request.params.id)) {
-			throw createHttpError(
-				constants.HTTP_STATUS_BAD_REQUEST,
-				"Product item id must be a valid UUID",
-			);
-		}
-		const item = await ProductItems.findByPk(request.params.id);
-		if (!item) {
-			throw createHttpError(
-				constants.HTTP_STATUS_NOT_FOUND,
-				"Product item not found",
-			);
-		}
-		request.body = {
-			...request.body,
-			productId: item.productId,
-			productItemId: item.id,
-		};
-		return createProductImage(request, response, next);
-	} catch (error) {
-		return next(error);
-	}
 }
 
 export async function updateProductImage(request, response, next) {
@@ -394,10 +377,24 @@ export async function updateProductImage(request, response, next) {
 		}
 
 		await sequelize.transaction(async (transaction) => {
-			await unsetCurrentPrimary(
-				{ ...image.toJSON(), isPrimary: updates.isPrimary === true },
-				transaction,
-			);
+			if (updates.isPrimary === true) {
+				await unsetOtherPrimary(image, transaction);
+				await image.update(updates, { transaction });
+				return;
+			}
+			if (updates.isPrimary === false && image.isPrimary) {
+				const replacement = await findPrimaryReplacement(image, transaction);
+				if (!replacement) {
+					delete updates.isPrimary;
+				}
+				if (Object.keys(updates).length > 0) {
+					await image.update(updates, { transaction });
+				}
+				if (replacement) {
+					await replacement.update({ isPrimary: true }, { transaction });
+				}
+				return;
+			}
 			await image.update(updates, { transaction });
 		});
 
@@ -468,7 +465,13 @@ export async function deleteProductImage(request, response, next) {
 
 		await sequelize.transaction(async (transaction) => {
 			await enqueueCleanup(publicId, transaction);
+			const replacement = image.isPrimary
+				? await findPrimaryReplacement(image, transaction)
+				: undefined;
 			await image.destroy({ transaction });
+			if (replacement) {
+				await replacement.update({ isPrimary: true }, { transaction });
+			}
 		});
 		const cleanupPending = !(await cleanupCloudinaryImage(publicId));
 

@@ -23,7 +23,7 @@ router.use(authMiddleware, requireRole("admin"));
  * /api/v1/product-images:
  *   get:
  *     tags: [Product Images]
- *     summary: Retrieve manageable images for a product or product item
+ *     summary: Retrieve images for a product master
  *     security:
  *       - cookieAuth: []
  *       - bearerAuth: []
@@ -34,19 +34,13 @@ router.use(authMiddleware, requireRole("admin"));
  *         schema:
  *           type: string
  *           format: uuid
- *       - in: query
- *         name: productItemId
- *         schema:
- *           type: string
- *           format: uuid
- *         description: Omit this field to retrieve product-level images.
  *     responses:
  *       200:
  *         description: Product images retrieved successfully
  *       400:
  *         description: Invalid target
  *       404:
- *         description: Product or product item not found
+ *         description: Product not found
  */
 router.get("/", getProductImages);
 

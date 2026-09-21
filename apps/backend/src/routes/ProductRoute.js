@@ -69,6 +69,9 @@ router.use(authMiddleware);
  *                   items:
  *                     - id: d7878d58-7742-4389-9c35-92d72351f200
  *                       name: 8GB/128GB - Awesome Navy
+ *                       image:
+ *                         alt: Samsung Galaxy A55 smartphone
+ *                         url: https://res.cloudinary.com/nashta/image/upload/galaxy-a55.webp
  *                       stock: 10
  *       400:
  *         description: Invalid query parameters
@@ -222,10 +225,11 @@ router.post(
  *         multipart/form-data:
  *           schema:
  *             type: object
- *             required: [alt, image]
+ *             required: [image]
  *             properties:
  *               alt:
  *                 type: string
+ *                 description: Optional. Defaults to the product name.
  *               sortOrder:
  *                 type: integer
  *                 minimum: 0
@@ -288,8 +292,8 @@ router.post(
  *                   - id: d7878d58-7742-4389-9c35-92d72351f200
  *                     name: 8GB/128GB - Awesome Navy
  *                     image:
- *                       alt: Samsung Galaxy A55 Awesome Navy
- *                       url: https://res.cloudinary.com/nashta/image/upload/galaxy-a55-navy.webp
+ *                       alt: Samsung Galaxy A55 smartphone
+ *                       url: https://res.cloudinary.com/nashta/image/upload/galaxy-a55.webp
  *                     stock: 10
  *       400:
  *         description: Invalid product id

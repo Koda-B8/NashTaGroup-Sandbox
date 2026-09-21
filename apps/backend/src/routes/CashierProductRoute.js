@@ -52,7 +52,7 @@ router.use(authMiddleware, requireRole("cashier", "admin"));
  *           default: name_asc
  *     responses:
  *       200:
- *         description: Cashier products retrieved successfully
+ *         description: Cashier products retrieved successfully. Each item's priceDifference is its price minus the cheapest active item price with the same colorId.
  *         content:
  *           application/json:
  *             example:
@@ -73,6 +73,7 @@ router.use(authMiddleware, requireRole("cashier", "admin"));
  *                     - id: d7878d58-7742-4389-9c35-92d72351f200
  *                       productCode: SAM-A55-128-NVY
  *                       price: "5999000.00"
+ *                       priceDifference: "0.00"
  *                       colorId: 76a36755-1905-483b-a7d1-dcd65ad43768
  *                       specsId: ""
  *                       isActive: true

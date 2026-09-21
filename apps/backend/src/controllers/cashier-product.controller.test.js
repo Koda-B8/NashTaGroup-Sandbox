@@ -143,11 +143,11 @@ describe("cashier product controller", () => {
 						expect.objectContaining({
 							title: "Color",
 							items: [
-								expect.objectContaining({
+								{
 									id: colorOptionId,
 									name: "Blue",
 									hex: "#3B82F6",
-								}),
+								},
 							],
 						}),
 					],
@@ -157,6 +157,7 @@ describe("cashier product controller", () => {
 							productCode: "SAM-A55-BLU",
 							colorId: colorOptionId,
 							specsId: "",
+							priceDifference: "0.00",
 						}),
 					],
 				}),
@@ -170,6 +171,74 @@ describe("cashier product controller", () => {
 				},
 			},
 		});
+		expect(next).not.toHaveBeenCalled();
+	});
+
+	it("calculates each SKU price difference from the cheapest SKU of the same color", async () => {
+		const blueId = "66666666-6666-4666-8666-666666666666";
+		const blackId = "77777777-7777-4777-8777-777777777777";
+		const storageAttributeId = "88888888-8888-4888-8888-888888888888";
+		const storage128Id = "99999999-9999-4999-8999-999999999999";
+		const storage256Id = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+		const variants = [
+			{ color: blueId, storage: storage128Id, price: "10000000.00" },
+			{ color: blueId, storage: storage256Id, price: "15000000.00" },
+			{ color: blackId, storage: storage128Id, price: "11000000.25" },
+			{ color: blackId, storage: storage256Id, price: "18000000.50" },
+		];
+		db.ProductItems.findAll.mockResolvedValue(
+			variants.map(({ price }) => ({
+				productId,
+				price,
+				product: { name: "Phone" },
+			})),
+		);
+		db.Products.findAll.mockResolvedValue([
+			{
+				id: productId,
+				name: "Phone",
+				category: { id: categoryId, name: "Phone", attributes: [] },
+				brand: { id: brandId, name: "Brand" },
+				images: [],
+				items: variants.map(({ color, storage, price }, index) => ({
+					id: `item-${index}`,
+					productCode: `PHONE-${index}`,
+					name: `Variant ${index}`,
+					price,
+					isActive: true,
+					inventory: { stock: 1 },
+					images: [],
+					attributeValues: [
+						{
+							categoryAttributeOptionId: color,
+							attribute: { id: colorId, name: "Color" },
+						},
+						{
+							categoryAttributeOptionId: storage,
+							attribute: { id: storageAttributeId, name: "Storage" },
+						},
+					],
+				})),
+			},
+		]);
+		const response = createResponse();
+		const next = vi.fn();
+
+		await getCashierProducts({ query: {} }, response, next);
+
+		const items = response.json.mock.calls[0][0].data[0].items;
+		expect(
+			items.map(({ colorId: color, specsId, priceDifference }) => ({
+				color,
+				specsId,
+				priceDifference,
+			})),
+		).toEqual([
+			{ color: blueId, specsId: storage128Id, priceDifference: "0.00" },
+			{ color: blueId, specsId: storage256Id, priceDifference: "5000000.00" },
+			{ color: blackId, specsId: storage128Id, priceDifference: "0.00" },
+			{ color: blackId, specsId: storage256Id, priceDifference: "7000000.25" },
+		]);
 		expect(next).not.toHaveBeenCalled();
 	});
 

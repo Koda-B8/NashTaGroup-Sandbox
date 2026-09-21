@@ -46,6 +46,8 @@ const parsePrice = (value, field) => {
 const findPrimaryImage = (images) =>
 	images?.find((image) => image.isPrimary) ?? images?.[0];
 
+const priceInCents = (price) => Math.round(Number(price) * 100);
+
 const toCashierProductResponse = (product) => {
 	const value =
 		typeof product?.toJSON === "function" ? product.toJSON() : product;
@@ -72,6 +74,21 @@ const toCashierProductResponse = (product) => {
 			stock: item.inventory?.stock ?? 0,
 		};
 	});
+	const minimumPriceByColor = new Map();
+	for (const item of items) {
+		const price = priceInCents(item.price);
+		const minimum = minimumPriceByColor.get(item.colorId);
+		if (minimum === undefined || price < minimum) {
+			minimumPriceByColor.set(item.colorId, price);
+		}
+	}
+	const itemsWithPriceDifference = items.map((item) => ({
+		...item,
+		priceDifference: (
+			(priceInCents(item.price) - minimumPriceByColor.get(item.colorId)) /
+			100
+		).toFixed(2),
+	}));
 	const { attributes: categoryAttributes, ...category } = value.category ?? {};
 
 	return {
@@ -97,7 +114,7 @@ const toCashierProductResponse = (product) => {
 					...(option.hex ? { hex: option.hex } : {}),
 				})),
 			})),
-		items,
+		items: itemsWithPriceDifference,
 		image: {
 			alt: productImage?.alt ?? value.name,
 			url: productImage?.imageUrl ?? EMPTY_IMAGE,

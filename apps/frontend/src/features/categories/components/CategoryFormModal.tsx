@@ -4,7 +4,17 @@ import Button from "../../../components/ui/button";
 import Checkbox from "../../../components/ui/checkbox";
 import Input from "../../../components/ui/input";
 import Modal, { ModalBody, ModalFooter } from "../../../components/ui/modal";
-import { type Category, createCategory, updateCategory } from "../api";
+import {
+	type Category,
+	type CategoryAttributeInput,
+	createCategory,
+	updateCategory,
+} from "../api";
+import CategoryAttributeEditor, {
+	type AttributeDraft,
+	HEX_PATTERN,
+	newDraftKey,
+} from "./CategoryAttributeEditor";
 
 interface Props {
 	open: boolean;
@@ -20,9 +30,12 @@ export default function CategoryFormModal({
 	onSuccess,
 }: Props) {
 	const isEdit = Boolean(category);
+	const attributesLoaded = !isEdit || Array.isArray(category?.attributes);
 	const [name, setName] = useState("");
 	const [isActive, setIsActive] = useState(true);
-	const [error, setError] = useState<string | null>(null);
+	const [attributes, setAttributes] = useState<AttributeDraft[]>([]);
+	const [nameError, setNameError] = useState<string | null>(null);
+	const [formError, setFormError] = useState<string | null>(null);
 	const [serverError, setServerError] = useState<string | null>(null);
 	const [submitting, setSubmitting] = useState(false);
 
@@ -31,7 +44,24 @@ export default function CategoryFormModal({
 			if (!open) return;
 			setName(category?.name ?? "");
 			setIsActive(category?.isActive ?? true);
-			setError(null);
+			setAttributes(
+				(category?.attributes ?? []).map((attribute) => ({
+					key: newDraftKey(),
+					id: attribute.id,
+					name: attribute.name ?? "",
+					value: attribute.value ?? "",
+					isRequired: attribute.isRequired ?? false,
+					isVariant: attribute.isVariant ?? true,
+					options: (attribute.options ?? []).map((option) => ({
+						key: newDraftKey(),
+						id: option.id,
+						name: option.name ?? "",
+						hex: option.hex ?? "",
+					})),
+				})),
+			);
+			setNameError(null);
+			setFormError(null);
 			setServerError(null);
 		});
 	}, [open, category]);
@@ -39,7 +69,8 @@ export default function CategoryFormModal({
 	const handleOpen = useCallback(
 		(next: boolean) => {
 			if (!next) {
-				setError(null);
+				setNameError(null);
+				setFormError(null);
 				setServerError(null);
 			}
 			onOpenChange(next);
@@ -47,33 +78,79 @@ export default function CategoryFormModal({
 		[onOpenChange],
 	);
 
+	const buildAttributes = (): CategoryAttributeInput[] =>
+		attributes.map((attribute) => {
+			const payload: CategoryAttributeInput = {
+				...(attribute.id ? { id: attribute.id } : {}),
+				name: attribute.name.trim().replaceAll(/\s+/g, " "),
+				value: attribute.value.trim() || null,
+				isRequired: attribute.isRequired,
+				isVariant: attribute.isVariant,
+			};
+			if (attribute.isVariant) {
+				payload.options = attribute.options.map((option) => ({
+					...(option.id ? { id: option.id } : {}),
+					name: option.name.trim().replaceAll(/\s+/g, " "),
+					hex: option.hex.trim() ? option.hex.trim().toUpperCase() : null,
+				}));
+			}
+			return payload;
+		});
+
+	const validateAttributes = (): string | null => {
+		for (const [index, attribute] of attributes.entries()) {
+			if (!attribute.name.trim())
+				return `Nama atribut ${index + 1} wajib diisi`;
+			if (!attribute.isVariant) continue;
+			for (const [optionIndex, option] of attribute.options.entries()) {
+				if (!option.name.trim())
+					return `Nama opsi ${optionIndex + 1} pada atribut ${index + 1} wajib diisi`;
+				if (option.hex.trim() && !HEX_PATTERN.test(option.hex.trim()))
+					return `Warna opsi ${optionIndex + 1} pada atribut ${index + 1} harus format #RRGGBB`;
+			}
+		}
+		return null;
+	};
+
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		setServerError(null);
 		const trimmed = name.trim().replaceAll(/\s+/g, " ");
 		if (!trimmed) {
-			setError("Nama category wajib diisi");
+			setNameError("Nama category wajib diisi");
+			setFormError(null);
 			return;
 		}
-		if (
-			isEdit &&
-			category &&
-			trimmed === category.name &&
-			isActive === category.isActive
-		) {
-			setServerError("Tidak ada perubahan");
+		setNameError(null);
+		const attributeError = validateAttributes();
+		if (attributeError) {
+			setFormError(attributeError);
 			return;
 		}
-		setError(null);
+		setFormError(null);
 		setSubmitting(true);
 		try {
 			if (isEdit && category) {
-				const payload: { name?: string; isActive?: boolean } = {};
+				const payload: {
+					name?: string;
+					isActive?: boolean;
+					attributes?: CategoryAttributeInput[];
+				} = {};
 				if (trimmed !== category.name) payload.name = trimmed;
 				if (isActive !== category.isActive) payload.isActive = isActive;
+				if (attributesLoaded) payload.attributes = buildAttributes();
+				if (Object.keys(payload).length === 0) {
+					setServerError("Tidak ada perubahan");
+					return;
+				}
 				await updateCategory(category.id, payload);
 			} else {
-				await createCategory({ name: trimmed });
+				const payload: {
+					name: string;
+					attributes?: CategoryAttributeInput[];
+				} = { name: trimmed };
+				if (attributes.length > 0) payload.attributes = buildAttributes();
+				await createCategory(payload);
 			}
 			handleOpen(false);
 			onSuccess();
@@ -94,9 +171,9 @@ export default function CategoryFormModal({
 			description={
 				isEdit && category
 					? `Perbarui "${category.name}"`
-					: "Buat category baru. Nama wajib diisi."
+					: "Buat category baru beserta atributnya."
 			}
-			size="lg"
+			size="xl"
 		>
 			<form
 				onSubmit={handleSubmit}
@@ -123,11 +200,11 @@ export default function CategoryFormModal({
 							placeholder="Gaming Accessories"
 							value={name}
 							onChange={(e) => setName(e.currentTarget.value)}
-							invalid={Boolean(error)}
+							invalid={Boolean(nameError)}
 							autoComplete="off"
 						/>
-						{error ? (
-							<span className="text-[11px] text-deep-danger">{error}</span>
+						{nameError ? (
+							<span className="text-[11px] text-deep-danger">{nameError}</span>
 						) : (
 							<span className="text-[11px] text-text">
 								Maks 100 karakter, unik
@@ -148,6 +225,20 @@ export default function CategoryFormModal({
 							<span className="text-xs font-medium">Active</span>
 							<span className="text-[11px] text-text">— isActive</span>
 						</label>
+					)}
+
+					<CategoryAttributeEditor
+						attributes={attributes}
+						onChange={setAttributes}
+						invalid={Boolean(formError)}
+					/>
+					{formError && (
+						<span
+							className="text-[11px] text-deep-danger"
+							role="alert"
+						>
+							{formError}
+						</span>
 					)}
 				</ModalBody>
 				<ModalFooter>

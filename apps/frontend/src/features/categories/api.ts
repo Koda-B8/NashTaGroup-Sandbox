@@ -5,6 +5,23 @@ import {
 	type PaginatedResponse,
 } from "../../types/pagination";
 
+export interface CategoryAttributeOption {
+	id?: string;
+	name: string;
+	hex?: string | null;
+	sortOrder?: number;
+}
+
+export interface CategoryAttribute {
+	id?: string;
+	name: string;
+	value?: string | null;
+	isRequired?: boolean;
+	isVariant?: boolean;
+	sortOrder?: number;
+	options?: CategoryAttributeOption[];
+}
+
 export interface Category {
 	id: string;
 	name: string;
@@ -12,6 +29,22 @@ export interface Category {
 	createdAt: string;
 	updatedAt: string;
 	deletedAt?: string | null;
+	attributes?: CategoryAttribute[];
+}
+
+export interface CategoryAttributeOptionInput {
+	id?: string;
+	name: string;
+	hex?: string | null;
+}
+
+export interface CategoryAttributeInput {
+	id?: string;
+	name: string;
+	value?: string | null;
+	isRequired?: boolean;
+	isVariant?: boolean;
+	options?: CategoryAttributeOptionInput[];
 }
 
 export type CategoryStatusFilter = "All" | "Active" | "Inactive";
@@ -59,7 +92,10 @@ export async function listCategories(
 	return { data, meta };
 }
 
-export async function createCategory(payload: { name: string }): Promise<void> {
+export async function createCategory(payload: {
+	name: string;
+	attributes?: CategoryAttributeInput[];
+}): Promise<void> {
 	const res = await apiFetch("/api/v1/categories", {
 		method: "POST",
 		body: JSON.stringify(payload),
@@ -79,7 +115,11 @@ export async function createCategory(payload: { name: string }): Promise<void> {
 
 export async function updateCategory(
 	id: string,
-	payload: { name?: string; isActive?: boolean },
+	payload: {
+		name?: string;
+		isActive?: boolean;
+		attributes?: CategoryAttributeInput[];
+	},
 ): Promise<void> {
 	const res = await apiFetch(`/api/v1/categories/${id}`, {
 		method: "PATCH",

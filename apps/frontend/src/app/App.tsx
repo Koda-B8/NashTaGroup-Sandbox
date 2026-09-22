@@ -9,6 +9,7 @@ import LoginPage from "../pages/auth/Login";
 import Checkout from "../pages/Checkout";
 import {
 	CategoriesDashboard,
+	InventoriesManagementDashboard,
 	MainDashboard,
 	UserManagementDashboard,
 } from "../pages/dashboard";
@@ -44,6 +45,10 @@ const router = createBrowserRouter([
 					{
 						index: true,
 						element: <MainDashboard />,
+					},
+					{
+						path: "products/inventory",
+						element: <InventoriesManagementDashboard />,
 					},
 					{
 						path: "products/categories",

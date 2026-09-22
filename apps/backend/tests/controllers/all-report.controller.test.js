@@ -4,7 +4,7 @@ import {
 	exportCustomerDetailReport,
 	exportProductDetailReport,
 	exportReportData,
-} from "../../src/controllers/report-export.controller.js";
+} from "../../src/controllers/all-report.controller.js";
 import db from "../../src/models/index.cjs";
 
 vi.mock("../../src/models/index.cjs", () => ({
@@ -21,15 +21,23 @@ describe("product master JSON export", () => {
 	it("collects all customer rows for only the selected product", async () => {
 		const productId = "8de8b4cd-b2cd-491f-a772-e5c47cc9d0a0";
 		vi.mocked(db.sequelize.query)
+			// @ts-ignore
 			.mockResolvedValueOnce([{ id: productId, name: "iPhone 15" }])
+			// @ts-ignore
 			.mockResolvedValueOnce([{ transaction_count: 101 }])
+			// @ts-ignore
 			.mockResolvedValueOnce([{ total: 101 }])
 			.mockResolvedValueOnce(
+				// @ts-ignore
 				Array.from({ length: 100 }, (_, i) => ({ customer_id: String(i) })),
 			)
+			// @ts-ignore
 			.mockResolvedValueOnce([{ id: productId, name: "iPhone 15" }])
+			// @ts-ignore
 			.mockResolvedValueOnce([{ transaction_count: 101 }])
+			// @ts-ignore
 			.mockResolvedValueOnce([{ total: 101 }])
+			// @ts-ignore
 			.mockResolvedValueOnce([{ customer_id: "last" }]);
 		const res = response();
 		const next = vi.fn();
@@ -47,11 +55,13 @@ describe("product master JSON export", () => {
 		expect(body.data.customers).toHaveLength(101);
 		expect(body.meta.export.row_count).toBe(101);
 		const calls = vi.mocked(db.sequelize.query).mock.calls;
+		// @ts-ignore
 		expect(calls[3][1].replacements).toMatchObject({
 			productId,
 			page: 1,
 			limit: 100,
 		});
+		// @ts-ignore
 		expect(calls[7][1].replacements).toMatchObject({
 			productId,
 			page: 2,
@@ -64,15 +74,23 @@ describe("customer JSON export", () => {
 	it("collects all products bought by one customer across pages", async () => {
 		const customerId = "8de8b4cd-b2cd-491f-a772-e5c47cc9d0a0";
 		vi.mocked(db.sequelize.query)
+			// @ts-ignore
 			.mockResolvedValueOnce([{ id: customerId, name: "Budi" }])
+			// @ts-ignore
 			.mockResolvedValueOnce([{ transaction_count: 101 }])
+			// @ts-ignore
 			.mockResolvedValueOnce([{ total: 101 }])
 			.mockResolvedValueOnce(
+				// @ts-ignore
 				Array.from({ length: 100 }, (_, i) => ({ product_id: String(i) })),
 			)
+			// @ts-ignore
 			.mockResolvedValueOnce([{ id: customerId, name: "Budi" }])
+			// @ts-ignore
 			.mockResolvedValueOnce([{ transaction_count: 101 }])
+			// @ts-ignore
 			.mockResolvedValueOnce([{ total: 101 }])
+			// @ts-ignore
 			.mockResolvedValueOnce([{ product_id: "last" }]);
 		const res = response();
 		const next = vi.fn();
@@ -90,11 +108,13 @@ describe("customer JSON export", () => {
 		expect(body.data.products).toHaveLength(101);
 		expect(body.meta.export).toEqual({ row_count: 101, max_rows: 5000 });
 		const calls = vi.mocked(db.sequelize.query).mock.calls;
+		// @ts-ignore
 		expect(calls[3][1].replacements).toMatchObject({
 			customerId,
 			page: 1,
 			limit: 100,
 		});
+		// @ts-ignore
 		expect(calls[7][1].replacements).toMatchObject({
 			customerId,
 			page: 2,
@@ -116,6 +136,7 @@ describe("JSON report export", () => {
 		"returns %s report data when there are no rows",
 		async (report, results) => {
 			for (const rows of results)
+				// @ts-ignore
 				vi.mocked(db.sequelize.query).mockResolvedValueOnce([rows].flat());
 			const res = response();
 			const next = vi.fn();
@@ -138,16 +159,22 @@ describe("JSON report export", () => {
 		}));
 		vi.mocked(db.sequelize.query)
 			.mockResolvedValueOnce([
+				// @ts-ignore
 				{ transaction_count: 101, total_sales: "1010000.00" },
 			])
+			// @ts-ignore
 			.mockResolvedValueOnce([{ total: 101 }])
+			// @ts-ignore
 			.mockResolvedValueOnce(firstPage)
 			.mockResolvedValueOnce([
+				// @ts-ignore
 				{ transaction_count: 101, total_sales: "1010000.00" },
 			])
+			// @ts-ignore
 			.mockResolvedValueOnce([{ total: 101 }])
 			.mockResolvedValueOnce([
 				{
+					// @ts-ignore
 					period_start: "2026-12-31",
 					transaction_count: 1,
 					total_sales: "10000.00",
@@ -172,11 +199,13 @@ describe("JSON report export", () => {
 		expect(next).not.toHaveBeenCalled();
 		expect(db.sequelize.query).toHaveBeenCalledTimes(6);
 		const calls = vi.mocked(db.sequelize.query).mock.calls;
+		// @ts-ignore
 		expect(calls[2][1].replacements).toMatchObject({
 			page: 1,
 			limit: 100,
 			offset: 0,
 		});
+		// @ts-ignore
 		expect(calls[5][1].replacements).toMatchObject({
 			page: 2,
 			limit: 100,
@@ -193,8 +222,11 @@ describe("JSON report export", () => {
 
 	it("rejects exports above the row limit before loading more pages", async () => {
 		vi.mocked(db.sequelize.query)
+			// @ts-ignore
 			.mockResolvedValueOnce([{ transaction_count: 5001 }])
+			// @ts-ignore
 			.mockResolvedValueOnce([{ total: 5001 }])
+			// @ts-ignore
 			.mockResolvedValueOnce([]);
 		const res = response();
 		const next = vi.fn();

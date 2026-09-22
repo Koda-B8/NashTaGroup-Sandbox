@@ -1,13 +1,13 @@
 /* oxlint-disable jsdoc/check-tag-names -- @openapi is consumed by swagger-jsdoc. */
 import { Router } from "express";
 
-import { getCustomerDetailReport } from "../controllers/customer-report.controller.js";
-import { getProductDetailReport } from "../controllers/product-report.controller.js";
 import {
 	exportCustomerDetailReport,
 	exportProductDetailReport,
 	exportReportData,
-} from "../controllers/report-export.controller.js";
+} from "../controllers/all-report.controller.js";
+import { getCustomerDetailReport } from "../controllers/customer-report.controller.js";
+import { getProductDetailReport } from "../controllers/product-report.controller.js";
 import {
 	getCashierReport,
 	getCustomerReport,

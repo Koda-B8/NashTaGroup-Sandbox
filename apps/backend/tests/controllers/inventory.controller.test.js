@@ -7,8 +7,13 @@ import {
 	adjustStock,
 	getInventories,
 } from "../../src/controllers/inventory.controller.js";
+import { emitInventoryUpdated } from "../../src/lib/inventory-realtime.js";
 import { paginate } from "../../src/lib/pagination.js";
 import db from "../../src/models/index.cjs";
+
+vi.mock("../../src/lib/inventory-realtime.js", () => ({
+	emitInventoryUpdated: vi.fn(),
+}));
 
 vi.mock("../../src/lib/pagination.js", () => ({
 	paginate: vi.fn(),
@@ -279,6 +284,11 @@ describe("inventory controller", () => {
 			{ transaction },
 		);
 		expect(response.status).toHaveBeenCalledWith(constants.HTTP_STATUS_CREATED);
+		expect(emitInventoryUpdated).toHaveBeenCalledWith(
+			undefined,
+			[productItemId],
+			"manual_adjustment",
+		);
 		expect(response.json).toHaveBeenCalledWith({
 			success: true,
 			message: "Stock adjusted successfully",
@@ -319,6 +329,7 @@ describe("inventory controller", () => {
 
 		expect(inventory.update).not.toHaveBeenCalled();
 		expect(db.InventoryMovements.create).not.toHaveBeenCalled();
+		expect(emitInventoryUpdated).not.toHaveBeenCalled();
 		expect(next).toHaveBeenCalledWith(
 			expect.objectContaining({
 				statusCode: constants.HTTP_STATUS_BAD_REQUEST,

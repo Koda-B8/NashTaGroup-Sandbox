@@ -14,32 +14,32 @@ const unauthorized = (
 		message,
 	});
 
-async function authMiddleware(req, res, next) {
-	const cookieToken = req.cookies?.auth_token;
-	let token =
-		typeof cookieToken === "string" && cookieToken ? cookieToken : undefined;
+export function getRequestToken(request) {
+	const cookieToken = request.cookies?.auth_token;
+	if (typeof cookieToken === "string" && cookieToken) return cookieToken;
 
-	if (!token) {
-		const authHeader = req.header("Authorization");
-		const [scheme, bearerToken, ...extraParts] =
-			authHeader?.trim().split(/\s+/) ?? [];
+	const authHeader =
+		request.header?.("Authorization") ?? request.headers?.authorization;
+	const [scheme, bearerToken, ...extraParts] =
+		authHeader?.trim().split(/\s+/) ?? [];
 
-		if (
-			scheme?.toLowerCase() !== "bearer" ||
-			!bearerToken ||
-			extraParts.length > 0
-		) {
-			return unauthorized(res, "Unauthorized: token tidak ditemukan");
-		}
-
-		token = bearerToken;
+	if (
+		scheme?.toLowerCase() !== "bearer" ||
+		!bearerToken ||
+		extraParts.length > 0
+	) {
+		return;
 	}
 
+	return bearerToken;
+}
+
+export async function authenticateToken(token) {
 	let decoded;
 	try {
 		decoded = verifyToken(token);
 	} catch {
-		return unauthorized(res);
+		return;
 	}
 
 	if (
@@ -48,32 +48,39 @@ async function authMiddleware(req, res, next) {
 		typeof decoded.userId !== "string" ||
 		!decoded.userId
 	) {
-		return unauthorized(res);
+		return;
 	}
 
+	const user = await Users.findByPk(decoded.userId, {
+		include: [
+			{
+				model: Roles,
+				as: "role",
+				attributes: ["name"],
+				required: true,
+			},
+		],
+	});
+
+	if (!user?.isActive || typeof user.role?.name !== "string") return;
+
+	return {
+		id: user.id,
+		username: user.username,
+		fullname: user.fullname,
+		role: user.role.name,
+	};
+}
+
+async function authMiddleware(req, res, next) {
+	const token = getRequestToken(req);
+	if (!token) return unauthorized(res, "Unauthorized: token tidak ditemukan");
+
 	try {
-		const user = await Users.findByPk(decoded.userId, {
-			include: [
-				{
-					model: Roles,
-					as: "role",
-					attributes: ["name"],
-					required: true,
-				},
-			],
-		});
+		const user = await authenticateToken(token);
+		if (!user) return unauthorized(res);
 
-		if (!user?.isActive || typeof user.role?.name !== "string") {
-			return unauthorized(res);
-		}
-
-		req.user = {
-			id: user.id,
-			username: user.username,
-			fullname: user.fullname,
-			role: user.role.name,
-		};
-
+		req.user = user;
 		return next();
 	} catch (error) {
 		return next(error);

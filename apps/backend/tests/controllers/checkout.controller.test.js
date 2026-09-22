@@ -3,7 +3,12 @@ import { constants } from "node:http2";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { checkout } from "../../src/controllers/checkout.controller.js";
+import { emitInventoryUpdated } from "../../src/lib/inventory-realtime.js";
 import db from "../../src/models/index.cjs";
+
+vi.mock("../../src/lib/inventory-realtime.js", () => ({
+	emitInventoryUpdated: vi.fn(),
+}));
 
 vi.mock("../../src/models/index.cjs", () => ({
 	default: {
@@ -236,6 +241,11 @@ describe("checkout controller", () => {
 			{ transaction: databaseTransaction },
 		);
 		expect(response.status).toHaveBeenCalledWith(constants.HTTP_STATUS_CREATED);
+		expect(emitInventoryUpdated).toHaveBeenCalledWith(
+			undefined,
+			[productItemId],
+			"checkout",
+		);
 		expect(response.json).toHaveBeenCalledWith(
 			expect.objectContaining({
 				success: true,
@@ -267,6 +277,7 @@ describe("checkout controller", () => {
 
 		expect(db.Transactions.create).not.toHaveBeenCalled();
 		expect(inventory.update).not.toHaveBeenCalled();
+		expect(emitInventoryUpdated).not.toHaveBeenCalled();
 		expect(response.status).toHaveBeenCalledWith(constants.HTTP_STATUS_OK);
 		expect(response.json).toHaveBeenCalledWith(
 			expect.objectContaining({
@@ -339,6 +350,7 @@ describe("checkout controller", () => {
 		expect(inventory.update).not.toHaveBeenCalled();
 		expect(db.InventoryMovements.create).not.toHaveBeenCalled();
 		expect(db.Payments.create).not.toHaveBeenCalled();
+		expect(emitInventoryUpdated).not.toHaveBeenCalled();
 	});
 
 	it("completes an existing-member checkout using a normalized phone", async () => {

@@ -9,6 +9,10 @@ import {
 	logout,
 } from "../../src/controllers/auth.controller.js";
 import { signToken } from "../../src/lib/jwt.js";
+import {
+	authenticateToken,
+	getRequestToken,
+} from "../../src/middleware/auth.js";
 import db from "../../src/models/index.cjs";
 
 vi.mock("argon2", () => ({
@@ -17,6 +21,11 @@ vi.mock("argon2", () => ({
 
 vi.mock("../../src/lib/jwt.js", () => ({
 	signToken: vi.fn(),
+}));
+
+vi.mock("../../src/middleware/auth.js", () => ({
+	authenticateToken: vi.fn(),
+	getRequestToken: vi.fn(),
 }));
 
 vi.mock("../../src/models/index.cjs", () => ({
@@ -42,10 +51,15 @@ const createResponse = () => ({
 });
 
 describe("auth controller logout", () => {
-	it("clears authentication and CSRF cookies", () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+		vi.mocked(getRequestToken).mockReturnValue();
+	});
+
+	it("clears authentication and CSRF cookies without a token", async () => {
 		const response = createResponse();
 
-		logout({}, response);
+		await logout({}, response);
 
 		const expectedOptions = {
 			httpOnly: true,
@@ -69,6 +83,63 @@ describe("auth controller logout", () => {
 			message: "Logout successful",
 			data: {},
 		});
+	});
+
+	it("disconnects all realtime sockets for a valid token", async () => {
+		const response = createResponse();
+		const disconnectSockets = vi.fn();
+		const io = { in: vi.fn(() => ({ disconnectSockets })) };
+		vi.mocked(getRequestToken).mockReturnValue("valid-token");
+		vi.mocked(authenticateToken).mockResolvedValue({ id: user.id });
+
+		await logout({ app: { get: vi.fn(() => io) } }, response);
+
+		expect(authenticateToken).toHaveBeenCalledWith("valid-token");
+		expect(io.in).toHaveBeenCalledWith(`user:${user.id}`);
+		expect(disconnectSockets).toHaveBeenCalledWith(true);
+		expect(response.status).toHaveBeenCalledWith(constants.HTTP_STATUS_OK);
+	});
+
+	it("clears cookies when the token is invalid", async () => {
+		const response = createResponse();
+		vi.mocked(getRequestToken).mockReturnValue("invalid-token");
+		vi.mocked(authenticateToken).mockResolvedValue();
+
+		await logout({}, response);
+
+		expect(response.clearCookie).toHaveBeenCalledWith(
+			"auth_token",
+			expect.any(Object),
+		);
+		expect(response.clearCookie).toHaveBeenCalledWith(
+			"csrf_token",
+			expect.any(Object),
+		);
+		expect(response.status).toHaveBeenCalledWith(constants.HTTP_STATUS_OK);
+	});
+
+	it("keeps logout successful when socket disconnect fails", async () => {
+		const response = createResponse();
+		const warning = vi.spyOn(console, "warn").mockImplementation(() => {});
+		const io = {
+			in: vi.fn(() => ({
+				disconnectSockets: vi.fn(() => {
+					throw new Error("socket unavailable");
+				}),
+			})),
+		};
+		vi.mocked(getRequestToken).mockReturnValue("valid-token");
+		vi.mocked(authenticateToken).mockResolvedValue({ id: user.id });
+
+		await logout({ app: { get: () => io } }, response);
+
+		expect(response.status).toHaveBeenCalledWith(constants.HTTP_STATUS_OK);
+		expect(response.json).toHaveBeenCalledWith({
+			success: true,
+			message: "Logout successful",
+			data: {},
+		});
+		warning.mockRestore();
 	});
 });
 

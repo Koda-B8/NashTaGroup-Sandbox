@@ -2,6 +2,7 @@ import { constants } from "node:http2";
 
 import { Op } from "sequelize";
 
+import { emitInventoryUpdated } from "../lib/inventory-realtime.js";
 import { paginate } from "../lib/pagination.js";
 import db from "../models/index.cjs";
 import { createHttpError } from "../utils/http-error.js";
@@ -283,6 +284,11 @@ export async function adjustStock(request, response, next) {
 				createdAt: inventoryMovement.createdAt,
 			};
 		});
+		emitInventoryUpdated(
+			request.app,
+			[result.productItemId],
+			"manual_adjustment",
+		);
 
 		return response.status(constants.HTTP_STATUS_CREATED).json({
 			success: true,

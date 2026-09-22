@@ -5,6 +5,7 @@ import process from "node:process";
 import argon2 from "argon2";
 
 import { signToken } from "../lib/jwt.js";
+import { authenticateToken, getRequestToken } from "../middleware/auth.js";
 import db from "../models/index.cjs";
 
 const { Roles, Users } = db;
@@ -102,7 +103,18 @@ export function getCsrfToken(_request, response) {
 	});
 }
 
-export function logout(_request, response) {
+export async function logout(request, response) {
+	try {
+		const token = getRequestToken(request);
+		const user = token && (await authenticateToken(token));
+		const io = request.app?.get?.("io");
+		if (typeof user?.id === "string" && io) {
+			io.in(`user:${user.id}`).disconnectSockets(true);
+		}
+	} catch (error) {
+		console.warn("Unable to disconnect realtime sockets during logout:", error);
+	}
+
 	response.clearCookie("auth_token", cookieSecurityOptions);
 	response.clearCookie("csrf_token", cookieSecurityOptions);
 

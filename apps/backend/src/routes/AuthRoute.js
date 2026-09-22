@@ -93,10 +93,7 @@ router.post("/login", loginLimiter, login);
  *   post:
  *     tags: [Auth]
  *     summary: Log out and clear authentication cookies
- *     description: Clears the authentication and CSRF cookies. Bearer-token clients must also discard their token locally.
- *     security:
- *       - cookieAuth: []
- *         csrfToken: []
+ *     description: Clears the authentication and CSRF cookies even when the token is missing, invalid, or expired. When an auth cookie is sent, global CSRF protection still applies.
  *     responses:
  *       200:
  *         description: Logout successful

@@ -4,29 +4,29 @@ import { Op } from "sequelize";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-	deleteProductImage as deleteCloudinaryImage,
-	uploadProductImage as uploadCloudinaryImage,
-} from "../lib/cloudinary.js";
-import { paginate } from "../lib/pagination.js";
-import db from "../models/index.cjs";
-import {
 	createProduct,
 	deleteProduct,
 	getProductById,
 	getProducts,
 	updateProduct,
-} from "./product.controller.js";
+} from "../../src/controllers/product.controller.js";
+import {
+	deleteProductImage as deleteCloudinaryImage,
+	uploadProductImage as uploadCloudinaryImage,
+} from "../../src/lib/cloudinary.js";
+import { paginate } from "../../src/lib/pagination.js";
+import db from "../../src/models/index.cjs";
 
 const databaseMocks = vi.hoisted(() => ({ transaction: vi.fn() }));
 
-vi.mock("../lib/cloudinary.js", () => ({
+vi.mock("../../src/lib/cloudinary.js", () => ({
 	deleteProductImage: vi.fn(),
 	uploadProductImage: vi.fn(),
 }));
 
-vi.mock("../lib/pagination.js", () => ({ paginate: vi.fn() }));
+vi.mock("../../src/lib/pagination.js", () => ({ paginate: vi.fn() }));
 
-vi.mock("../models/index.cjs", () => ({
+vi.mock("../../src/models/index.cjs", () => ({
 	default: {
 		Brands: { findByPk: vi.fn() },
 		Categories: { findByPk: vi.fn() },

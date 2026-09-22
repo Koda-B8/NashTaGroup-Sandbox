@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { isUuid, normalizeText } from "./validation.js";
+import { isUuid, normalizeText } from "../../src/utils/validation.js";
 
 describe("isUuid", () => {
 	it("recognizes valid UUIDs", () => {

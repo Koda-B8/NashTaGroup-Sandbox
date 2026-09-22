@@ -2,10 +2,10 @@ import { constants } from "node:http2";
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import db from "../models/index.cjs";
-import { checkout } from "./checkout.controller.js";
+import { checkout } from "../../src/controllers/checkout.controller.js";
+import db from "../../src/models/index.cjs";
 
-vi.mock("../models/index.cjs", () => ({
+vi.mock("../../src/models/index.cjs", () => ({
 	default: {
 		Customers: {
 			create: vi.fn(),

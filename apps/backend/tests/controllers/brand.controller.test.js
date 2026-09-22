@@ -3,10 +3,14 @@ import { constants } from "node:http2";
 import { UniqueConstraintError } from "sequelize";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import db from "../models/index.cjs";
-import { createBrand, deleteBrand, updateBrand } from "./brand.controller.js";
+import {
+	createBrand,
+	deleteBrand,
+	updateBrand,
+} from "../../src/controllers/brand.controller.js";
+import db from "../../src/models/index.cjs";
 
-vi.mock("../models/index.cjs", () => ({
+vi.mock("../../src/models/index.cjs", () => ({
 	default: {
 		Brands: { create: vi.fn(), findByPk: vi.fn() },
 		Products: { count: vi.fn() },

@@ -3,7 +3,7 @@ import { PassThrough } from "node:stream";
 import { v2 as cloudinary } from "cloudinary";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { uploadProductImage } from "./cloudinary.js";
+import { uploadProductImage } from "../../src/lib/cloudinary.js";
 
 const cloudinaryMocks = vi.hoisted(() => ({ uploadResult: vi.fn() }));
 

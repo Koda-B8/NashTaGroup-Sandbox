@@ -2,10 +2,10 @@ import { constants } from "node:http2";
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import db from "../models/index.cjs";
-import { getPaymentMethods } from "./payment-method.controller.js";
+import { getPaymentMethods } from "../../src/controllers/payment-method.controller.js";
+import db from "../../src/models/index.cjs";
 
-vi.mock("../models/index.cjs", () => ({
+vi.mock("../../src/models/index.cjs", () => ({
 	default: {
 		PaymentMethods: {
 			findAll: vi.fn(),

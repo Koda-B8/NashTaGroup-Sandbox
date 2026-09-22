@@ -3,18 +3,18 @@ import { constants } from "node:http2";
 import { Op } from "sequelize";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { paginate } from "../lib/pagination.js";
-import db from "../models/index.cjs";
 import {
 	getTransactionById,
 	getTransactions,
-} from "./transaction.controller.js";
+} from "../../src/controllers/transaction.controller.js";
+import { paginate } from "../../src/lib/pagination.js";
+import db from "../../src/models/index.cjs";
 
-vi.mock("../lib/pagination.js", () => ({
+vi.mock("../../src/lib/pagination.js", () => ({
 	paginate: vi.fn(),
 }));
 
-vi.mock("../models/index.cjs", () => ({
+vi.mock("../../src/models/index.cjs", () => ({
 	default: {
 		Customers: {},
 		PaymentMethods: {},

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { parseBoolean, parseSearch } from "./query.js";
+import { parseBoolean, parseSearch } from "../../src/utils/query.js";
 
 describe("parseBoolean", () => {
 	it("parses boolean query-string values", () => {

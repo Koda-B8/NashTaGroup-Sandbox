@@ -3,16 +3,16 @@ import { constants } from "node:http2";
 import { Op, UniqueConstraintError } from "sequelize";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import db from "../models/index.cjs";
 import {
 	createCategory,
 	deleteCategory,
 	getCategories,
 	getCategoryById,
 	updateCategory,
-} from "./category.controller.js";
+} from "../../src/controllers/category.controller.js";
+import db from "../../src/models/index.cjs";
 
-vi.mock("../models/index.cjs", () => ({
+vi.mock("../../src/models/index.cjs", () => ({
 	default: {
 		Categories: {
 			create: vi.fn(),

@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import db from "../models/index.cjs";
-import { exportReportPdf } from "./report-pdf.controller.js";
+import { exportReportPdf } from "../../src/controllers/report-pdf.controller.js";
+import db from "../../src/models/index.cjs";
 
-vi.mock("../models/index.cjs", () => ({
+vi.mock("../../src/models/index.cjs", () => ({
 	default: { sequelize: { query: vi.fn() } },
 }));
 

@@ -4,7 +4,7 @@ import {
 	createPaginationMetadata,
 	paginate,
 	parsePagination,
-} from "./pagination.js";
+} from "../../src/lib/pagination.js";
 
 describe("parsePagination", () => {
 	it("uses the default pagination values", () => {

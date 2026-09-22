@@ -3,16 +3,16 @@ import { constants } from "node:http2";
 import { Op } from "sequelize";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import db from "../models/index.cjs";
 import {
 	CreateUser,
 	deleteUser,
 	getUserById,
 	getUsers,
 	updateUser,
-} from "./user.controller.js";
+} from "../../src/controllers/user.controller.js";
+import db from "../../src/models/index.cjs";
 
-vi.mock("../models/index.cjs", () => ({
+vi.mock("../../src/models/index.cjs", () => ({
 	default: {
 		Roles: { findOne: vi.fn() },
 		Users: { create: vi.fn(), findAndCountAll: vi.fn(), findByPk: vi.fn() },

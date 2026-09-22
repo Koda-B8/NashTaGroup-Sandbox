@@ -3,10 +3,10 @@ import { constants } from "node:http2";
 import { Op } from "sequelize";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import db from "../models/index.cjs";
-import { getCashierProducts } from "./cashier-product.controller.js";
+import { getCashierProducts } from "../../src/controllers/cashier-product.controller.js";
+import db from "../../src/models/index.cjs";
 
-vi.mock("../models/index.cjs", () => ({
+vi.mock("../../src/models/index.cjs", () => ({
 	default: {
 		Brands: {},
 		Categories: {},

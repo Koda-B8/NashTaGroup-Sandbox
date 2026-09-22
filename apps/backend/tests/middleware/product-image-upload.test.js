@@ -1,7 +1,7 @@
 import express from "express";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import productImageUpload from "./product-image-upload.js";
+import productImageUpload from "../../src/middleware/product-image-upload.js";
 
 const app = express();
 app.post("/upload", productImageUpload, (_request, response) =>

@@ -2,15 +2,15 @@ import { constants } from "node:http2";
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { verifyToken } from "../lib/jwt.js";
-import db from "../models/index.cjs";
-import authMiddleware from "./auth.js";
+import { verifyToken } from "../../src/lib/jwt.js";
+import authMiddleware from "../../src/middleware/auth.js";
+import db from "../../src/models/index.cjs";
 
-vi.mock("../lib/jwt.js", () => ({
+vi.mock("../../src/lib/jwt.js", () => ({
 	verifyToken: vi.fn(),
 }));
 
-vi.mock("../models/index.cjs", () => ({
+vi.mock("../../src/models/index.cjs", () => ({
 	default: {
 		Roles: {},
 		Users: { findByPk: vi.fn() },

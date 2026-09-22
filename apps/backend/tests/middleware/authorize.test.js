@@ -2,7 +2,7 @@ import { constants } from "node:http2";
 
 import { describe, expect, it, vi } from "vitest";
 
-import { requireRole } from "./authorize.js";
+import { requireRole } from "../../src/middleware/authorize.js";
 
 const createResponse = () => ({
 	status: vi.fn().mockReturnThis(),

@@ -3,18 +3,18 @@ import { constants } from "node:http2";
 import { Op, UniqueConstraintError } from "sequelize";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import db from "../models/index.cjs";
 import {
 	createProductItem,
 	deleteProductItem,
 	getProductItemById,
 	getProductItems,
 	updateProductItem,
-} from "./product-item.controller.js";
+} from "../../src/controllers/product-item.controller.js";
+import db from "../../src/models/index.cjs";
 
 const databaseMocks = vi.hoisted(() => ({ transaction: vi.fn() }));
 
-vi.mock("../models/index.cjs", () => ({
+vi.mock("../../src/models/index.cjs", () => ({
 	default: {
 		Brands: {},
 		Categories: {},

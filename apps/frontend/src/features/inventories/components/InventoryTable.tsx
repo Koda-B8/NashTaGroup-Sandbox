@@ -1,16 +1,16 @@
 import PaginationControls from "../../../components/PaginationControls";
 import ActionMenu from "../../../components/ui/action-menu";
 import Avatar from "../../../components/ui/avatar";
-import Badge from "../../../components/ui/badge";
 import Card from "../../../components/ui/card";
 import Checkbox from "../../../components/ui/checkbox";
-import { ActiveBadge } from "../../../components/ui/status-badge";
-import { formatDate, getRoleName } from "../../../libs/format";
-import type { User } from "../api";
+import { dotColor } from "../../../libs/format";
+import type { InventoryItem } from "../api";
+import { STOCK_STATUS_TEXT, rowClassName } from "../format";
+import StockStatusBadge from "./StockStatusBadge";
 
 interface Props {
 	loading: boolean;
-	paged: User[];
+	paged: InventoryItem[];
 	selectedId: string | undefined;
 	selectedIds: Set<string>;
 	allPageSelected: boolean;
@@ -24,7 +24,9 @@ interface Props {
 	totalLabel: string;
 }
 
-export default function UserTable({
+const HEAD_CELL = "px-3 py-3 text-xs font-semibold text-text";
+
+export default function InventoryTable({
 	loading,
 	paged,
 	selectedId,
@@ -47,7 +49,7 @@ export default function UserTable({
 			<div className="overflow-x-auto">
 				<table
 					className="w-full text-left text-sm"
-					aria-label="Users"
+					aria-label="Inventory"
 				>
 					<thead className="border-b border-base-border bg-base">
 						<tr>
@@ -59,42 +61,48 @@ export default function UserTable({
 									checked={allPageSelected}
 									indeterminate={somePageSelected}
 									onCheckedChange={(c) => onToggleAll(c === true)}
-									aria-label="Select all users on this page"
+									aria-label="Select all inventory on this page"
 								/>
 							</th>
 							<th
 								scope="col"
-								className="px-3 py-3 text-xs font-semibold text-text"
+								className={HEAD_CELL}
 							>
-								Name
+								Product
 							</th>
 							<th
 								scope="col"
-								className="px-3 py-3 text-xs font-semibold text-text"
+								className={HEAD_CELL}
 							>
-								Username
+								Variant
 							</th>
 							<th
 								scope="col"
-								className="px-3 py-3 text-xs font-semibold text-text"
+								className={HEAD_CELL}
 							>
-								Role
+								Brand
 							</th>
 							<th
 								scope="col"
-								className="px-3 py-3 text-xs font-semibold text-text"
+								className={HEAD_CELL}
+							>
+								Category
+							</th>
+							<th
+								scope="col"
+								className={HEAD_CELL}
+							>
+								Stock
+							</th>
+							<th
+								scope="col"
+								className={HEAD_CELL}
 							>
 								Status
 							</th>
 							<th
 								scope="col"
-								className="px-3 py-3 text-xs font-semibold text-text"
-							>
-								Created
-							</th>
-							<th
-								scope="col"
-								className="w-10 px-3 py-3"
+								className="w-12 px-3 py-3"
 								aria-label="Actions"
 							/>
 						</tr>
@@ -103,25 +111,24 @@ export default function UserTable({
 						{loading ? (
 							<tr>
 								<td
-									colSpan={7}
+									colSpan={8}
 									className="px-4 py-10 text-center text-sm text-text"
 								>
-									Memuat users...
+									Memuat inventory...
 								</td>
 							</tr>
 						) : paged.length === 0 ? (
 							<tr>
 								<td
-									colSpan={7}
+									colSpan={8}
 									className="px-4 py-10 text-center text-sm text-text"
 								>
-									No users found.
+									No inventory found.
 								</td>
 							</tr>
 						) : (
-							paged.map((row) => {
+							paged.map((row, index) => {
 								const isActiveRow = row.id === selectedId;
-								const status = row.is_active ? "Active" : "Inactive";
 								return (
 									<tr
 										key={row.id}
@@ -133,7 +140,7 @@ export default function UserTable({
 											}
 										}}
 										tabIndex={0}
-										className={`cursor-pointer focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary ${isActiveRow ? "bg-primary-light/50" : "hover:bg-base/60"}`}
+										className={`cursor-pointer border-l-2 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary ${rowClassName(isActiveRow, index)}`}
 									>
 										<td
 											className="px-3 py-3"
@@ -142,63 +149,65 @@ export default function UserTable({
 											<Checkbox
 												checked={selectedIds.has(row.id)}
 												onCheckedChange={(c) => onToggleOne(row.id, c === true)}
-												aria-label={`Select ${row.fullname}`}
+												aria-label={`Select ${row.productName}`}
 											/>
 										</td>
 										<td className="px-3 py-3">
 											<div className="flex items-center gap-2.5">
 												<Avatar
-													name={row.fullname}
 													size="sm"
+													shape="square"
+													name={row.productName}
 												/>
 												<div className="min-w-0">
-													<p
-														className={`truncate text-sm font-medium ${isActiveRow ? "text-primary" : "text-text-h"}`}
+													<span
+														className={`block truncate text-sm font-medium ${isActiveRow ? "text-primary" : "text-text-h"}`}
 													>
-														{row.fullname}
-													</p>
-													<p className="truncate text-[11px] text-text">
-														{row.id.slice(0, 8)}…
-													</p>
+														{row.productName}
+													</span>
+													<span
+														className="block truncate text-[11px] text-text"
+														title={row.id}
+													>
+														{row.productCode || row.id}
+													</span>
 												</div>
 											</div>
 										</td>
-										<td className="px-3 py-3 text-sm text-text-h">
-											{row.username}
+										<td className="px-3 py-3 text-xs text-text">
+											{row.variantName || "—"}
+										</td>
+										<td className="px-3 py-3 text-xs text-text">{row.brand}</td>
+										<td className="px-3 py-3">
+											<span className="inline-flex items-center gap-1.5 text-xs text-text">
+												<span
+													className="size-2 shrink-0 rounded-full"
+													style={{ backgroundColor: dotColor(row.category) }}
+													aria-hidden
+												/>
+												{row.category}
+											</span>
 										</td>
 										<td className="px-3 py-3">
-											<Badge
-												variant={
-													getRoleName(row.role) === "admin" ? "info" : "neutral"
-												}
-												size="sm"
+											<span
+												className={`text-sm font-semibold ${STOCK_STATUS_TEXT[row.stockStatus]}`}
 											>
-												{getRoleName(row.role)}
-											</Badge>
+												{row.stock}
+											</span>
 										</td>
 										<td className="px-3 py-3">
-											<ActiveBadge isActive={row.isActive} />
-										</td>
-										<td className="px-3 py-3 text-sm text-text">
-											{formatDate(row.createdAt)}
+											<StockStatusBadge status={row.stockStatus} />
 										</td>
 										<td
 											className="px-3 py-3"
 											onClick={(e) => e.stopPropagation()}
 										>
 											<ActionMenu
-												label={`Actions for ${row.fullname}`}
+												label={`Actions for ${row.productName}`}
 												items={[
 													{
 														label: "View detail",
 														onSelect: () => onSelect(row.id),
-													},
-													{ label: "Edit", onSelect: () => onSelect(row.id) },
-													{
-														label:
-															status === "Active" ? "Deactivate" : "Activate",
-														onSelect: () => {},
-														danger: status === "Active",
 													},
 												]}
 											/>

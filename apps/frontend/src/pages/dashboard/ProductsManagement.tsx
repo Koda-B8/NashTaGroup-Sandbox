@@ -10,19 +10,19 @@ import { ConfirmModal } from "../../components/ui/modal";
 import Section from "../../components/ui/section";
 import Select from "../../components/ui/select";
 import Toast from "../../components/ui/toast";
+import AdjustStockModal from "../../features/inventories/components/AdjustStockModal";
 import {
 	type Product,
 	type ProductItem,
 	deleteProduct as deleteProductApi,
 	deleteProductItem as deleteProductItemApi,
 } from "../../features/products/api";
-import ProductDetailModal from "../../features/products/components/ProductDetailModal";
 import ProductFormModal from "../../features/products/components/ProductFormModal";
-import ProductItemFormModal from "../../features/products/components/ProductItemFormModal";
 import ProductOverview from "../../features/products/components/ProductOverview";
 import ProductTable from "../../features/products/components/ProductTable";
 import {
 	SORT_OPTIONS,
+	toNumber,
 	type SortBy,
 	type StatusFilter,
 } from "../../features/products/format";
@@ -38,13 +38,12 @@ export default function ProductsManagementDashboard() {
 	const [sortBy, setSortBy] = useState<SortBy>("name_asc");
 	const [page, setPage] = useState(0);
 	const [showForm, setShowForm] = useState(false);
-	const [formProduct, setFormProduct] = useState<Product | null>(null);
-	const [showDetail, setShowDetail] = useState(false);
-	const [returnToDetail, setReturnToDetail] = useState(false);
-	const [showItemForm, setShowItemForm] = useState(false);
-	const [formItem, setFormItem] = useState<ProductItem | null>(null);
+	const [creatingProduct, setCreatingProduct] = useState(false);
+	const [returnToForm, setReturnToForm] = useState(false);
 	const [itemToDelete, setItemToDelete] = useState<ProductItem | null>(null);
 	const [deletingItem, setDeletingItem] = useState(false);
+	const [showAdjust, setShowAdjust] = useState(false);
+	const [adjustItem, setAdjustItem] = useState<ProductItem | null>(null);
 	const [showDelete, setShowDelete] = useState(false);
 	const [deleting, setDeleting] = useState(false);
 	const pageSize = 8;
@@ -63,8 +62,6 @@ export default function ProductsManagementDashboard() {
 		pageCount,
 		safePage,
 		stats,
-		categoryOptions,
-		brandOptions,
 	} = useProductsList({
 		debouncedSearch,
 		statusFilter,
@@ -84,27 +81,25 @@ export default function ProductsManagementDashboard() {
 	} = useRowSelection(paged, products.length);
 
 	const selected = useSelectedItem(sorted, selectedId, sorted[0] ?? null);
+	const formProduct = creatingProduct ? null : selected;
 
 	useEffect(() => {
 		queueMicrotask(() => setPage(0));
 	}, [debouncedSearch, statusFilter]);
 
-	const handleOpenDetail = useCallback(
+	const openProductForm = useCallback(
 		(product: Product) => {
 			setSelectedId(product.id);
-			setShowDetail(true);
-		},
-		[setSelectedId],
-	);
-
-	const handleEditProduct = useCallback(
-		(product: Product) => {
-			setSelectedId(product.id);
-			setFormProduct(product);
+			setCreatingProduct(false);
 			setShowForm(true);
 		},
 		[setSelectedId],
 	);
+
+	const openCreateForm = useCallback(() => {
+		setCreatingProduct(true);
+		setShowForm(true);
+	}, []);
 
 	const handleAskDeleteProduct = useCallback(
 		(product: Product) => {
@@ -114,41 +109,38 @@ export default function ProductsManagementDashboard() {
 		[setSelectedId],
 	);
 
-	const handleAddVariant = useCallback(() => {
-		setFormItem(null);
-		setReturnToDetail(true);
-		setShowDetail(false);
-		setShowItemForm(true);
+	const handleDeleteVariant = useCallback((item: ProductItem) => {
+		setItemToDelete(item);
+		setReturnToForm(true);
+		setShowForm(false);
 	}, []);
 
-	const handleEditVariant = useCallback((item: ProductItem) => {
-		setFormItem(item);
-		setReturnToDetail(true);
-		setShowDetail(false);
-		setShowItemForm(true);
+	const handleAdjustVariant = useCallback((item: ProductItem) => {
+		setAdjustItem(item);
+		setReturnToForm(true);
+		setShowForm(false);
+		setShowAdjust(true);
 	}, []);
 
-	const handleEditProductFromDetail = useCallback(() => {
-		setShowDetail(false);
-		setFormProduct(selected ?? null);
-		setShowForm(true);
-	}, [selected]);
+	const reopenForm = useCallback(() => {
+		if (returnToForm) {
+			setReturnToForm(false);
+			setShowForm(true);
+		}
+	}, [returnToForm]);
 
-	const handleDeleteProductFromDetail = useCallback(() => {
-		setShowDetail(false);
+	const handleAdjustOpenChange = useCallback(
+		(o: boolean) => {
+			setShowAdjust(o);
+			if (!o) reopenForm();
+		},
+		[reopenForm],
+	);
+
+	const handleDeleteProductFromForm = useCallback(() => {
+		setShowForm(false);
 		setShowDelete(true);
 	}, []);
-
-	const handleItemFormOpenChange = useCallback(
-		(o: boolean) => {
-			setShowItemForm(o);
-			if (!o && returnToDetail) {
-				setReturnToDetail(false);
-				setShowDetail(true);
-			}
-		},
-		[returnToDetail],
-	);
 
 	const handleDeleteItem = async () => {
 		if (!itemToDelete) return;
@@ -157,6 +149,7 @@ export default function ProductsManagementDashboard() {
 			await deleteProductItemApi(itemToDelete.id);
 			show("Varian berhasil dihapus");
 			setItemToDelete(null);
+			reopenForm();
 			await fetchProducts();
 		} catch (error) {
 			show(
@@ -246,10 +239,7 @@ export default function ProductsManagementDashboard() {
 							/>
 							<Button
 								size="sm"
-								onClick={() => {
-									setFormProduct(null);
-									setShowForm(true);
-								}}
+								onClick={openCreateForm}
 							>
 								<Plus size={14} />
 								Add Product
@@ -265,8 +255,8 @@ export default function ProductsManagementDashboard() {
 					selectedIds={selectedIds}
 					allPageSelected={allPageSelected}
 					somePageSelected={somePageSelected}
-					onOpenDetail={handleOpenDetail}
-					onEdit={handleEditProduct}
+					onOpenDetail={openProductForm}
+					onEdit={openProductForm}
 					onDelete={handleAskDeleteProduct}
 					onToggleAll={toggleAllPage}
 					onToggleOne={toggleOne}
@@ -275,44 +265,46 @@ export default function ProductsManagementDashboard() {
 					safePage={safePage}
 					onPageChange={setPage}
 				/>
-
-				<ProductDetailModal
-					open={showDetail}
-					onOpenChange={setShowDetail}
-					product={selected}
-					onDelete={handleDeleteProductFromDetail}
-					onEdit={handleEditProductFromDetail}
-					onAddVariant={handleAddVariant}
-					onEditVariant={handleEditVariant}
-					onDeleteVariant={setItemToDelete}
-				/>
 			</Section>
 
 			<ProductFormModal
 				open={showForm}
 				onOpenChange={setShowForm}
 				product={formProduct}
-				categoryOptions={categoryOptions}
-				brandOptions={brandOptions}
 				onSuccess={(message, variant) => {
 					show(message ?? "Product berhasil disimpan", variant);
 					fetchProducts();
 				}}
+				onDeleteVariant={handleDeleteVariant}
+				onAdjustStock={handleAdjustVariant}
+				onDeleteProduct={handleDeleteProductFromForm}
 			/>
-			<ProductItemFormModal
-				open={showItemForm}
-				onOpenChange={handleItemFormOpenChange}
-				product={selected}
-				item={formItem}
-				onSuccess={() => {
-					show("Varian berhasil disimpan");
+			<AdjustStockModal
+				open={showAdjust}
+				onOpenChange={handleAdjustOpenChange}
+				target={
+					adjustItem
+						? {
+								id: adjustItem.id,
+								label: `${selected?.name ?? ""} · ${adjustItem.name}`,
+								stock: toNumber(adjustItem.stock),
+							}
+						: null
+				}
+				onSuccess={(adjustment) => {
+					show(
+						`Stok diperbarui: ${adjustment.stockBefore} → ${adjustment.stockAfter}`,
+					);
 					fetchProducts();
 				}}
 			/>
 			<ConfirmModal
 				open={Boolean(itemToDelete)}
 				onOpenChange={(o) => {
-					if (!o) setItemToDelete(null);
+					if (!o) {
+						setItemToDelete(null);
+						reopenForm();
+					}
 				}}
 				title="Delete varian"
 				description={

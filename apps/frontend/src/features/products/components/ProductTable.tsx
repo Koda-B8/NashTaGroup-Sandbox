@@ -235,10 +235,6 @@ export default function ProductTable({
 												label={`Actions for ${row.name}`}
 												items={[
 													{
-														label: "View detail",
-														onSelect: () => onOpenDetail(row),
-													},
-													{
 														label: "Edit",
 														onSelect: () => onEdit(row),
 													},

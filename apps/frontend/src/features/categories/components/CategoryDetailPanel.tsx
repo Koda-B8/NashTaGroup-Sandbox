@@ -1,9 +1,72 @@
+import Badge from "../../../components/ui/badge";
 import Button from "../../../components/ui/button";
 import Card from "../../../components/ui/card";
-import StatTile from "../../../components/ui/stat-tile";
 import { ActiveBadge } from "../../../components/ui/status-badge";
-import { dotColor, formatDate, initials } from "../../../libs/format";
-import type { Category } from "../api";
+import { dotColor, formatDate } from "../../../libs/format";
+import type { Category, CategoryAttribute } from "../api";
+
+function AttributeRow({ attribute }: { attribute: CategoryAttribute }) {
+	const options = attribute.options ?? [];
+
+	return (
+		<div className="flex flex-col gap-1.5 py-3">
+			<div className="flex flex-wrap items-center gap-2">
+				<span className="text-sm font-medium text-text-h">
+					{attribute.name || "—"}
+				</span>
+				<Badge
+					variant="neutral"
+					size="sm"
+				>
+					{attribute.isVariant ? "Variant" : "Spesifikasi"}
+				</Badge>
+				{attribute.isRequired && (
+					<Badge
+						variant="warn"
+						size="sm"
+					>
+						Wajib
+					</Badge>
+				)}
+			</div>
+
+			{attribute.isVariant ? (
+				options.length > 0 ? (
+					<div className="flex flex-wrap items-center gap-x-3.5 gap-y-1.5">
+						{options.map((option) => (
+							<span
+								key={option.id ?? option.name}
+								className="inline-flex items-center gap-1.5 text-xs font-medium text-text-h"
+							>
+								{option.hex && (
+									<span
+										className="size-3 shrink-0 rounded-full border border-black/10"
+										style={{ backgroundColor: option.hex }}
+										aria-hidden
+									/>
+								)}
+								{option.name}
+							</span>
+						))}
+					</div>
+				) : (
+					<span className="text-xs text-text">Belum ada opsi.</span>
+				)
+			) : (
+				<span className="text-xs text-text-h">{attribute.value || "—"}</span>
+			)}
+		</div>
+	);
+}
+
+function DetailLine({ label, value }: { label: string; value: string }) {
+	return (
+		<div className="flex items-baseline justify-between gap-2">
+			<span className="text-xs text-text">{label}</span>
+			<span className="text-xs font-medium text-text-h">{value}</span>
+		</div>
+	);
+}
 
 export default function CategoryDetailPanel({
 	category,
@@ -27,6 +90,7 @@ export default function CategoryDetailPanel({
 		);
 
 	const dot = dotColor(category.name);
+	const attributes = category.attributes ?? [];
 
 	return (
 		<Card
@@ -34,65 +98,63 @@ export default function CategoryDetailPanel({
 			className="flex h-fit flex-col gap-4 xl:sticky xl:top-4"
 		>
 			<div className="flex flex-col gap-2">
-				<div className="flex items-center gap-2">
+				<div className="flex flex-wrap items-center gap-2">
 					<span
-						className="size-2.5 rounded-full"
+						className="size-2.5 shrink-0 rounded-full"
 						style={{ backgroundColor: dot }}
 						aria-hidden
 					/>
 					<p className="text-base font-bold text-text-h">{category.name}</p>
+					<ActiveBadge isActive={category.isActive} />
 				</div>
 				<p
-					className="truncate text-xs text-text"
+					className="truncate font-mono text-xs text-text"
 					title={category.id}
 				>
 					{category.id}
 				</p>
-				<ActiveBadge
-					isActive={category.isActive}
-					className="w-fit"
-				/>
 			</div>
 
 			<div className="border-t border-base-border" />
 
-			<div className="grid grid-cols-2 gap-2">
-				<StatTile
+			<div className="flex flex-col gap-1">
+				<div className="flex items-baseline justify-between gap-2">
+					<p className="text-[10px] font-semibold tracking-wider text-text uppercase">
+						Atribut
+					</p>
+					{attributes.length > 0 && (
+						<span className="text-[11px] text-text">
+							{attributes.length} atribut
+						</span>
+					)}
+				</div>
+				{attributes.length === 0 ? (
+					<p className="rounded-lg border border-dashed border-base-border px-3 py-4 text-center text-xs text-text">
+						Belum ada atribut.
+					</p>
+				) : (
+					<div className="flex flex-col divide-y divide-base-border">
+						{attributes.map((attribute, index) => (
+							<AttributeRow
+								key={attribute.id ?? `${attribute.name}-${index}`}
+								attribute={attribute}
+							/>
+						))}
+					</div>
+				)}
+			</div>
+
+			<div className="border-t border-base-border" />
+
+			<div className="flex flex-col gap-1.5">
+				<DetailLine
 					label="Created"
 					value={formatDate(category.createdAt)}
 				/>
-				<StatTile
+				<DetailLine
 					label="Last Updated"
 					value={formatDate(category.updatedAt)}
 				/>
-				<StatTile
-					label="Status"
-					value={category.isActive ? "Active" : "Inactive"}
-				/>
-				<StatTile
-					label="Name length"
-					value={`${category.name.length} chars`}
-				/>
-			</div>
-
-			<div className="border-t border-base-border" />
-
-			<div className="flex items-center gap-2 rounded-lg border border-base-border bg-base px-3 py-2.5">
-				<span
-					className="flex size-8 items-center justify-center rounded-lg text-sm font-bold"
-					style={{ backgroundColor: `${dot}14`, color: dot }}
-				>
-					{initials(category.name)}
-				</span>
-				<div className="min-w-0">
-					<p className="truncate text-xs font-medium text-text-h">
-						{category.name}
-					</p>
-					<p className="text-[11px] text-text">
-						{category.isActive ? "Active" : "Inactive"} •{" "}
-						{formatDate(category.updatedAt)}
-					</p>
-				</div>
 			</div>
 
 			<div className="grid grid-cols-2 gap-2">

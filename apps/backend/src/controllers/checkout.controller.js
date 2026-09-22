@@ -3,6 +3,7 @@ import { constants } from "node:http2";
 
 import { UniqueConstraintError } from "sequelize";
 
+import { emitInventoryUpdated } from "../lib/inventory-realtime.js";
 import db from "../models/index.cjs";
 import { createHttpError } from "../utils/http-error.js";
 import { isUuid, normalizeText } from "../utils/validation.js";
@@ -662,9 +663,16 @@ export async function checkout(request, response, next) {
 					{ transaction: databaseTransaction },
 				);
 
-				return { id: transactionRecord.id, reused: false };
+				return {
+					id: transactionRecord.id,
+					reused: false,
+					productItemIds: lockedItems.map((item) => item.productItem.id),
+				};
 			},
 		);
+		if (!result.reused) {
+			emitInventoryUpdated(request.app, result.productItemIds, "checkout");
+		}
 
 		const transaction = await findCheckoutById(result.id);
 

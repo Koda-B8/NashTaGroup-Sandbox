@@ -11,6 +11,7 @@ import paymentMethodRoute from "./PaymentMethodRoute.js";
 import productImageRoute from "./ProductImageRoute.js";
 import productItemRoute from "./ProductItemRoute.js";
 import productRoute from "./ProductRoute.js";
+import reportRoute from "./ReportRoute.js";
 import transactionRoute from "./TransactionRoute.js";
 import userRoute from "./UserRoute.js";
 
@@ -27,6 +28,7 @@ router.use("/inventories", inventoryRoute);
 router.use("/inventory-movements", inventoryMovementRoute);
 router.use("/products", productRoute);
 router.use("/product-items", productItemRoute);
+router.use("/reports", reportRoute);
 router.use("/transactions", transactionRoute);
 router.use("/users", userRoute);
 

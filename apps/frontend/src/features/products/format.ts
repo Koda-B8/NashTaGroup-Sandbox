@@ -1,4 +1,5 @@
 import { formatRupiah } from "../../libs/formatRupiah";
+import type { Category } from "../categories/api";
 import type { ProductItem } from "./api";
 
 export type StatusFilter = "All" | "Active" | "Inactive";
@@ -67,32 +68,151 @@ export function rowClassName(isSelected: boolean, index: number): string {
 
 export const PRODUCT_CODE_PATTERN = /^[A-Z0-9][A-Z0-9-]{0,49}$/;
 export const PRICE_PATTERN = /^\d{1,13}(\.\d{1,2})?$/;
+export const STOCK_PATTERN = /^\d+$/;
 
-export interface VariantDraft {
-	key: string;
-	productCode: string;
+export const MAX_COMBINATIONS = 100;
+
+export interface AttributeOptionRef {
+	id: string;
 	name: string;
+	hex?: string | null;
+}
+
+export interface AttributeDefinition {
+	id: string;
+	name: string;
+	isRequired: boolean;
+	isVariant: boolean;
+	options: AttributeOptionRef[];
+}
+
+export interface AttributeSelection {
+	attributeId: string;
+	optionId: string;
+}
+
+export interface VariantCombination {
+	key: string;
+	selections: AttributeSelection[];
+	label: string;
+	hex?: string | null;
+}
+
+export interface ProductItemDraft {
+	key: string;
+	selections: AttributeSelection[];
+	label: string;
+	hex?: string | null;
+	productCode: string;
 	price: string;
+	stock: string;
 	isActive: boolean;
 }
 
-export interface VariantDraftErrors {
+export interface ProductItemDraftErrors {
 	productCode?: string;
-	name?: string;
 	price?: string;
+	stock?: string;
 }
 
-export function createVariantDraft(key: string): VariantDraft {
-	return { key, productCode: "", name: "", price: "", isActive: true };
+export function buildAttributeDefinitions(
+	category?: Category | null,
+): AttributeDefinition[] {
+	if (!category?.attributes) return [];
+	return category.attributes.flatMap((attribute) => {
+		if (!attribute.id) return [];
+		const options = (attribute.options ?? []).flatMap((option) =>
+			option.id
+				? [{ id: option.id, name: option.name, hex: option.hex ?? null }]
+				: [],
+		);
+		if (options.length === 0) return [];
+		return [
+			{
+				id: attribute.id,
+				name: attribute.name,
+				isRequired: attribute.isRequired ?? false,
+				isVariant: attribute.isVariant ?? false,
+				options,
+			},
+		];
+	});
 }
 
-export function validateVariantDraft(draft: VariantDraft): VariantDraftErrors {
-	const errors: VariantDraftErrors = {};
+export function buildCombinations(
+	variantDefinitions: AttributeDefinition[],
+	selectedByAttribute: Record<string, string[]>,
+): VariantCombination[] {
+	const dimensions = variantDefinitions
+		.map((definition) => ({
+			definition,
+			options: (selectedByAttribute[definition.id] ?? []).flatMap((id) => {
+				const option = definition.options.find(
+					(candidate) => candidate.id === id,
+				);
+				return option ? [option] : [];
+			}),
+		}))
+		.filter((dimension) => dimension.options.length > 0);
+
+	if (dimensions.length === 0) return [];
+
+	let partials: {
+		selections: AttributeSelection[];
+		names: string[];
+		hex: string | null;
+	}[] = [{ selections: [], names: [], hex: null }];
+
+	for (const dimension of dimensions) {
+		const next: typeof partials = [];
+		for (const partial of partials) {
+			for (const option of dimension.options) {
+				next.push({
+					selections: [
+						...partial.selections,
+						{ attributeId: dimension.definition.id, optionId: option.id },
+					],
+					names: [...partial.names, option.name],
+					hex: partial.hex ?? option.hex ?? null,
+				});
+			}
+		}
+		partials = next;
+	}
+
+	return partials.map((partial) => ({
+		key: partial.selections
+			.map((selection) => `${selection.attributeId}:${selection.optionId}`)
+			.join("|"),
+		selections: partial.selections,
+		label: partial.names.join(" · "),
+		hex: partial.hex,
+	}));
+}
+
+const toCodeSegment = (value: string) =>
+	value
+		.normalize("NFKD")
+		.toUpperCase()
+		.replaceAll(/[^A-Z0-9]+/g, "-")
+		.replaceAll(/^-+|-+$/g, "");
+
+export function suggestProductCode(label: string, index: number): string {
+	const base = toCodeSegment(label).slice(0, 46).replaceAll(/-+$/g, "");
+	const code = base || `SKU-${index + 1}`;
+	return code.slice(0, 50).replaceAll(/-+$/g, "");
+}
+
+export function validateProductItemDraft(
+	draft: ProductItemDraft,
+): ProductItemDraftErrors {
+	const errors: ProductItemDraftErrors = {};
 	if (!PRODUCT_CODE_PATTERN.test(draft.productCode.trim().toUpperCase()))
 		errors.productCode = "Huruf besar, angka, dan tanda hubung (-)";
-	if (!draft.name.trim()) errors.name = "Nama varian wajib diisi";
 	const price = draft.price.trim();
 	if (!PRICE_PATTERN.test(price) || Number(price) <= 0)
 		errors.price = "Angka > 0, maksimal 2 desimal";
+	if (!STOCK_PATTERN.test(draft.stock.trim()))
+		errors.stock = "Bilangan bulat ≥ 0";
 	return errors;
 }

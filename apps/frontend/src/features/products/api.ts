@@ -10,6 +10,16 @@ export interface ProductImage {
 	url: string;
 }
 
+export interface ProductItemAttribute {
+	id?: string;
+	name?: string;
+	value?: string | null;
+	optionId?: string | null;
+	isRequired?: boolean;
+	isVariant?: boolean;
+	sortOrder?: number;
+}
+
 export interface ProductItem {
 	id: string;
 	productId?: string;
@@ -19,6 +29,7 @@ export interface ProductItem {
 	stock: number;
 	isActive?: boolean;
 	image?: ProductImage | null;
+	attributes?: ProductItemAttribute[];
 	product?: ProductRef;
 }
 
@@ -141,12 +152,26 @@ export async function listProducts(
 	return { data, meta };
 }
 
+export interface CreateProductItemAttributePayload {
+	attributeId: string;
+	optionId: string;
+}
+
+export interface CreateProductItemInput {
+	productCode: string;
+	price: string;
+	stock: number;
+	isActive?: boolean;
+	attributes?: CreateProductItemAttributePayload[];
+}
+
 export interface CreateProductPayload {
 	categoryId: string;
 	brandId: string;
 	name: string;
 	description?: string;
 	isActive?: boolean;
+	items?: CreateProductItemInput[];
 }
 
 export async function createProduct(
@@ -165,18 +190,62 @@ export async function createProduct(
 export async function updateProduct(
 	id: string,
 	payload: Partial<CreateProductPayload>,
+	image?: File | null,
 ): Promise<{ message?: string }> {
-	const res = await apiFetch(`/api/v1/products/${id}`, {
-		method: "PATCH",
-		body: JSON.stringify(payload),
-	});
+	let res: Response;
+	if (image) {
+		const form = new FormData();
+		for (const [key, value] of Object.entries(payload)) {
+			if (key === "items" || value === undefined || value === null) continue;
+			form.append(key, String(value));
+		}
+		form.append("image", image);
+		res = await apiFetch(`/api/v1/products/${id}`, {
+			method: "PATCH",
+			body: form,
+		});
+	} else {
+		res = await apiFetch(`/api/v1/products/${id}`, {
+			method: "PATCH",
+			body: JSON.stringify(payload),
+		});
+	}
 	const data = await res.json().catch(() => ({}));
 	if (!res.ok)
 		throw new Error(
 			data?.message ??
 				(res.status === 403
 					? "Hanya admin yang dapat mengubah product"
-					: `Gagal memperbarui product (${res.status})`),
+					: res.status === 413
+						? "Gambar melebihi 5 MB"
+						: res.status === 415
+							? "Format gambar harus AVIF, JPEG, PNG, atau WebP"
+							: `Gagal memperbarui product (${res.status})`),
+		);
+	return data;
+}
+
+export async function uploadProductImage(
+	productId: string,
+	image: File,
+	alt?: string,
+): Promise<{ message?: string }> {
+	const form = new FormData();
+	if (alt?.trim()) form.append("alt", alt.trim());
+	form.append("image", image);
+	const res = await apiFetch(`/api/v1/products/${productId}/images`, {
+		method: "POST",
+		body: form,
+	});
+	const data = await res.json().catch(() => ({}));
+	if (!res.ok)
+		throw new Error(
+			data?.message ??
+				(res.status === 413
+					? "Gambar melebihi 5 MB"
+					: res.status === 415
+						? "Format gambar harus AVIF, JPEG, PNG, atau WebP"
+						: `Gagal mengunggah gambar (${res.status})`),
 		);
 	return data;
 }
@@ -238,7 +307,9 @@ export interface CreateProductItemPayload {
 	productCode: string;
 	name: string;
 	price: number | string;
+	stock?: number;
 	isActive?: boolean;
+	attributes?: CreateProductItemAttributePayload[];
 }
 
 export async function createProductItem(

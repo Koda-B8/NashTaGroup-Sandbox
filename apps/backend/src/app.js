@@ -6,6 +6,7 @@ import { rateLimit } from "express-rate-limit";
 
 import swaggerSpecification from "../config/swagger.js";
 import csrfProtection from "./middleware/csrf.js";
+import listCacheInvalidation from "./middleware/list-cache-invalidation.js";
 import apiRoutes from "./routes/index.js";
 
 const app = express();
@@ -53,7 +54,13 @@ app.use(
 	}),
 );
 
-app.use("/api/v1", apiLimiter, csrfProtection, apiRoutes);
+app.use(
+	"/api/v1",
+	apiLimiter,
+	csrfProtection,
+	listCacheInvalidation,
+	apiRoutes,
+);
 
 app.use((_request, response) => {
 	return response.status(404).json({

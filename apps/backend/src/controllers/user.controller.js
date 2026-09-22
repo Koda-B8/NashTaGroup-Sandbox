@@ -2,7 +2,12 @@ import { constants } from "node:http2";
 
 import { Op } from "sequelize";
 
-import { paginate } from "../lib/pagination.js";
+import {
+	listCacheKey,
+	readListCache,
+	writeListCache,
+} from "../lib/list-cache.js";
+import { paginate, parsePagination } from "../lib/pagination.js";
 import db from "../models/index.cjs";
 import { createHttpError } from "../utils/http-error.js";
 import { parseBoolean, parseSearch } from "../utils/query.js";
@@ -63,6 +68,16 @@ export async function getUsers(request, response, next) {
 				"role must be either admin or cashier",
 			);
 		}
+		const { page, limit } = parsePagination(request.query);
+		const cacheKey = await listCacheKey("users", {
+			search,
+			isActive,
+			role,
+			page,
+			limit,
+		});
+		const cached = await readListCache(cacheKey);
+		if (cached) return response.status(constants.HTTP_STATUS_OK).json(cached);
 
 		const where = {};
 		if (search) {
@@ -81,12 +96,14 @@ export async function getUsers(request, response, next) {
 			distinct: true,
 		});
 
-		return response.status(constants.HTTP_STATUS_OK).json({
+		const body = {
 			success: true,
 			message: "Users retrieved successfully",
 			data: rows.map((user) => toUserResponse(user)),
 			meta: { pagination },
-		});
+		};
+		await writeListCache(cacheKey, body);
+		return response.status(constants.HTTP_STATUS_OK).json(body);
 	} catch (error) {
 		return next(error);
 	}

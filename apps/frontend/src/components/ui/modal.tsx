@@ -18,6 +18,9 @@ const popup = tv({
 			"lg": "max-w-lg",
 			"xl": "max-w-xl",
 			"2xl": "max-w-2xl",
+			"3xl": "max-w-3xl",
+			"4xl": "max-w-4xl",
+			"5xl": "max-w-5xl",
 		},
 	},
 	defaultVariants: { size: "md" },
@@ -28,7 +31,7 @@ export interface ModalProps {
 	onOpenChange: (open: boolean) => void;
 	title?: string;
 	description?: string;
-	size?: "sm" | "md" | "lg" | "xl" | "2xl";
+	size?: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl";
 	children: ReactNode;
 	/** show close button in header, defaults true when title is set */
 	showClose?: boolean;

@@ -1,6 +1,15 @@
-import { Link } from "react-router";
+import { Loader2, LogOutIcon } from "lucide-react";
+import { useState } from "react";
+import { useDispatch } from "react-redux";
+import { Link, useNavigate } from "react-router";
 
+import { logout } from "../features/auth/api";
+import { clearCsrfCache } from "../libs/api";
+import type { AppDispatch } from "../store";
+import { clearCredentials } from "../store/slices/auth";
+import { clearCart } from "../store/slices/cart";
 import Breadcrumb from "./ui/breadcrumb";
+import Button from "./ui/button";
 
 interface SearchBoxProps {
 	onSearch?: (value: string) => void;
@@ -27,6 +36,7 @@ export default function Navbar() {
 			<section className="flex items-center gap-3">
 				<SearchBox />
 				<CartAction count={4} />
+				<LogoutAction />
 			</section>
 		</nav>
 	);
@@ -46,6 +56,40 @@ function SearchBox({ onSearch }: SearchBoxProps) {
 				type="text"
 			/>
 		</form>
+	);
+}
+
+function LogoutAction() {
+	const dispatch = useDispatch<AppDispatch>();
+	const navigate = useNavigate();
+	const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+	async function handleLogout(): Promise<void> {
+		setIsLoggingOut(true);
+		await logout();
+		dispatch(clearCredentials());
+		dispatch(clearCart());
+		clearCsrfCache();
+		navigate("/login", { replace: true });
+	}
+
+	return (
+		<Button
+			variant="ghost"
+			size="icon"
+			aria-label="Log out"
+			disabled={isLoggingOut}
+			onClick={handleLogout}
+		>
+			{isLoggingOut ? (
+				<Loader2
+					size={16}
+					className="animate-spin"
+				/>
+			) : (
+				<LogOutIcon size={16} />
+			)}
+		</Button>
 	);
 }
 

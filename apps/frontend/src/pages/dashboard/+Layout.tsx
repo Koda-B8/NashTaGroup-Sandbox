@@ -86,6 +86,7 @@ const SIDEBAR_NAV_GROUPS: SidebarNavGroup[] = [
 				children: [
 					{ label: "All Products", path: "/dashboard/products" },
 					{ label: "Categories", path: "/dashboard/products/categories" },
+					{ label: "Brands", path: "/dashboard/products/brands" },
 					{ label: "Inventory", path: "/dashboard/products/inventory" },
 				],
 			},

@@ -1,6 +1,7 @@
 import { Plus, ChevronLeft, ChevronRight, X, Minus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
+import { useOutletContext, useSearchParams } from "react-router";
 
 import CardSkel from "../components/CardSkel";
 import Button from "../components/ui/button";
@@ -12,18 +13,18 @@ import type { AppDispatch } from "../store";
 import { addToCart, type CartItem } from "../store/slices/cart";
 
 interface Page {
-	page: string;
+	page: number;
 }
 
 const pages: Page[] = [
 	{
-		page: "1",
+		page: 1,
 	},
 	{
-		page: "2",
+		page: 2,
 	},
 	{
-		page: "3",
+		page: 3,
 	},
 ];
 
@@ -111,11 +112,19 @@ const optional: Specs[] = [
 	},
 ];
 
+interface ProductContext {
+	categoryId: string;
+	brandId: string;
+}
+
 export default function Home() {
 	const dispatch = useDispatch<AppDispatch>();
 	const [prodQty, setProdQty] = useState<number>(1);
+	const [pagination, setPagination] = useState({});
+	const [pageCount, setPageCount] = useState<string>("1");
 	const [products, setProducts] = useState<Product[]>([]);
 	const [loading, setLoading] = useState<boolean>(true);
+	const [searchParams, _] = useSearchParams();
 	const [dataSubmit, setDataSubmit] = useState({
 		id: "",
 		name: "",
@@ -129,6 +138,8 @@ export default function Home() {
 		total: 0,
 	});
 	const [activeModal, setActiveModal] = useState<boolean>(false);
+	const { categoryId, brandId } = useOutletContext<ProductContext>();
+	const params = new URLSearchParams();
 
 	function handleSubmit(e): void {
 		e.preventDefault();
@@ -177,16 +188,36 @@ export default function Home() {
 		if (activeModal) {
 			setProdQty(1);
 			setActiveModal(false);
-		} else setActiveModal(true);
+		} else {
+			setProdQty(1);
+			setActiveModal(true);
+		}
 	}
 
 	useEffect(() => {
 		async function getProduct() {
 			setLoading(true);
 			try {
-				const data = await apiFetch("/api/v1/products");
+				if (categoryId) {
+					params.set("categoryId", categoryId);
+				}
+				if (brandId) {
+					params.set("brandId", brandId);
+				}
+				params.set("limit", "5");
+				params.set("page", pageCount);
+
+				const searchValue = searchParams.get("search");
+				if (searchValue === "") {
+					params.delete("search");
+				} else if (searchValue && searchValue?.length >= 3) {
+					params.set("search", searchValue);
+				}
+
+				const data = await apiFetch(`/api/v1/products?${params.toString()}`);
 				const res = await data.json();
 				setProducts(res.data);
+				setPagination(res.meta.pagination);
 			} catch (error) {
 				console.error(error);
 			} finally {
@@ -194,7 +225,7 @@ export default function Home() {
 			}
 		}
 		getProduct();
-	}, []);
+	}, [categoryId, brandId, pageCount, searchParams]);
 
 	return (
 		<>
@@ -500,7 +531,7 @@ export default function Home() {
 				</div>
 			)}
 			<div className="flex w-full px-3 flex-col">
-				<ParamsSection />
+				<ParamsSection params={params} />
 				{loading ? (
 					<CardSkel count={3} />
 				) : (
@@ -543,13 +574,36 @@ export default function Home() {
 						))}
 					</div>
 				)}
-				<Pagination products={products} />
+				{!loading && products?.length < 1 && (
+					<div className="centerized h-50">
+						<h1 className="">Product Not Found</h1>
+					</div>
+				)}
+				<Pagination
+					products={products}
+					pagination={pagination}
+					setPageCount={setPageCount}
+				/>
 			</div>
 		</>
 	);
 }
 
-function ParamsSection() {
+function ParamsSection({ params }) {
+	const [searchParams, setSearchParams] = useSearchParams();
+
+	function handleSearchProduct(e): void {
+		if (e.target.value.length >= 3) {
+			setSearchParams({
+				search: e.target.value,
+			});
+		} else if (e.target.value.length === 0) {
+			setSearchParams({
+				search: "",
+			});
+		}
+	}
+
 	return (
 		<div className="flex w-full items-center justify-between py-3">
 			<form
@@ -558,6 +612,8 @@ function ParamsSection() {
 			>
 				<input
 					type="text"
+					defaultValue={searchParams.get("search") ?? ""}
+					onChange={handleSearchProduct}
 					placeholder="Search Products.."
 					className="bg-white outline-none pl-3 text-sm rounded-md border 
 					border-base-border w-70 h-10"
@@ -576,10 +632,12 @@ function ParamsSection() {
 	);
 }
 
-function Pagination({ products }) {
+function Pagination({ products, pagination, setPageCount }) {
 	return (
 		<div className="flex mt-12 mb-5 items-center w-full justify-between">
-			<p className="text-sm">Showing {products?.length} of 120 products</p>
+			<p className="text-sm">
+				Showing {products?.length} of {pagination.total_items} products
+			</p>
 
 			<div className="flex items-center gap-2">
 				<Button
@@ -589,10 +647,12 @@ function Pagination({ products }) {
 				>
 					<ChevronLeft size={15} />
 				</Button>
-				{pages.map((item) => (
+				{pages?.map((item) => (
 					<Button
 						size={"sm"}
-						variant={item.page === "1" ? "primary" : "inverse"}
+						className="cursor-pointer"
+						onClick={() => setPageCount(item.page)}
+						variant={pagination?.page === item.page ? "primary" : "inverse"}
 						key={item.page}
 					>
 						<p>{item.page}</p>

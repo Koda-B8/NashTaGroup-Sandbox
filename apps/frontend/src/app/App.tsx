@@ -2,6 +2,13 @@ import { Provider } from "react-redux";
 import { createBrowserRouter, RouterProvider } from "react-router";
 import { PersistGate } from "redux-persist/integration/react";
 
+import {
+	CartPanel,
+	CheckoutSteps,
+	CheckoutSummary,
+	FiltersPanel,
+	StructSteps,
+} from "../components/panels";
 import Home from "../pages";
 import NotFound from "../pages/+404";
 import Layout from "../pages/+Layout";
@@ -25,9 +32,21 @@ const router = createBrowserRouter([
 		path: "/",
 		element: <Layout />,
 		children: [
-			{ index: true, element: <Home /> },
-			{ path: "/checkout", element: <Checkout /> },
-			{ path: "/struct", element: <StructStatus /> },
+			{
+				index: true,
+				element: <Home />,
+				handle: { left: FiltersPanel, right: CartPanel },
+			},
+			{
+				path: "/checkout",
+				element: <Checkout />,
+				handle: { left: CheckoutSteps, right: CheckoutSummary },
+			},
+			{
+				path: "/struct",
+				element: <StructStatus />,
+				handle: { left: StructSteps, right: CheckoutSummary },
+			},
 			{ path: "*", element: <NotFound /> },
 		],
 	},

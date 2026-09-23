@@ -16,7 +16,7 @@ import {
 	LogOutIcon,
 } from "lucide-react";
 import { useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Outlet, Link, useLocation, useNavigate } from "react-router";
 
 import Shell from "../../components/Shell";
@@ -27,7 +27,7 @@ import Button from "../../components/ui/button";
 import Input from "../../components/ui/input";
 import { logout } from "../../features/auth/api";
 import { clearCsrfCache } from "../../libs/api";
-import type { AppDispatch } from "../../store";
+import type { AppDispatch, RootState } from "../../store";
 import { clearCredentials } from "../../store/slices/auth";
 
 interface SidebarNavItem {
@@ -247,6 +247,7 @@ function SidebarNavNode({ item, depth = 0 }: SidebarNavNodeProps) {
 function Sidebar() {
 	const dispatch = useDispatch<AppDispatch>();
 	const navigate = useNavigate();
+	const user = useSelector((state: RootState) => state.auth.user);
 	const [isLoggingOut, setIsLoggingOut] = useState(false);
 
 	const handleLogout = async () => {
@@ -286,11 +287,13 @@ function Sidebar() {
 			<div className="flex items-center gap-3 border-t border-base-border px-4 py-3">
 				<Avatar
 					size="sm"
-					name="Admin"
+					name={user?.fullname ?? "Admin"}
 				/>
 				<div>
-					<p className="text-xs font-medium text-text-h">Admin User</p>
-					<p className="text-[10px] text-text">Administrator</p>
+					<p className="text-xs font-medium text-text-h">
+						{user?.fullname ?? "Admin"}
+					</p>
+					<p className="text-[10px] text-text capitalize">{user?.role}</p>
 				</div>
 				<Button
 					variant="ghost"
@@ -314,15 +317,26 @@ function Sidebar() {
 	);
 }
 
-function Header() {
+interface HeaderProps {
+	isSidebarOpen: boolean;
+	onToggleSidebar: () => void;
+}
+
+function Header({ isSidebarOpen, onToggleSidebar }: Readonly<HeaderProps>) {
+	const user = useSelector((state: RootState) => state.auth.user);
+
 	return (
 		<header className="flex h-14 shrink-0 items-center gap-4 border-b border-base-border bg-white px-4">
 			<button
 				type="button"
-				aria-label="Toggle sidebar"
+				aria-label={isSidebarOpen ? "Hide sidebar" : "Show sidebar"}
+				onClick={onToggleSidebar}
 				className="flex size-8 items-center justify-center rounded-lg text-text hover:bg-base hover:text-text-h"
 			>
-				<ChevronsLeftIcon size={16} />
+				<ChevronsLeftIcon
+					size={16}
+					className={isSidebarOpen ? "" : "rotate-180"}
+				/>
 			</button>
 			<Breadcrumb
 				items={[
@@ -338,7 +352,7 @@ function Header() {
 				/>
 				<Avatar
 					size="sm"
-					name="Admin"
+					name={user?.fullname ?? "Admin"}
 				/>
 			</div>
 		</header>
@@ -346,10 +360,17 @@ function Header() {
 }
 
 export default function DashboardLayout() {
+	const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
 	return (
 		<Shell
-			header={<Header />}
-			left={<Sidebar />}
+			header={
+				<Header
+					isSidebarOpen={isSidebarOpen}
+					onToggleSidebar={() => setIsSidebarOpen((open) => !open)}
+				/>
+			}
+			left={isSidebarOpen && <Sidebar />}
 			spanLeft
 		>
 			<div className="p-4">

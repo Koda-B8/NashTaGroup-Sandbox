@@ -1,7 +1,13 @@
 /* oxlint-disable jsdoc/check-tag-names -- @openapi is consumed by swagger-jsdoc. */
 import { Router } from "express";
 
-import { exportReportPdf } from "../controllers/report-pdf.controller.js";
+import {
+	exportCustomerDetailReport,
+	exportProductDetailReport,
+	exportReportData,
+} from "../controllers/all-report.controller.js";
+import { getCustomerDetailReport } from "../controllers/customer-report.controller.js";
+import { getProductDetailReport } from "../controllers/product-report.controller.js";
 import {
 	getCashierReport,
 	getCustomerReport,
@@ -15,6 +21,33 @@ import { requireRole } from "../middleware/authorize.js";
 
 const router = Router();
 router.use(authMiddleware, requireRole("admin"));
+
+/**
+ * @openapi
+ * /api/v1/reports/{report}/export:
+ *   get:
+ *     tags: [Reports]
+ *     summary: Get all filtered report data for frontend export
+ *     description: Returns the summary and all matching main-list rows as JSON, up to 5000 main rows, so the frontend can render a PDF. The date filters use WIB business dates. The sales period applies only to the sales report. Additional nonmember product totals or latest activity from the regular report are included separately and are not counted in the main-row limit. Page and limit are ignored.
+ *     security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+ *     parameters:
+ *       - { in: path, name: report, required: true, description: Report to export, schema: { type: string, enum: [customers, products, inventory, sales, payment-methods, cashiers] } }
+ *       - { in: query, name: from, description: First date inclusive in WIB, schema: { type: string, format: date, example: 2026-09-01 } }
+ *       - { in: query, name: to, description: Last date inclusive in WIB, schema: { type: string, format: date, example: 2026-09-30 } }
+ *       - { in: query, name: period, description: Sales grouping interval, schema: { type: string, enum: [day, week, month, year], default: day } }
+ *     responses:
+ *       200:
+ *         description: Complete report data for frontend export
+ *         content:
+ *           application/json:
+ *             schema: { type: object }
+ *       400: { description: Invalid date or sales period }
+ *       401: { description: Authentication required }
+ *       403: { description: Admin role required }
+ *       404: { description: Unknown report }
+ *       413: { description: More than 5000 matching main-list rows; narrow the date range }
+ */
+router.get("/:report/export", exportReportData);
 
 /**
  * @openapi
@@ -39,6 +72,53 @@ router.get("/customers", getCustomerReport);
 
 /**
  * @openapi
+ * /api/v1/reports/customers/{customerId}:
+ *   get:
+ *     tags: [Reports]
+ *     summary: Transactions, purchased products, and cashiers for one customer
+ *     description: Only completed transactions for the selected customer in the WIB date range are included. The view parameter selects one paginated list. Summary and transaction totals include discounts and tax; product sales are item subtotals before transaction-level discounts and tax.
+ *     security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+ *     parameters:
+ *       - { in: path, name: customerId, required: true, schema: { type: string, format: uuid } }
+ *       - { in: query, name: view, schema: { type: string, enum: [transactions, products, cashiers], default: transactions } }
+ *       - { in: query, name: from, description: First transaction date inclusive in WIB, schema: { type: string, format: date } }
+ *       - { in: query, name: to, description: Last transaction date inclusive in WIB, schema: { type: string, format: date } }
+ *       - { in: query, name: page, schema: { type: integer, minimum: 1, default: 1 } }
+ *       - { in: query, name: limit, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+ *     responses:
+ *       200: { description: Customer summary and selected paginated list }
+ *       400: { description: Invalid customer ID, view, dates, or pagination }
+ *       401: { description: Authentication required }
+ *       403: { description: Admin role required }
+ *       404: { description: Customer not found }
+ */
+router.get("/customers/:customerId", getCustomerDetailReport);
+
+/**
+ * @openapi
+ * /api/v1/reports/customers/{customerId}/export:
+ *   get:
+ *     tags: [Reports]
+ *     summary: Get all transactions, products, or cashiers for one customer as JSON
+ *     description: Returns the selected view for the specified customer, up to 5000 rows, for frontend PDF generation. Date filters and the view parameter match the customer detail report. Page and limit are ignored.
+ *     security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+ *     parameters:
+ *       - { in: path, name: customerId, required: true, schema: { type: string, format: uuid } }
+ *       - { in: query, name: view, schema: { type: string, enum: [transactions, products, cashiers], default: transactions } }
+ *       - { in: query, name: from, schema: { type: string, format: date } }
+ *       - { in: query, name: to, schema: { type: string, format: date } }
+ *     responses:
+ *       200: { description: Complete selected customer report data as JSON }
+ *       400: { description: Invalid customer ID, view, or dates }
+ *       401: { description: Authentication required }
+ *       403: { description: Admin role required }
+ *       404: { description: Customer not found }
+ *       413: { description: More than 5000 matching rows; narrow the date range }
+ */
+router.get("/customers/:customerId/export", exportCustomerDetailReport);
+
+/**
+ * @openapi
  * /api/v1/reports/products:
  *   get:
  *     tags: [Reports]
@@ -57,6 +137,53 @@ router.get("/customers", getCustomerReport);
  *       403: { description: Admin role required }
  */
 router.get("/products", getProductReport);
+
+/**
+ * @openapi
+ * /api/v1/reports/products/{productId}:
+ *   get:
+ *     tags: [Reports]
+ *     summary: Transactions, customers, and cashiers for one product master
+ *     description: Includes all variants of the selected product master. Only completed transactions in the WIB date range are counted. Sales values are product line subtotals before transaction-level discounts and tax. Customers without a customer ID are grouped as one nonmember row. The view parameter selects one paginated list; summary always covers the full filtered product report.
+ *     security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+ *     parameters:
+ *       - { in: path, name: productId, required: true, schema: { type: string, format: uuid } }
+ *       - { in: query, name: view, schema: { type: string, enum: [transactions, customers, cashiers], default: transactions } }
+ *       - { in: query, name: from, description: First transaction date inclusive in WIB, schema: { type: string, format: date } }
+ *       - { in: query, name: to, description: Last transaction date inclusive in WIB, schema: { type: string, format: date } }
+ *       - { in: query, name: page, schema: { type: integer, minimum: 1, default: 1 } }
+ *       - { in: query, name: limit, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+ *     responses:
+ *       200: { description: Product master summary and selected paginated list }
+ *       400: { description: Invalid product ID, view, dates, or pagination }
+ *       401: { description: Authentication required }
+ *       403: { description: Admin role required }
+ *       404: { description: Product not found }
+ */
+router.get("/products/:productId", getProductDetailReport);
+
+/**
+ * @openapi
+ * /api/v1/reports/products/{productId}/export:
+ *   get:
+ *     tags: [Reports]
+ *     summary: Get all transactions, customers, or cashiers for one product master as JSON
+ *     description: Returns the selected view for the specified product master and all its variants, up to 5000 rows, for frontend PDF generation. Date filters and the view parameter match the product detail report. Page and limit are ignored.
+ *     security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+ *     parameters:
+ *       - { in: path, name: productId, required: true, schema: { type: string, format: uuid } }
+ *       - { in: query, name: view, schema: { type: string, enum: [transactions, customers, cashiers], default: transactions } }
+ *       - { in: query, name: from, schema: { type: string, format: date } }
+ *       - { in: query, name: to, schema: { type: string, format: date } }
+ *     responses:
+ *       200: { description: Complete selected product report data as JSON }
+ *       400: { description: Invalid product ID, view, or dates }
+ *       401: { description: Authentication required }
+ *       403: { description: Admin role required }
+ *       404: { description: Product not found }
+ *       413: { description: More than 5000 matching rows; narrow the date range }
+ */
+router.get("/products/:productId/export", exportProductDetailReport);
 
 /**
  * @openapi
@@ -168,32 +295,5 @@ router.get("/payment-methods", getPaymentMethodReport);
  *       403: { description: Admin role required }
  */
 router.get("/cashiers", getCashierReport);
-
-/**
- * @openapi
- * /api/v1/reports/{report}/export/pdf:
- *   get:
- *     tags: [Reports]
- *     summary: Download a filtered report as PDF
- *     description: Exports the summary and all matching rows for the selected report, up to 5000 rows. The date filters use WIB business dates. The sales period applies only to the sales report. The PDF also includes the nonmember product totals or latest activity shown by the JSON report. Page and limit are not used for PDF exports.
- *     security: [{ cookieAuth: [] }, { bearerAuth: [] }]
- *     parameters:
- *       - { in: path, name: report, required: true, description: Report to export, schema: { type: string, enum: [customers, products, inventory, sales, payment-methods, cashiers] } }
- *       - { in: query, name: from, description: First date inclusive in WIB, schema: { type: string, format: date, example: 2026-09-01 } }
- *       - { in: query, name: to, description: Last date inclusive in WIB, schema: { type: string, format: date, example: 2026-09-30 } }
- *       - { in: query, name: period, description: Sales grouping interval, schema: { type: string, enum: [day, week, month, year], default: day } }
- *     responses:
- *       200:
- *         description: Downloadable PDF file
- *         content:
- *           application/pdf:
- *             schema: { type: string, format: binary }
- *       400: { description: Invalid date or sales period }
- *       401: { description: Authentication required }
- *       403: { description: Admin role required }
- *       404: { description: Unknown report }
- *       413: { description: More than 5000 matching rows; narrow the date range }
- */
-router.get("/:report/export/pdf", exportReportPdf);
 
 export default router;

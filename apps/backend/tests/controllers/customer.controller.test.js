@@ -3,15 +3,15 @@ import { constants } from "node:http2";
 import { Op } from "sequelize";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { paginate } from "../lib/pagination.js";
-import db from "../models/index.cjs";
-import { getCustomers } from "./customer.controller.js";
+import { getCustomers } from "../../src/controllers/customer.controller.js";
+import { paginate } from "../../src/lib/pagination.js";
+import db from "../../src/models/index.cjs";
 
-vi.mock("../lib/pagination.js", async (importOriginal) => ({
+vi.mock("../../src/lib/pagination.js", async (importOriginal) => ({
 	...(await importOriginal()),
 	paginate: vi.fn(),
 }));
-vi.mock("../models/index.cjs", () => ({ default: { Customers: {} } }));
+vi.mock("../../src/models/index.cjs", () => ({ default: { Customers: {} } }));
 
 const customer = {
 	id: "7bf0806e-daca-4afa-a2e1-643babe31176",

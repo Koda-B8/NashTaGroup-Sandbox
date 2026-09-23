@@ -19,10 +19,10 @@ import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Outlet, Link, useLocation, useNavigate } from "react-router";
 
+import AppHeader from "../../components/AppHeader";
 import Shell from "../../components/Shell";
 import Avatar from "../../components/ui/avatar";
 import Badge from "../../components/ui/badge";
-import Breadcrumb from "../../components/ui/breadcrumb";
 import Button from "../../components/ui/button";
 import Input from "../../components/ui/input";
 import { logout } from "../../features/auth/api";
@@ -327,36 +327,38 @@ function Header({ isSidebarOpen, onToggleSidebar }: Readonly<HeaderProps>) {
 	const user = useSelector((state: RootState) => state.auth.user);
 
 	return (
-		<header className="flex h-14 shrink-0 items-center gap-4 border-b border-base-border bg-white px-4">
-			<button
-				type="button"
-				aria-label={isSidebarOpen ? "Hide sidebar" : "Show sidebar"}
-				onClick={onToggleSidebar}
-				className="flex size-8 items-center justify-center rounded-lg text-text hover:bg-base hover:text-text-h"
-			>
-				<ChevronsLeftIcon
-					size={16}
-					className={isSidebarOpen ? "" : "rotate-180"}
-				/>
-			</button>
-			<Breadcrumb
-				items={[
-					{ label: "Nashta Group", to: "/dashboard" },
-					{ label: "Transactions" },
-				]}
-			/>
-			<div className="ml-auto flex items-center gap-3">
-				<Input
-					size="sm"
-					placeholder="Search..."
-					className="w-52"
-				/>
-				<Avatar
-					size="sm"
-					name={user?.fullname ?? "Admin"}
-				/>
-			</div>
-		</header>
+		<AppHeader
+			leading={
+				<button
+					type="button"
+					aria-label={isSidebarOpen ? "Hide sidebar" : "Show sidebar"}
+					onClick={onToggleSidebar}
+					className="flex size-8 items-center justify-center rounded-lg text-text hover:bg-base hover:text-text-h"
+				>
+					<ChevronsLeftIcon
+						size={16}
+						className={isSidebarOpen ? "" : "rotate-180"}
+					/>
+				</button>
+			}
+			items={[
+				{ label: "Nashta Group", to: "/dashboard" },
+				{ label: "Transactions" },
+			]}
+			actions={
+				<>
+					<Input
+						size="sm"
+						placeholder="Search..."
+						className="w-52"
+					/>
+					<Avatar
+						size="sm"
+						name={user?.fullname ?? "Admin"}
+					/>
+				</>
+			}
+		/>
 	);
 }
 

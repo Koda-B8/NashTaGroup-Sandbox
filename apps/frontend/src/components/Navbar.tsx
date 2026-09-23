@@ -8,8 +8,9 @@ import { clearCsrfCache } from "../libs/api";
 import type { AppDispatch } from "../store";
 import { clearCredentials } from "../store/slices/auth";
 import { clearCart } from "../store/slices/cart";
-import Breadcrumb from "./ui/breadcrumb";
+import AppHeader from "./AppHeader";
 import Button from "./ui/button";
+import Input from "./ui/input";
 
 interface SearchBoxProps {
 	onSearch?: (value: string) => void;
@@ -21,24 +22,27 @@ interface CartActionProps {
 
 export default function Navbar() {
 	return (
-		<nav className="w-full bg-white h-17 shadow-sm flex items-center px-7 justify-between">
-			<section className="flex text-xs gap-xp lg:text-lg lg:items-center lg:gap-10 flex-col-reverse lg:flex-row">
-				<Link to={"/"}>
-					<p>NashTa Group</p>
+		<AppHeader
+			leading={
+				<Link
+					to={"/"}
+					className="font-semibold text-text-h"
+				>
+					NashTa Group
 				</Link>
-				<Breadcrumb
-					items={[
-						{ label: "Products", to: "/" },
-						{ label: "Browse", to: "/" },
-					]}
-				/>
-			</section>
-			<section className="flex items-center gap-3">
-				<SearchBox />
-				<CartAction count={4} />
-				<LogoutAction />
-			</section>
-		</nav>
+			}
+			items={[
+				{ label: "Products", to: "/" },
+				{ label: "Browse", to: "/" },
+			]}
+			actions={
+				<>
+					<SearchBox />
+					<CartAction count={4} />
+					<LogoutAction />
+				</>
+			}
+		/>
 	);
 }
 
@@ -48,14 +52,13 @@ function SearchBox({ onSearch }: SearchBoxProps) {
 	}
 
 	return (
-		<form className="w-60 border hidden lg:flex border-base-border h-9 bg-base rounded-md">
-			<input
-				onChange={handleSearchProduct}
-				className="w-full h-full outline-none text-sm pl-3"
-				placeholder="Search Product.."
-				type="text"
-			/>
-		</form>
+		<Input
+			size="sm"
+			type="search"
+			placeholder="Search Product.."
+			className="hidden w-52 lg:block"
+			onChange={handleSearchProduct}
+		/>
 	);
 }
 
@@ -95,11 +98,8 @@ function LogoutAction() {
 
 function CartAction({ count }: Readonly<CartActionProps>) {
 	return (
-		<div className="h-9 w-9 cursor-pointer rounded-full bg-base border border-primary relative">
-			<div
-				className="absolute text-white bg-primary rounded-full text-xs -top-2 
-			-right-1 w-5 h-5 centerized"
-			>
+		<div className="relative h-9 w-9 cursor-pointer rounded-full border border-primary bg-base">
+			<div className="absolute -top-2 -right-1 h-5 w-5 rounded-full bg-primary text-xs text-white centerized">
 				{count}
 			</div>
 		</div>

@@ -10,7 +10,7 @@ const overlay = tv({
 });
 
 const popup = tv({
-	base: "fixed top-1/2 left-1/2 w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-base-border bg-surface shadow-xl outline-none max-h-[calc(100dvh-2rem)] overflow-hidden flex flex-col data-open:animate-in data-closed:animate-out",
+	base: "fixed top-1/2 left-1/2 w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 rounded-lg border border-base-border bg-surface shadow-xl outline-none max-h-[calc(100dvh-2rem)] overflow-hidden flex flex-col data-open:animate-in data-closed:animate-out",
 	variants: {
 		size: {
 			"sm": "max-w-sm",

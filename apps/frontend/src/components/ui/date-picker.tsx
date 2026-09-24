@@ -49,7 +49,7 @@ const trigger = tv({
 });
 
 const navButton = tv({
-	base: "flex size-6 items-center justify-center rounded-md text-text hover:bg-base hover:text-text-h focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+	base: "flex size-6 items-center justify-center rounded-lg text-text hover:bg-base hover:text-text-h focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
 });
 
 const monthCell = tv({
@@ -68,7 +68,7 @@ const monthCell = tv({
 });
 
 const footerButton = tv({
-	base: "rounded-md px-2 py-1 text-2xs font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+	base: "rounded-lg px-2 py-1 text-2xs font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
 	variants: {
 		primary: {
 			true: "text-primary hover:bg-primary-light",

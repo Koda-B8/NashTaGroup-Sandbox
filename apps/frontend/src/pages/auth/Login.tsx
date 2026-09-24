@@ -23,7 +23,7 @@ function BrandingPanel() {
 			<div className="absolute -bottom-24 -right-24 size-96 rounded-full bg-black/10 blur-3xl" />
 
 			<div className="relative z-10 flex items-center gap-3">
-				<div className="size-10 rounded-xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/20">
+				<div className="size-10 rounded-lg bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/20">
 					<ShieldCheck className="size-6 text-white" />
 				</div>
 				<div>

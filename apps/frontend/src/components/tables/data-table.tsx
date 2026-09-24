@@ -13,6 +13,7 @@ import {
 	useCallback,
 } from "react";
 
+import Card from "../ui/card";
 import Checkbox from "../ui/checkbox";
 
 // callers must build their column helper with these same features
@@ -67,7 +68,10 @@ export default function DataTable<Row extends object>({
 	);
 
 	return (
-		<div className="overflow-hidden rounded-xl border border-base-border bg-surface">
+		<Card
+			padding="none"
+			className="overflow-hidden"
+		>
 			<div className="overflow-x-auto">
 				<table
 					className="w-full text-sm"
@@ -156,7 +160,7 @@ export default function DataTable<Row extends object>({
 					</PageButton>
 				</div>
 			</div>
-		</div>
+		</Card>
 	);
 }
 

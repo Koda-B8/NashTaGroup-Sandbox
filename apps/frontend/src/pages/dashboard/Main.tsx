@@ -231,7 +231,7 @@ export default function MainDashboard() {
 								<span className="size-2.5 rounded-full bg-primary" />
 								<span className="text-text-h font-medium">Revenue</span>
 							</div>
-							<span className="rounded-md bg-base px-2.5 py-1 text-2xs font-semibold text-text-h">
+							<span className="rounded-lg bg-base px-2.5 py-1 text-2xs font-semibold text-text-h">
 								Total: Rp 128.45M
 							</span>
 						</div>
@@ -286,7 +286,7 @@ export default function MainDashboard() {
 										>
 											<td className="px-3 py-3 font-medium">
 												<span
-													className={`inline-flex size-6 items-center justify-center rounded-md text-2xs font-bold ${p.badgeColor}`}
+													className={`inline-flex size-6 items-center justify-center rounded-lg text-2xs font-bold ${p.badgeColor}`}
 												>
 													{p.rank}
 												</span>
@@ -303,7 +303,7 @@ export default function MainDashboard() {
 											</td>
 											<td className="px-3 py-3 text-center">
 												<span
-													className={`inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-3xs font-semibold ${
+													className={`inline-flex items-center gap-0.5 rounded-lg px-1.5 py-0.5 text-3xs font-semibold ${
 														p.isUp
 															? "bg-valid text-deep-valid"
 															: "bg-danger text-deep-danger"

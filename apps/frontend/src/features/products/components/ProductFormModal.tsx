@@ -661,7 +661,7 @@ export default function ProductFormModal({
 					)}
 
 					<div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:items-start">
-						<section className="flex flex-col gap-3 rounded-xl border border-base-border p-4">
+						<section className="flex flex-col gap-3 rounded-lg border border-base-border p-4">
 							<p className="text-3xs font-bold tracking-wider text-text uppercase">
 								Details
 							</p>
@@ -743,10 +743,10 @@ export default function ProductFormModal({
 											<img
 												src={imagePreview}
 												alt=""
-												className="size-10 shrink-0 rounded-md border border-base-border object-cover"
+												className="size-10 shrink-0 rounded-lg border border-base-border object-cover"
 											/>
 										) : (
-											<span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-base text-text">
+											<span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-base text-text">
 												<ImageIcon size={16} />
 											</span>
 										)}
@@ -760,14 +760,16 @@ export default function ProductFormModal({
 										</span>
 									</label>
 									{imageFile && (
-										<button
+										<Button
 											type="button"
 											aria-label="Hapus gambar"
 											onClick={() => handleImageChange(null)}
-											className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-text hover:bg-danger hover:text-deep-danger"
+											variant="ghostDanger"
+											size="icon"
+											className="size-8 shrink-0"
 										>
 											<X size={15} />
-										</button>
+										</Button>
 									)}
 								</div>
 								{imageError && (
@@ -792,7 +794,7 @@ export default function ProductFormModal({
 						</section>
 
 						{isEdit ? (
-							<section className="flex flex-col gap-3 rounded-xl border border-base-border p-4">
+							<section className="flex flex-col gap-3 rounded-lg border border-base-border p-4">
 								<ProductVariantList
 									items={product?.items ?? []}
 									onAdd={composer ? undefined : startAddingVariant}
@@ -900,7 +902,7 @@ export default function ProductFormModal({
 							</section>
 						) : (
 							<div className="flex flex-col gap-4">
-								<section className="flex flex-col gap-3 rounded-xl border border-base-border p-4">
+								<section className="flex flex-col gap-3 rounded-lg border border-base-border p-4">
 									<div className="flex items-center justify-between gap-2">
 										<p className="text-3xs font-bold tracking-wider text-text uppercase">
 											Atribut
@@ -944,7 +946,7 @@ export default function ProductFormModal({
 									)}
 								</section>
 
-								<section className="flex flex-col gap-3 rounded-xl border border-base-border p-4">
+								<section className="flex flex-col gap-3 rounded-lg border border-base-border p-4">
 									<ProductVariantEditor
 										items={items}
 										errors={itemErrors}

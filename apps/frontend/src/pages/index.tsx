@@ -611,12 +611,12 @@ function ParamsSection({ params }) {
 					defaultValue={searchParams.get("search") ?? ""}
 					onChange={handleSearchProduct}
 					placeholder="Search Products.."
-					className="bg-surface outline-none pl-3 text-sm rounded-md border 
+					className="bg-surface outline-none pl-3 text-sm rounded-lg border 
 					border-base-border w-70 h-10"
 				/>
 
 				<select
-					className="w-40 text-sm outline-none pl-2 h-10 rounded-md bg-surface 
+					className="w-40 text-sm outline-none pl-2 h-10 rounded-lg bg-surface 
 					border border-base-border"
 					name="sort"
 					id="sort"

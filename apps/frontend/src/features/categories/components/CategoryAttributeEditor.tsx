@@ -110,16 +110,18 @@ export default function CategoryAttributeEditor({
 								<span className="text-3xs font-semibold tracking-wider text-text uppercase">
 									Atribut {index + 1}
 								</span>
-								<button
+								<Button
 									type="button"
 									aria-label={`Hapus atribut ${index + 1}`}
 									onClick={() =>
 										onChange(attributes.filter((a) => a.key !== attribute.key))
 									}
-									className="inline-flex size-6 items-center justify-center rounded-md text-text hover:bg-danger hover:text-deep-danger"
+									variant="ghostDanger"
+									size="icon"
+									className="size-6"
 								>
 									<Trash2 size={13} />
-								</button>
+								</Button>
 							</div>
 
 							<div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -226,7 +228,7 @@ export default function CategoryAttributeEditor({
 													className="flex items-center gap-2"
 												>
 													<span
-														className="size-8 shrink-0 rounded-md border border-base-border"
+														className="size-8 shrink-0 rounded-lg border border-base-border"
 														style={{
 															backgroundColor: HEX_PATTERN.test(
 																option.hex.trim(),
@@ -262,7 +264,7 @@ export default function CategoryAttributeEditor({
 														aria-label={`Nama opsi ${optionIndex + 1}`}
 														autoComplete="off"
 													/>
-													<button
+													<Button
 														type="button"
 														aria-label={`Hapus opsi ${optionIndex + 1}`}
 														onClick={() =>
@@ -272,10 +274,12 @@ export default function CategoryAttributeEditor({
 																),
 															})
 														}
-														className="inline-flex size-7 shrink-0 items-center justify-center rounded-md text-text hover:bg-danger hover:text-deep-danger"
+														variant="ghostDanger"
+														size="icon"
+														className="size-7 shrink-0"
 													>
 														<Trash2 size={13} />
-													</button>
+													</Button>
 												</li>
 											))}
 										</ul>

@@ -8,6 +8,7 @@ const button = tv({
 			primary: "bg-primary text-white hover:bg-primary/90",
 			outline: "border border-base-border bg-surface text-text-h hover:bg-base",
 			ghost: "text-text hover:bg-base hover:text-text-h",
+			ghostDanger: "text-text hover:bg-danger hover:text-deep-danger",
 			inverse: "bg-surface text-primary hover:bg-base",
 			danger: "bg-deep-danger text-white hover:bg-deep-danger/90",
 		},

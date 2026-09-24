@@ -10,8 +10,8 @@ export default function CardSkel({ count }: Readonly<{ count: number }>) {
 					padding={"none"}
 					className="p-1"
 				>
-					<header className="centerized h-45 w-full animate-pulse rounded-t-xl bg-base">
-						<h1 className="text-base-border!">N</h1>
+					<header className="centerized h-45 w-full animate-pulse rounded-t-lg bg-base">
+						<span className="text-3xl font-semibold text-base-border">N</span>
 					</header>
 					<main className="h-25 w-full py-2">
 						<div className="mb-1 block h-5 w-20 animate-pulse rounded-lg bg-base"></div>

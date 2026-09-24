@@ -170,18 +170,15 @@ export default function Checkout() {
 				onSubmit={handleSubmit}
 				className="flex w-full flex-col gap-2 px-3"
 			>
-				<header className="flex items-center justify-between">
-					<div
-						className="flex h-10 w-[84%] items-center rounded-lg border border-base-border 
-				bg-surface pl-4 text-sm"
-					>
+				<header className="flex items-center gap-2">
+					<div className="flex h-10 flex-1 items-center rounded-lg border border-base-border bg-surface pl-4 text-sm">
 						<p>Siap dibayar • Estimasi 30–45 menit</p>
 					</div>
 					<Button
-						variant={"inverse"}
-						className=" w-[15%] border border-base-border"
+						variant="outline"
+						className="shrink-0"
 					>
-						<p>Bantuan ?</p>
+						Bantuan ?
 					</Button>
 				</header>
 
@@ -197,7 +194,7 @@ export default function Checkout() {
 									key={item.id}
 									className="flex items-center justify-between"
 								>
-									<div className="flex w-[55%] gap-3">
+									<div className="flex min-w-0 flex-1 gap-3">
 										<div className="h-18 w-16 rounded-lg border border-base-border bg-base">
 											<img
 												src={item.image ?? ""}
@@ -217,7 +214,7 @@ export default function Checkout() {
 										</div>
 									</div>
 
-									<div className="w-[15%]">
+									<div className="shrink-0">
 										<div
 											className="flex h-11 w-35 items-center justify-between 
 												rounded-lg border border-base-border"
@@ -253,10 +250,10 @@ export default function Checkout() {
 										</div>
 									</div>
 
-									<div className="flex w-[25%] items-center justify-end pr-10 text-right">
+									<div className="flex shrink-0 items-center justify-end pr-10 text-right">
 										<h6>{formatRupiah(item.total)}</h6>
 									</div>
-									<div className="w-[5%]">
+									<div className="shrink-0">
 										<Button
 											variant="ghost"
 											onClick={() => dispatch(deleteCartItem({ id: item.id }))}

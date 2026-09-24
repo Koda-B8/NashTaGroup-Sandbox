@@ -1,7 +1,7 @@
 import { Plus, ChevronLeft, ChevronRight, X, Minus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import { useOutletContext, useSearchParams } from "react-router";
+import { useSearchParams } from "react-router";
 
 import CardSkel from "../components/CardSkel";
 import Button from "../components/ui/button";
@@ -112,11 +112,6 @@ const optional: Specs[] = [
 	},
 ];
 
-interface ProductContext {
-	categoryId: string;
-	brandId: string;
-}
-
 export default function Home() {
 	const dispatch = useDispatch<AppDispatch>();
 	const [prodQty, setProdQty] = useState<number>(1);
@@ -138,7 +133,8 @@ export default function Home() {
 		total: 0,
 	});
 	const [activeModal, setActiveModal] = useState<boolean>(false);
-	const { categoryId, brandId } = useOutletContext<ProductContext>();
+	const categoryId = searchParams.get("categoryId") ?? "";
+	const brandId = searchParams.get("brandId") ?? "";
 	const params = new URLSearchParams();
 
 	function handleSubmit(e): void {

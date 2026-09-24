@@ -30,7 +30,7 @@ export default function AttributeChips({
 	return (
 		<div className="flex items-start gap-3.5">
 			<div className="w-[108px] shrink-0 pt-1">
-				<span className="text-[12.5px] font-semibold text-text-h">
+				<span className="text-xs font-semibold text-text-h">
 					{definition.name}
 				</span>
 				{definition.isRequired && (

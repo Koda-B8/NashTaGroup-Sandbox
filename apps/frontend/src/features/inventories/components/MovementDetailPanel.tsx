@@ -55,7 +55,7 @@ export default function MovementDetailPanel({
 			className="flex h-fit flex-col gap-4 xl:sticky xl:top-4"
 		>
 			<div className="flex flex-col gap-2">
-				<p className="text-base font-bold text-text-h">
+				<p className="font-bold text-base text-text-h">
 					{movement.productItem.productName}
 				</p>
 				<p

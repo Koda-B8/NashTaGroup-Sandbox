@@ -167,12 +167,12 @@ export default function Checkout() {
 			</Modal>
 			<form
 				onSubmit={handleSubmit}
-				className="w-full flex flex-col gap-2 px-3"
+				className="flex w-full flex-col gap-2 px-3"
 			>
 				<header className="flex items-center justify-between">
 					<div
-						className="w-[84%] flex items-center text-sm h-10 bg-surface rounded-lg 
-				pl-4 border border-base-border"
+						className="flex h-10 w-[84%] items-center rounded-lg border border-base-border 
+				bg-surface pl-4 text-sm"
 					>
 						<p>Siap dibayar • Estimasi 30–45 menit</p>
 					</div>
@@ -190,14 +190,14 @@ export default function Checkout() {
 							<h6>Pesanan {cart.length} Items</h6>
 						</header>
 
-						<main className="flex flex-col gap-3 mt-2">
+						<main className="mt-2 flex flex-col gap-3">
 							{cart.map((item) => (
 								<div
 									key={item.id}
 									className="flex items-center justify-between"
 								>
-									<div className="flex gap-3 w-[55%]">
-										<div className="w-16 h-18 border border-base-border rounded-lg bg-base">
+									<div className="flex w-[55%] gap-3">
+										<div className="h-18 w-16 rounded-lg border border-base-border bg-base">
 											<img
 												src={item.image ?? ""}
 												alt={item.alt}
@@ -218,7 +218,7 @@ export default function Checkout() {
 
 									<div className="w-[15%]">
 										<div
-											className="flex items-center justify-between w-35 h-11 
+											className="flex h-11 w-35 items-center justify-between 
 												rounded-lg border border-base-border"
 										>
 											<Button
@@ -252,14 +252,14 @@ export default function Checkout() {
 										</div>
 									</div>
 
-									<div className="flex w-[25%] text-right justify-end pr-10 items-center">
+									<div className="flex w-[25%] items-center justify-end pr-10 text-right">
 										<h6>{formatRupiah(item.total)}</h6>
 									</div>
 									<div className="w-[5%]">
 										<Button
 											variant="ghost"
 											onClick={() => dispatch(deleteCartItem({ id: item.id }))}
-											className="shadow-sm rounded-lg p-2 cursor-pointer"
+											className="cursor-pointer rounded-lg p-2 shadow-sm"
 										>
 											<Trash
 												size={18}
@@ -307,7 +307,7 @@ export default function Checkout() {
 								<label
 									key={item.id}
 									htmlFor={item.id.toString()}
-									className="group h-25 flex flex-col cursor-pointer"
+									className="group flex h-25 cursor-pointer flex-col"
 								>
 									<input
 										className="peer sr-only"
@@ -320,14 +320,14 @@ export default function Checkout() {
 										className="centerized h-full w-full overflow-hidden rounded-lg border 
 								border-base-border peer-checked:border-primary peer-checked:bg-primary/10"
 									>
-										<div className="text-text-h centerized gap-2 text-center group-[:has(input:checked)]:text-primary">
+										<div className="centerized gap-2 text-center text-text-h group-[:has(input:checked)]:text-primary">
 											{item.icon}
 											<h6 className="group-[:has(input:checked)]:text-primary">
 												{item.name}
 											</h6>
 										</div>
 									</div>
-									<p className="text-sm text-center hidden mt-1">{item.desc}</p>
+									<p className="mt-1 hidden text-center text-sm">{item.desc}</p>
 								</label>
 							))}
 						</main>
@@ -337,7 +337,7 @@ export default function Checkout() {
 						<Button
 							type="submit"
 							disabled={loading}
-							className="w-full h-14 font-semibold flex items-center"
+							className="flex h-14 w-full items-center font-semibold"
 						>
 							{loading ? (
 								<RotateCw
@@ -345,7 +345,7 @@ export default function Checkout() {
 									size={17}
 								/>
 							) : (
-								<div className="flex gap-2 items-center">
+								<div className="flex items-center gap-2">
 									<SquareArrowRightEnter
 										size={17}
 										strokeWidth={2.5}
@@ -355,7 +355,7 @@ export default function Checkout() {
 							)}
 						</Button>
 					</section>
-					<p className="text-center mt-4 text-xs text-text-h">NashTa Group</p>
+					<p className="mt-4 text-center text-xs text-text-h">NashTa Group</p>
 				</main>
 			</form>
 		</>

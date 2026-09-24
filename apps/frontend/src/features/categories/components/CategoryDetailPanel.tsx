@@ -104,7 +104,7 @@ export default function CategoryDetailPanel({
 						style={{ backgroundColor: dot }}
 						aria-hidden
 					/>
-					<p className="text-base font-bold text-text-h">{category.name}</p>
+					<p className="font-bold text-base text-text-h">{category.name}</p>
 					<ActiveBadge isActive={category.isActive} />
 				</div>
 				<p

@@ -10,15 +10,15 @@ export default function CardSkel({ count }: Readonly<{ count: number }>) {
 					padding={"none"}
 					className="p-1"
 				>
-					<header className="w-full h-45 centerized rounded-t-xl animate-pulse bg-base">
+					<header className="centerized h-45 w-full animate-pulse rounded-t-xl bg-base">
 						<h1 className="text-base-border!">N</h1>
 					</header>
-					<main className="w-full h-25 py-2">
-						<div className="w-20 h-5 mb-1 block rounded-lg bg-base animate-pulse"></div>
-						<div className="w-40 h-5 block rounded-lg bg-base animate-pulse"></div>
-						<div className="flex items-center justify-between mt-1">
-							<div className="w-30 rounded-lg h-6 bg-base animate-pulse"></div>
-							<Button className="px-7 cursor-pointer bg-base! animate-pulse"></Button>
+					<main className="h-25 w-full py-2">
+						<div className="mb-1 block h-5 w-20 animate-pulse rounded-lg bg-base"></div>
+						<div className="block h-5 w-40 animate-pulse rounded-lg bg-base"></div>
+						<div className="mt-1 flex items-center justify-between">
+							<div className="h-6 w-30 animate-pulse rounded-lg bg-base"></div>
+							<Button className="animate-pulse cursor-pointer bg-base! px-7"></Button>
 						</div>
 					</main>
 				</Card>

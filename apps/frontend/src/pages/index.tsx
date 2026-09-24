@@ -235,11 +235,11 @@ export default function Home() {
 				size="xl"
 			>
 				<form onSubmit={handleSubmit}>
-					<header className="flex flex-col gap-4 pb-4 border-b w-full border-base-border">
-						<div className="flex justify-between w-full  items-start">
-							<div className="flex gap-4 items-center">
+					<header className="flex w-full flex-col gap-4 border-b border-base-border pb-4">
+						<div className="flex w-full items-start  justify-between">
+							<div className="flex items-center gap-4">
 								<section className="h-35 w-30 rounded-lg bg-base"></section>
-								<section className="flex gap-1 flex-col justify-center">
+								<section className="flex flex-col justify-center gap-1">
 									<h6>{dataSubmit.name || "iPhone"}</h6>
 									<p>{dataSubmit.category} | Ready stock</p>
 									<h6 className="text-primary">
@@ -261,20 +261,20 @@ export default function Home() {
 						<p className="text-sm">Pilih variant dulu sebelum ke Keranjang</p>
 					</header>
 
-					<main className="flex mt-2 w-full flex-col gap-2">
+					<main className="mt-2 flex w-full flex-col gap-2">
 						<section className="flex w-full flex-col py-3  text-sm">
-							<header className="w-full flex justify-between text-xs items-center h-fit">
+							<header className="flex h-fit w-full items-center justify-between text-xs">
 								<p className="font-semibold">
-									<span className="border-l-5 border-primary mr-3 rounded-lg bg-primary"></span>{" "}
+									<span className="mr-3 rounded-lg border-l-5 border-primary bg-primary"></span>{" "}
 									Warna
 								</p>
 								<p className="text-primary">Wajib dipilih</p>
 							</header>
-							<main className="flex gap-3 flex-wrap mt-2">
+							<main className="mt-2 flex flex-wrap gap-3">
 								<div>
 									<label
 										htmlFor="color-blue"
-										className="w-fit h-fit flex flex-col items-center gap-2"
+										className="flex h-fit w-fit flex-col items-center gap-2"
 									>
 										<input
 											type="radio"
@@ -287,12 +287,12 @@ export default function Home() {
 											className="peer hidden"
 										/>
 										<div
-											className="w-13.5 h-13.5 centerized border border-white peer-checked:border-primary 
-												rounded-full"
+											className="centerized h-13.5 w-13.5 rounded-full border border-white 
+												peer-checked:border-primary"
 										>
-											<div className="w-10 rounded-full h-10 px-4 bg-primary"></div>
+											<div className="h-10 w-10 rounded-full bg-primary px-4"></div>
 										</div>
-										<p className="peer-checked:text-primary text-xs font-semibold">
+										<p className="text-xs font-semibold peer-checked:text-primary">
 											Biru
 										</p>
 									</label>
@@ -301,7 +301,7 @@ export default function Home() {
 								<div>
 									<label
 										htmlFor="color-gray"
-										className="w-fit h-fit flex flex-col items-center gap-2"
+										className="flex h-fit w-fit flex-col items-center gap-2"
 									>
 										<input
 											type="radio"
@@ -313,10 +313,10 @@ export default function Home() {
 											id="color-gray"
 											className="peer hidden"
 										/>
-										<div className="w-13.5 h-13.5 centerized border border-white peer-checked:border-primary rounded-full">
-											<div className="w-10 rounded-full h-10 px-4 bg-gray-400"></div>
+										<div className="centerized h-13.5 w-13.5 rounded-full border border-white peer-checked:border-primary">
+											<div className="h-10 w-10 rounded-full bg-gray-400 px-4"></div>
 										</div>
-										<p className="peer-checked:text-primary font-semibold text-xs">
+										<p className="text-xs font-semibold peer-checked:text-primary">
 											Gray
 										</p>
 									</label>
@@ -325,20 +325,20 @@ export default function Home() {
 						</section>
 
 						<section className="flex w-full flex-col py-3  text-sm">
-							<header className="w-full flex justify-between text-xs items-center h-fit">
+							<header className="flex h-fit w-full items-center justify-between text-xs">
 								<p className="font-semibold">
-									<span className="border-l-5 border-primary mr-3 rounded-lg bg-primary"></span>
+									<span className="mr-3 rounded-lg border-l-5 border-primary bg-primary"></span>
 									Kapasitas
 								</p>
 								<p className="text-primary">Wajib dipilih</p>
 							</header>
 
-							<main className="flex gap-3 flex-wrap mt-2">
+							<main className="mt-2 flex flex-wrap gap-3">
 								{specs.map((item) => (
 									<label
 										key={item.id}
 										htmlFor={item.id.toString()}
-										className="group h-22 w-37 flex text-white flex-col cursor-pointer"
+										className="group flex h-22 w-37 cursor-pointer flex-col text-white"
 									>
 										<input
 											className="peer sr-only"
@@ -367,7 +367,7 @@ export default function Home() {
 										/>
 										<p className="hidden">.</p>
 										<div className="centerized h-full w-full overflow-hidden rounded-lg border border-base-border peer-checked:border-primary peer-checked:bg-primary/10">
-											<div className="text-text-h flex-col centerized gap-1 text-center group-[:has(input:checked)]:text-primary">
+											<div className="centerized flex-col gap-1 text-center text-text-h group-[:has(input:checked)]:text-primary">
 												<h6 className="font-semibold group-[:has(input:checked)]:text-primary">
 													{item.name}
 												</h6>
@@ -385,28 +385,28 @@ export default function Home() {
 						</section>
 
 						<section className="flex w-full flex-col py-3  text-sm">
-							<header className="w-full flex justify-between text-xs items-center h-fit">
+							<header className="flex h-fit w-full items-center justify-between text-xs">
 								<p className="font-semibold">
-									<span className="border-l-5 border-primary mr-3 rounded-lg bg-primary"></span>
+									<span className="mr-3 rounded-lg border-l-5 border-primary bg-primary"></span>
 									Tambahan
 								</p>
 								<p className="text-primary">Optional</p>
 							</header>
 
-							<main className="flex gap-3 flex-col flex-wrap mt-2">
+							<main className="mt-2 flex flex-col flex-wrap gap-3">
 								{optional.map((item, index) => (
 									<label
 										key={item.id}
 										htmlFor={`opt${item.id.toString()}`}
-										className="group h-14 w-full flex flex-col cursor-pointer"
+										className="group flex h-14 w-full cursor-pointer flex-col"
 									>
 										<p className="hidden">.</p>
 										<div
 											className="centerized h-full w-full overflow-hidden rounded-lg border border-base-border 
-											peer-checked:border-primary group-[:has(input:checked)]:border-primary peer-checked:bg-primary/10"
+											group-[:has(input:checked)]:border-primary peer-checked:border-primary peer-checked:bg-primary/10"
 										>
 											<div
-												className="text-text-h flex w-full px-3 items-center justify-between gap-1 text-center 
+												className="flex w-full items-center justify-between gap-1 px-3 text-center text-text-h 
 												group-[:has(input:checked)]:text-primary"
 											>
 												<div className="flex w-[50%] items-center gap-2">
@@ -438,14 +438,14 @@ export default function Home() {
 														{item.name}
 													</h6>
 												</div>
-												<div className="w-[20%] centerized">
+												<div className="centerized w-[20%]">
 													<p
-														className={`${item.stock > 0 ? "text-text-h" : "text-deep-danger/80"} px-3 text-xs font-semibold py-1.5 rounded-lg bg-base`}
+														className={`${item.stock > 0 ? "text-text-h" : "text-deep-danger/80"} rounded-lg bg-base px-3 py-1.5 text-xs font-semibold`}
 													>
 														{item.stock > 0 ? `Stok ${item.stock}` : "Habis"}
 													</p>
 												</div>
-												<p className="text-sm w-[30%] text-right text-primary">
+												<p className="w-[30%] text-right text-sm text-primary">
 													+{formatRupiah(item.price)}
 												</p>
 											</div>
@@ -453,10 +453,10 @@ export default function Home() {
 									</label>
 								))}
 							</main>
-							<footer className="flex mt-10 flex-col gap-3">
+							<footer className="mt-10 flex flex-col gap-3">
 								<div
-									className="w-full p-4 text-left bg-base border border-base-border rounded-lg 
-									gap-1 h-17 flex flex-col justify-center"
+									className="flex h-17 w-full flex-col justify-center gap-1 rounded-lg 
+									border border-base-border bg-base p-4 text-left"
 								>
 									<p className="text-xs">KOMBINASI TERPILIH</p>
 									<div className="flex items-center gap-2">
@@ -464,10 +464,10 @@ export default function Home() {
 										<h6>{dataSubmit?.specs}</h6>
 									</div>
 								</div>
-								<div className="flex justify-between items-center">
-									<div className="flex gap-4 items-center">
+								<div className="flex items-center justify-between">
+									<div className="flex items-center gap-4">
 										<div
-											className="flex items-center justify-between w-35 h-11 
+											className="flex h-11 w-35 items-center justify-between 
 													rounded-lg border border-base-border"
 										>
 											<Button
@@ -524,7 +524,7 @@ export default function Home() {
 					</main>
 				</form>
 			</Modal>
-			<div className="flex w-full px-3 flex-col">
+			<div className="flex w-full flex-col px-3">
 				<ParamsSection params={params} />
 				{loading ? (
 					<CardSkel count={3} />
@@ -536,7 +536,7 @@ export default function Home() {
 								padding={"none"}
 								className="p-1"
 							>
-								<header className="w-full h-45 centerized rounded-t-xl bg-base">
+								<header className="centerized h-45 w-full rounded-t-xl bg-base">
 									{/* {item.image ? (
 										<img
 											src={item.image ?? item.image}
@@ -546,16 +546,16 @@ export default function Home() {
 									<h1 className="text-base-border!">N</h1>
 									{/* )} */}
 								</header>
-								<main className="w-full h-25 p-2">
+								<main className="h-25 w-full p-2">
 									<p className="text-sm">{item.brand.name}</p>
 									<h6>{item.name}</h6>
-									<div className="flex items-center justify-between mt-1">
+									<div className="mt-1 flex items-center justify-between">
 										<h5>
 											{formatRupiah(Number.parseInt(item.items[0]?.price))}
 										</h5>
 										<Button
 											onClick={() => addItem(item.id)}
-											className="rounded-full  cursor-pointer"
+											className="cursor-pointer  rounded-full"
 										>
 											<Plus
 												strokeWidth={5}
@@ -604,7 +604,7 @@ function ParamsSection({ params }) {
 		<div className="flex w-full items-center justify-between py-3">
 			<form
 				action=""
-				className="w-full flex justify-between"
+				className="flex w-full justify-between"
 			>
 				<Input
 					type="text"

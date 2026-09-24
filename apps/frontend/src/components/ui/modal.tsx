@@ -93,7 +93,7 @@ export function ModalFooter({
 	return (
 		<div
 			className={cn(
-				"-mx-5 -mb-4 mt-4 flex items-center justify-end gap-2 border-t border-base-border bg-base/50 px-5 py-3",
+				"-mx-5 mt-4 -mb-4 flex items-center justify-end gap-2 border-t border-base-border bg-base/50 px-5 py-3",
 				className,
 			)}
 			{...props}

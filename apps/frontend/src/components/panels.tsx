@@ -1,7 +1,7 @@
 import { ArrowRight, Check, ShoppingCart } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 
 import { apiFetch } from "../libs/api";
 import { formatRupiah } from "../libs/formatRupiah";
@@ -23,6 +23,7 @@ interface Category {
 
 interface FilterGroup {
 	title: string;
+	param: string;
 	options: Category[];
 }
 
@@ -54,36 +55,55 @@ function Summary({ rows, total }: Readonly<SummaryProps>) {
 	);
 }
 
-function handleClearFilter(): void {
-	console.log("Success");
-}
-
 export function FiltersPanel() {
+	const [searchParams, setSearchParams] = useSearchParams();
 	const [loading, setLoading] = useState<boolean>(true);
 	const [filterGroups, setFilterGroups] = useState<FilterGroup[]>([]);
 
 	useEffect(() => {
-		async function getCategories() {
+		async function getFilters() {
 			setLoading(true);
 			try {
-				const data = await apiFetch("/api/v1/categories");
-				const res = await data.json();
-				setFilterGroups([{ title: "Kategori", options: res.data }]);
+				const [categoriesRes, brandsRes] = await Promise.all([
+					apiFetch("/api/v1/categories"),
+					apiFetch("/api/v1/brands"),
+				]);
+				const [categories, brands] = await Promise.all([
+					categoriesRes.json(),
+					brandsRes.json(),
+				]);
+
+				setFilterGroups([
+					{ title: "Kategori", param: "categoryId", options: categories.data },
+					{ title: "Brand", param: "brandId", options: brands.data },
+				]);
 			} catch (error) {
 				console.error(error);
 			} finally {
 				setLoading(false);
 			}
 		}
-		getCategories();
+		getFilters();
 	}, []);
+
+	function chooseFilter(param: string, id: string): void {
+		const next = new URLSearchParams(searchParams);
+		next.set(param, id);
+		setSearchParams(next);
+	}
+
+	function resetFilters(): void {
+		const next = new URLSearchParams(searchParams);
+		for (const group of filterGroups) next.delete(group.param);
+		setSearchParams(next);
+	}
 
 	return (
 		<Aside
 			headerName={"Filters"}
 			Attribute={
 				<Button
-					onClick={handleClearFilter}
+					onClick={resetFilters}
 					variant={"inverse"}
 				>
 					<p>Clear</p>
@@ -107,8 +127,10 @@ export function FiltersPanel() {
 											className="flex gap-2 items-center justify-start list-outside"
 										>
 											<input
-												type="checkbox"
-												name={option.id}
+												onChange={() => chooseFilter(group.param, option.id)}
+												checked={searchParams.get(group.param) === option.id}
+												type="radio"
+												name={group.title}
 												id={option.id}
 												className="peer"
 											/>
@@ -129,6 +151,7 @@ export function FiltersPanel() {
 			Footer={
 				<div className="centerized gap-2">
 					<Button
+						onClick={resetFilters}
 						variant={"outline"}
 						className="px-6"
 					>

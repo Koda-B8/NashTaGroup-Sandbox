@@ -5,8 +5,8 @@ import { useSearchParams } from "react-router";
 
 import CardSkel from "../components/CardSkel";
 import PaginationControls from "../components/PaginationControls";
+import ProductCard, { ProductGrid } from "../components/ProductCard";
 import Button from "../components/ui/button";
-import Card from "../components/ui/card";
 import Checkbox from "../components/ui/checkbox";
 import Input from "../components/ui/input";
 import Modal from "../components/ui/modal";
@@ -540,46 +540,28 @@ export default function Home() {
 				{loading ? (
 					<CardSkel count={3} />
 				) : (
-					<div className="grid grid-cols-3 gap-3">
+					<ProductGrid>
 						{products?.map((item) => (
-							<Card
-								key={item.id}
-								padding={"none"}
-								className="p-1"
-							>
-								<header className="centerized h-45 w-full rounded-t-lg bg-base">
-									{/* {item.image ? (
-										<img
-											src={item.image ?? item.image}
-											alt={item?.alt}
+							<ProductCard key={item.id}>
+								<p className="text-sm">{item.brand.name}</p>
+								<p className="font-semibold text-text-h">{item.name}</p>
+								<div className="mt-1 flex items-center justify-between">
+									<p className="text-xl font-semibold text-text-h">
+										{formatRupiah(Number.parseInt(item.items[0]?.price))}
+									</p>
+									<Button
+										onClick={() => addItem(item.id)}
+										className="cursor-pointer  rounded-full"
+									>
+										<Plus
+											strokeWidth={5}
+											size={14}
 										/>
-									) : ( */}
-									<span className="text-3xl font-semibold text-base-border">
-										N
-									</span>
-									{/* )} */}
-								</header>
-								<main className="h-25 w-full p-2">
-									<p className="text-sm">{item.brand.name}</p>
-									<p className="font-semibold text-text-h">{item.name}</p>
-									<div className="mt-1 flex items-center justify-between">
-										<p className="text-xl font-semibold text-text-h">
-											{formatRupiah(Number.parseInt(item.items[0]?.price))}
-										</p>
-										<Button
-											onClick={() => addItem(item.id)}
-											className="cursor-pointer  rounded-full"
-										>
-											<Plus
-												strokeWidth={5}
-												size={14}
-											/>
-										</Button>
-									</div>
-								</main>
-							</Card>
+									</Button>
+								</div>
+							</ProductCard>
 						))}
-					</div>
+					</ProductGrid>
 				)}
 				{!loading && products?.length < 1 && (
 					<div className="centerized h-50">

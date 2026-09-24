@@ -7,6 +7,8 @@ import {
 	SquareArrowRightEnter,
 	CircleCheckBig,
 	RotateCw,
+	Trash,
+	Phone,
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -16,7 +18,12 @@ import Button from "../components/ui/button";
 import { apiFetch } from "../libs/api";
 import { formatRupiah } from "../libs/formatRupiah";
 import type { AppDispatch, RootState } from "../store";
-import { incrementItem, decrementItem, clearCart } from "../store/slices/cart";
+import {
+	incrementItem,
+	decrementItem,
+	clearCart,
+	deleteCartItem,
+} from "../store/slices/cart";
 
 interface PaymentMethod {
 	id: number;
@@ -93,6 +100,8 @@ export default function Checkout() {
 			const data = new FormData(e.target);
 			const formated = Object.fromEntries(data.entries());
 
+			console.log(cart);
+
 			const res = {
 				payment_method_id: formated.Payment,
 				paid_amount: cart
@@ -124,6 +133,7 @@ export default function Checkout() {
 					navigate("/struct", {
 						state: {
 							paymentMethod: result.data.payment.method,
+							phone: formated.phone,
 							items: cart,
 						},
 					});
@@ -141,7 +151,10 @@ export default function Checkout() {
 		<>
 			{activeModal && (
 				<div className="z-100 bg-black/30 left-0 top-0 fixed w-screen h-screen centerized">
-					<div className="w-100 h-50 centerized gap-3 flex-col overflow-hidden shadow-lg z-200 bg-white rounded-lg">
+					<div
+						className="w-100 h-50 centerized gap-3 flex-col overflow-hidden shadow-lg z-200
+					 bg-white rounded-lg"
+					>
 						<CircleCheckBig
 							size={45}
 							className="text-deep-valid/70"
@@ -169,13 +182,10 @@ export default function Checkout() {
 					</Button>
 				</header>
 
-				<main className="flex flex-col gap-3">
+				<main className="flex flex-col gap-3 pb-7">
 					<section className="bg-white rounded-md border border-base-border p-3">
 						<header className="flex items-center justify-between">
 							<h6>Pesanan {cart.length} Items</h6>
-							<Button variant={"inverse"}>
-								<p>Edit</p>
-							</Button>
 						</header>
 
 						<main className="flex flex-col gap-3 mt-2">
@@ -184,7 +194,7 @@ export default function Checkout() {
 									key={item.id}
 									className="flex items-center justify-between"
 								>
-									<div className="flex gap-3 w-[60%]">
+									<div className="flex gap-3 w-[55%]">
 										<div className="w-16 h-18 border border-base-border rounded-md bg-base">
 											<img
 												src={item.image ?? ""}
@@ -210,7 +220,8 @@ export default function Checkout() {
 												rounded-lg border border-base-border"
 										>
 											<Button
-												variant="inverse"
+												variant="ghost"
+												className="cursor-pointer"
 												onClick={() => {
 													if (item.qty > 1) {
 														handleDecItemCart(item.id);
@@ -224,28 +235,69 @@ export default function Checkout() {
 											</Button>
 											<h6>{item.qty}</h6>
 											<Button
-												variant="inverse"
+												variant="ghost"
+												className="cursor-pointer "
 												onClick={() => {
 													handleIncItemCart(item.id);
 												}}
 											>
 												<Plus
 													size={14}
+													className="cursor-pointer"
 													strokeWidth={3}
 												/>
 											</Button>
 										</div>
 									</div>
 
-									<div className="flex w-[25] text-right items-center">
+									<div className="flex w-[25%] text-right justify-end pr-10 items-center">
 										<h6>{formatRupiah(item.total)}</h6>
+									</div>
+									<div className="w-[5%]">
+										<Button
+											variant="ghost"
+											onClick={() => dispatch(deleteCartItem({ id: item.id }))}
+											className="shadow-sm rounded-md p-2 cursor-pointer"
+										>
+											<Trash
+												size={18}
+												className="text-deep-danger/70"
+											/>
+										</Button>
 									</div>
 								</div>
 							))}
 						</main>
 					</section>
 
-					<section className="bg-white rounded-md border border-base-border p-3">
+					<section
+						className="bg-white flex flex-col rounded-lg gap-2 w-full p-3 
+					border border-base-border"
+					>
+						<label
+							htmlFor="phone"
+							className="text-text-h"
+						>
+							Customer Phone
+						</label>
+						<div className="w-full bg-base rounded-lg flex h-10">
+							<div className="h-full  centerized px-4">
+								<Phone
+									size={14}
+									className="text-text/50"
+								/>
+							</div>
+							<input
+								placeholder="08xxxx"
+								id="phone"
+								name="phone"
+								className="bg-base w-full outline-none text-md rounded-lg h-10 "
+								type="number"
+							/>
+						</div>
+					</section>
+
+					<section className="bg-white rounded-lg border border-base-border p-3">
 						<header className="flex items-center justify-between">
 							<h6>Metode Pembayaran</h6>
 						</header>
@@ -280,6 +332,7 @@ export default function Checkout() {
 							))}
 						</main>
 					</section>
+
 					<section>
 						<Button
 							type="submit"
@@ -302,6 +355,7 @@ export default function Checkout() {
 							)}
 						</Button>
 					</section>
+					<p className="text-center mt-4 text-xs text-text-h">NashTa Group</p>
 				</main>
 			</form>
 		</>

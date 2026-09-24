@@ -3,7 +3,9 @@ import { useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router";
 
 import { logout } from "../features/auth/api";
+import { useCrumbs } from "../hooks/useCrumbs";
 import { clearCsrfCache } from "../libs/api";
+import { APP_NAME } from "../libs/app";
 import type { AppDispatch } from "../store";
 import { clearCredentials } from "../store/slices/auth";
 import { clearCart } from "../store/slices/cart";
@@ -20,6 +22,8 @@ interface CartActionProps {
 }
 
 export default function Navbar() {
+	const crumbs = useCrumbs();
+
 	return (
 		<AppHeader
 			leading={
@@ -27,13 +31,10 @@ export default function Navbar() {
 					to={"/"}
 					className="font-semibold text-text-h"
 				>
-					NashTa Group
+					{APP_NAME}
 				</Link>
 			}
-			items={[
-				{ label: "Products", to: "/" },
-				{ label: "Browse", to: "/" },
-			]}
+			items={crumbs}
 			actions={
 				<>
 					<SearchBox />

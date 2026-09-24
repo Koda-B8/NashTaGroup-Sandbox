@@ -24,7 +24,9 @@ import Avatar from "../../components/ui/avatar";
 import Badge from "../../components/ui/badge";
 import Input from "../../components/ui/input";
 import { logout } from "../../features/auth/api";
+import { useCrumbs } from "../../hooks/useCrumbs";
 import { clearCsrfCache } from "../../libs/api";
+import { APP_NAME } from "../../libs/app";
 import type { AppDispatch, RootState } from "../../store";
 import { clearCredentials } from "../../store/slices/auth";
 
@@ -149,7 +151,7 @@ function WorkspaceSwitcher() {
 			</span>
 			<span className="flex-1">
 				<span className="block text-sm font-medium text-text-h">
-					Nashta Group
+					{APP_NAME}
 				</span>
 				<span className="block text-3xs text-text">Dashboard</span>
 			</span>
@@ -311,6 +313,7 @@ interface HeaderProps {
 
 function Header({ isSidebarOpen, onToggleSidebar }: Readonly<HeaderProps>) {
 	const user = useSelector((state: RootState) => state.auth.user);
+	const crumbs = useCrumbs();
 
 	return (
 		<AppHeader
@@ -327,10 +330,7 @@ function Header({ isSidebarOpen, onToggleSidebar }: Readonly<HeaderProps>) {
 					/>
 				</button>
 			}
-			items={[
-				{ label: "Nashta Group", to: "/dashboard" },
-				{ label: "Transactions" },
-			]}
+			items={crumbs}
 			actions={
 				<>
 					<Input

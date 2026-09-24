@@ -36,17 +36,29 @@ const router = createBrowserRouter([
 			{
 				index: true,
 				element: <Home />,
-				handle: { left: FiltersPanel, right: CartPanel },
+				handle: {
+					left: FiltersPanel,
+					right: CartPanel,
+					crumbs: [{ label: "Products" }],
+				},
 			},
 			{
 				path: "/checkout",
 				element: <Checkout />,
-				handle: { left: CheckoutSteps, right: CheckoutSummary },
+				handle: {
+					left: CheckoutSteps,
+					right: CheckoutSummary,
+					crumbs: [{ label: "Products", to: "/" }, { label: "Checkout" }],
+				},
 			},
 			{
 				path: "/struct",
 				element: <StructStatus />,
-				handle: { left: StructSteps, right: CheckoutSummary },
+				handle: {
+					left: StructSteps,
+					right: CheckoutSummary,
+					crumbs: [{ label: "Products", to: "/" }, { label: "Struk" }],
+				},
 			},
 			{ path: "*", element: <NotFound /> },
 		],
@@ -65,26 +77,47 @@ const router = createBrowserRouter([
 					{
 						index: true,
 						element: <MainDashboard />,
+						handle: { crumbs: [{ label: "Home" }] },
 					},
 					{
 						path: "products/inventory",
 						element: <InventoriesManagementDashboard />,
+						handle: {
+							crumbs: [
+								{ label: "Products", to: "/dashboard/products" },
+								{ label: "Inventory" },
+							],
+						},
 					},
 					{
 						path: "products/categories",
 						element: <CategoriesDashboard />,
+						handle: {
+							crumbs: [
+								{ label: "Products", to: "/dashboard/products" },
+								{ label: "Categories" },
+							],
+						},
 					},
 					{
 						path: "products/brands",
 						element: <BrandsDashboard />,
+						handle: {
+							crumbs: [
+								{ label: "Products", to: "/dashboard/products" },
+								{ label: "Brands" },
+							],
+						},
 					},
 					{
 						path: "products",
 						element: <ProductsManagementDashboard />,
+						handle: { crumbs: [{ label: "Products" }] },
 					},
 					{
 						path: "orders",
 						element: <OrdersManagementDashboard />,
+						handle: { crumbs: [{ label: "Transactions" }] },
 					},
 					{
 						element: <ProtectedRoute allowedRoles={["admin"]} />,
@@ -92,6 +125,7 @@ const router = createBrowserRouter([
 							{
 								path: "cashier",
 								element: <UserManagementDashboard />,
+								handle: { crumbs: [{ label: "Cashier" }] },
 							},
 						],
 					},

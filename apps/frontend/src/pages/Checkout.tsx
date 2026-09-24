@@ -20,6 +20,7 @@ import Card from "../components/ui/card";
 import Input from "../components/ui/input";
 import Modal from "../components/ui/modal";
 import { apiFetch } from "../libs/api";
+import { APP_NAME } from "../libs/app";
 import { formatRupiah } from "../libs/formatRupiah";
 import type { AppDispatch, RootState } from "../store";
 import {
@@ -354,7 +355,7 @@ export default function Checkout() {
 							)}
 						</Button>
 					</section>
-					<p className="mt-4 text-center text-xs text-text-h">NashTa Group</p>
+					<p className="mt-4 text-center text-xs text-text-h">{APP_NAME}</p>
 				</main>
 			</form>
 		</>

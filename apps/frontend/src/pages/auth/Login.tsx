@@ -7,6 +7,7 @@ import Button from "../../components/ui/button";
 import Checkbox from "../../components/ui/checkbox";
 import Input from "../../components/ui/input";
 import { login } from "../../features/auth/api";
+import { APP_NAME } from "../../libs/app";
 import type { AppDispatch } from "../../store";
 import { roleHomePath, setCredentials } from "../../store/slices/auth";
 
@@ -28,7 +29,7 @@ function BrandingPanel() {
 				</div>
 				<div>
 					<h2 className="text-xl font-bold tracking-tight text-white">
-						NashTa Group
+						{APP_NAME}
 					</h2>
 					<p className="text-xs text-white/80">Enterprise Management System</p>
 				</div>
@@ -40,12 +41,12 @@ function BrandingPanel() {
 				</h3>
 				<p className="text-sm leading-relaxed text-white/80">
 					Satu pintu masuk untuk layanan Kasir (POS), Manajemen Inventaris,
-					Analitik, dan Pengaturan Sistem NashTa Group.
+					Analitik, dan Pengaturan Sistem {APP_NAME}.
 				</p>
 			</div>
 
 			<p className="relative z-10 text-xs text-white/60">
-				&copy; {CURRENT_YEAR} NashTa Group. All rights reserved.
+				&copy; {CURRENT_YEAR} {APP_NAME}. All rights reserved.
 			</p>
 		</div>
 	);

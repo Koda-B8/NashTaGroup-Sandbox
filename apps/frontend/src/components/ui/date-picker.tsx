@@ -68,7 +68,7 @@ const monthCell = tv({
 });
 
 const footerButton = tv({
-	base: "rounded-md px-2 py-1 text-xs font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+	base: "rounded-md px-2 py-1 text-2xs font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
 	variants: {
 		primary: {
 			true: "text-primary hover:bg-primary-light",

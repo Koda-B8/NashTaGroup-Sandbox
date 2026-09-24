@@ -153,7 +153,7 @@ function WorkspaceSwitcher() {
 				<span className="block text-sm font-medium text-text-h">
 					Nashta Group
 				</span>
-				<span className="block text-2xs text-text">Dashboard</span>
+				<span className="block text-3xs text-text">Dashboard</span>
 			</span>
 			<ChevronDownIcon
 				size={14}
@@ -238,7 +238,7 @@ function SidebarNavNode({ item, depth = 0 }: SidebarNavNodeProps) {
 					</Badge>
 				)}
 				{item.shortcut && (
-					<span className="text-2xs text-text">{item.shortcut}</span>
+					<span className="text-3xs text-text">{item.shortcut}</span>
 				)}
 			</Link>
 		</div>
@@ -271,7 +271,7 @@ function Sidebar() {
 							className="flex flex-col gap-0.5"
 						>
 							{group.heading && (
-								<p className="mt-3 px-2.5 pb-1 text-2xs font-semibold tracking-wider text-text">
+								<p className="mt-3 px-2.5 pb-1 text-4xs font-semibold tracking-wider text-text">
 									{group.heading}
 								</p>
 							)}
@@ -294,7 +294,7 @@ function Sidebar() {
 					<p className="text-xs font-medium text-text-h">
 						{user?.fullname ?? "Admin"}
 					</p>
-					<p className="text-2xs text-text capitalize">{user?.role}</p>
+					<p className="text-3xs text-text capitalize">{user?.role}</p>
 				</div>
 				<Button
 					variant="ghost"

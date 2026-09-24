@@ -166,7 +166,7 @@ export default function InventoryTable({
 														{row.productName}
 													</span>
 													<span
-														className="block truncate text-xs text-text"
+														className="block truncate text-2xs text-text"
 														title={row.id}
 													>
 														{row.productCode || row.id}

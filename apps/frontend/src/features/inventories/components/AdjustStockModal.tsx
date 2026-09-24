@@ -146,7 +146,7 @@ export default function AdjustStockModal({
 								onValueChange={(value) => setType(value as AdjustmentType)}
 								className="w-full min-w-0"
 							/>
-							<span className="text-xs text-text">{TYPE_HINT[type]}</span>
+							<span className="text-2xs text-text">{TYPE_HINT[type]}</span>
 						</div>
 						<div className="flex flex-col gap-1">
 							<label
@@ -185,11 +185,11 @@ export default function AdjustStockModal({
 						/>
 					</div>
 
-					{error && <span className="text-xs text-deep-danger">{error}</span>}
+					{error && <span className="text-2xs text-deep-danger">{error}</span>}
 
 					<div className="flex items-center justify-between rounded-lg border border-base-border bg-base px-3 py-2.5">
 						<div className="flex flex-col">
-							<span className="text-xs text-text">Current stock</span>
+							<span className="text-2xs text-text">Current stock</span>
 							<span className="text-sm font-semibold text-text-h">
 								{currentStock}
 							</span>
@@ -201,7 +201,7 @@ export default function AdjustStockModal({
 							→
 						</span>
 						<div className="flex flex-col items-end">
-							<span className="text-xs text-text">After</span>
+							<span className="text-2xs text-text">After</span>
 							<span
 								className={`text-sm font-bold ${
 									previewStock < 0 ? "text-deep-danger" : "text-text-h"

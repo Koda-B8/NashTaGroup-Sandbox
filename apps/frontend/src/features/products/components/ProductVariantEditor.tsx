@@ -33,10 +33,10 @@ export default function ProductVariantEditor({
 		<div className="flex flex-col gap-3">
 			<div className="flex items-center justify-between gap-2">
 				<div className="flex items-baseline gap-2">
-					<p className="text-2xs font-bold tracking-wider text-text uppercase">
+					<p className="text-3xs font-bold tracking-wider text-text uppercase">
 						Varian
 					</p>
-					{note && <span className="text-xs text-text">{note}</span>}
+					{note && <span className="text-2xs text-text">{note}</span>}
 				</div>
 				{onAdd && (
 					<Button
@@ -92,7 +92,7 @@ export default function ProductVariantEditor({
 									<div className="col-span-2 flex flex-col gap-1 sm:col-span-1">
 										<label
 											htmlFor={`item-code-${item.key}`}
-											className="text-xs font-medium text-text-h"
+											className="text-2xs font-medium text-text-h"
 										>
 											Product Code
 										</label>
@@ -110,7 +110,7 @@ export default function ProductVariantEditor({
 											autoComplete="off"
 										/>
 										{itemError.productCode && (
-											<span className="text-2xs text-deep-danger">
+											<span className="text-3xs text-deep-danger">
 												{itemError.productCode}
 											</span>
 										)}
@@ -118,7 +118,7 @@ export default function ProductVariantEditor({
 									<div className="flex flex-col gap-1">
 										<label
 											htmlFor={`item-price-${item.key}`}
-											className="text-xs font-medium text-text-h"
+											className="text-2xs font-medium text-text-h"
 										>
 											Harga
 										</label>
@@ -140,7 +140,7 @@ export default function ProductVariantEditor({
 											autoComplete="off"
 										/>
 										{itemError.price && (
-											<span className="text-2xs text-deep-danger">
+											<span className="text-3xs text-deep-danger">
 												{itemError.price}
 											</span>
 										)}
@@ -148,7 +148,7 @@ export default function ProductVariantEditor({
 									<div className="flex flex-col gap-1">
 										<label
 											htmlFor={`item-stock-${item.key}`}
-											className="text-xs font-medium text-text-h"
+											className="text-2xs font-medium text-text-h"
 										>
 											Stock
 										</label>
@@ -167,7 +167,7 @@ export default function ProductVariantEditor({
 											autoComplete="off"
 										/>
 										{itemError.stock && (
-											<span className="text-2xs text-deep-danger">
+											<span className="text-3xs text-deep-danger">
 												{itemError.stock}
 											</span>
 										)}
@@ -185,8 +185,8 @@ export default function ProductVariantEditor({
 										}
 										aria-label={`Item ${index + 1} active`}
 									/>
-									<span className="text-xs font-medium">Active</span>
-									<span className="text-2xs text-text">— dijual di kasir</span>
+									<span className="text-2xs font-medium">Active</span>
+									<span className="text-3xs text-text">— dijual di kasir</span>
 								</label>
 							</li>
 						);

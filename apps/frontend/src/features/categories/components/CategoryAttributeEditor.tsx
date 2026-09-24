@@ -77,10 +77,10 @@ export default function CategoryAttributeEditor({
 		<div className="flex flex-col gap-3">
 			<div className="flex items-start justify-between gap-2">
 				<div>
-					<p className="text-2xs font-semibold tracking-wider text-text uppercase">
+					<p className="text-3xs font-semibold tracking-wider text-text uppercase">
 						Atribut
 					</p>
-					<p className="text-xs text-text">
+					<p className="text-2xs text-text">
 						Opsional — definisi varian &amp; spesifikasi category.
 					</p>
 				</div>
@@ -107,7 +107,7 @@ export default function CategoryAttributeEditor({
 							className="flex flex-col gap-3 p-3"
 						>
 							<div className="flex items-center justify-between gap-2">
-								<span className="text-2xs font-semibold tracking-wider text-text uppercase">
+								<span className="text-3xs font-semibold tracking-wider text-text uppercase">
 									Atribut {index + 1}
 								</span>
 								<button
@@ -126,7 +126,7 @@ export default function CategoryAttributeEditor({
 								<div className="flex flex-col gap-1">
 									<label
 										htmlFor={`attr-name-${attribute.key}`}
-										className="text-xs font-medium text-text-h"
+										className="text-2xs font-medium text-text-h"
 									>
 										Nama atribut <span className="text-deep-danger">*</span>
 									</label>
@@ -144,10 +144,10 @@ export default function CategoryAttributeEditor({
 								<div className="flex flex-col gap-1">
 									<label
 										htmlFor={`attr-value-${attribute.key}`}
-										className="text-xs font-medium text-text-h"
+										className="text-2xs font-medium text-text-h"
 									>
 										Nilai{" "}
-										<span className="text-2xs font-normal text-text">
+										<span className="text-3xs font-normal text-text">
 											(opsional)
 										</span>
 									</label>
@@ -176,8 +176,8 @@ export default function CategoryAttributeEditor({
 										}
 										aria-label={`Atribut ${index + 1} bikin varian`}
 									/>
-									<span className="text-xs font-medium">Bikin varian</span>
-									<span className="text-2xs text-text">— isVariant</span>
+									<span className="text-2xs font-medium">Bikin varian</span>
+									<span className="text-3xs text-text">— isVariant</span>
 								</label>
 								<label
 									htmlFor={`attr-required-${attribute.key}`}
@@ -191,15 +191,15 @@ export default function CategoryAttributeEditor({
 										}
 										aria-label={`Atribut ${index + 1} wajib diisi`}
 									/>
-									<span className="text-xs font-medium">Wajib diisi</span>
-									<span className="text-2xs text-text">— isRequired</span>
+									<span className="text-2xs font-medium">Wajib diisi</span>
+									<span className="text-3xs text-text">— isRequired</span>
 								</label>
 							</div>
 
 							{attribute.isVariant && (
 								<div className="flex flex-col gap-2 border-t border-base-border pt-3">
 									<div className="flex items-center justify-between gap-2">
-										<span className="text-2xs font-semibold tracking-wider text-text uppercase">
+										<span className="text-3xs font-semibold tracking-wider text-text uppercase">
 											Opsi
 										</span>
 										<Button
@@ -217,7 +217,7 @@ export default function CategoryAttributeEditor({
 										</Button>
 									</div>
 									{attribute.options.length === 0 ? (
-										<p className="text-xs text-text">Belum ada opsi.</p>
+										<p className="text-2xs text-text">Belum ada opsi.</p>
 									) : (
 										<ul className="flex flex-col gap-2">
 											{attribute.options.map((option, optionIndex) => (

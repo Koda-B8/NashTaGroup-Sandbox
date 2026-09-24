@@ -114,7 +114,7 @@ export default function Combobox<Value extends string>({
 									<span className="col-start-2 flex min-w-0 flex-col">
 										<span className="truncate">{item.label}</span>
 										{item.description && (
-											<span className="truncate text-xs text-text">
+											<span className="truncate text-2xs text-text">
 												{item.description}
 											</span>
 										)}

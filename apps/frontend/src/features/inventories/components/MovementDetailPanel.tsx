@@ -74,7 +74,7 @@ export default function MovementDetailPanel({
 
 			<div className="flex items-center justify-between rounded-lg border border-base-border bg-base px-3 py-2.5">
 				<div className="flex flex-col">
-					<span className="text-xs text-text">Quantity</span>
+					<span className="text-2xs text-text">Quantity</span>
 					<span
 						className={`text-lg font-bold ${MOVEMENT_TYPE_TEXT[movement.type]}`}
 					>
@@ -82,7 +82,7 @@ export default function MovementDetailPanel({
 					</span>
 				</div>
 				<div className="flex flex-col items-end">
-					<span className="text-xs text-text">Stock</span>
+					<span className="text-2xs text-text">Stock</span>
 					<span className="text-sm font-semibold text-text-h">
 						{movement.stockBefore}
 						<span
@@ -120,7 +120,7 @@ export default function MovementDetailPanel({
 				<>
 					<div className="border-t border-base-border" />
 					<div className="flex flex-col gap-1">
-						<span className="text-xs font-semibold tracking-wider text-text uppercase">
+						<span className="text-2xs font-semibold tracking-wider text-text uppercase">
 							Note
 						</span>
 						<p className="text-xs text-text-h">{movement.note}</p>

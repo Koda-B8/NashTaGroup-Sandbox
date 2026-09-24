@@ -191,7 +191,7 @@ export function CartPanel() {
 											<div className="w-10 h-10 rounded-lg bg-base relative">
 												<div
 													className="min-w-4 h-4 px-1 absolute top-0 left-0 rounded-full
-												text-2xs font-bold bg-primary centerized text-white"
+												text-4xs font-bold bg-primary centerized text-white"
 												>
 													{item.qty}
 												</div>

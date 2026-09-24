@@ -81,7 +81,7 @@ export default function TransactionTable({
 								<th
 									key={column.key}
 									scope="col"
-									className={`py-3 text-xs font-semibold tracking-wide text-text uppercase ${column.className}`}
+									className={`py-3 text-2xs font-semibold tracking-wide text-text uppercase ${column.className}`}
 								>
 									{column.label}
 								</th>
@@ -133,7 +133,7 @@ export default function TransactionTable({
 											>
 												{transaction.transactionNumber}
 											</p>
-											<p className="truncate text-xs text-text">
+											<p className="truncate text-2xs text-text">
 												{transaction.cashier?.fullname ?? "—"}
 											</p>
 										</td>
@@ -147,7 +147,7 @@ export default function TransactionTable({
 													<p className="truncate text-sm font-medium text-text-h">
 														{transaction.customer?.name ?? "Non-member"}
 													</p>
-													<p className="truncate text-xs text-text">
+													<p className="truncate text-2xs text-text">
 														{transaction.customer?.phone ?? "Guest checkout"}
 													</p>
 												</div>
@@ -172,7 +172,7 @@ export default function TransactionTable({
 										<td className="px-3 py-3 text-right text-sm font-medium whitespace-nowrap text-text-h">
 											{formatRupiah(toNumber(transaction.totalAmount))}
 										</td>
-										<td className="px-3 py-3 text-xs whitespace-nowrap text-text">
+										<td className="px-3 py-3 text-2xs whitespace-nowrap text-text">
 											{formatDate(transaction.createdAt)}
 										</td>
 										<td className="px-2 py-3">

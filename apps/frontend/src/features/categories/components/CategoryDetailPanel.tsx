@@ -119,11 +119,11 @@ export default function CategoryDetailPanel({
 
 			<div className="flex flex-col gap-1">
 				<div className="flex items-baseline justify-between gap-2">
-					<p className="text-2xs font-semibold tracking-wider text-text uppercase">
+					<p className="text-3xs font-semibold tracking-wider text-text uppercase">
 						Atribut
 					</p>
 					{attributes.length > 0 && (
-						<span className="text-xs text-text">
+						<span className="text-2xs text-text">
 							{attributes.length} atribut
 						</span>
 					)}

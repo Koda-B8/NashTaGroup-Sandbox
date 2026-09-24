@@ -36,7 +36,7 @@ export default function AttributeChips({
 				{definition.isRequired && (
 					<span className="ml-0.5 font-bold text-deep-danger">*</span>
 				)}
-				<span className="mt-0.5 block text-2xs text-text">
+				<span className="mt-0.5 block text-3xs text-text">
 					{definition.isVariant ? "pilih beberapa" : "pilih satu"}
 				</span>
 			</div>

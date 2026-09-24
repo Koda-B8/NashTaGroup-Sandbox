@@ -18,7 +18,7 @@ export default function StatTile({
 			}`.trim()}
 		>
 			<p className="truncate text-sm font-semibold text-text-h">{value}</p>
-			<p className="text-xs text-text">{label}</p>
+			<p className="text-2xs text-text">{label}</p>
 		</div>
 	);
 }

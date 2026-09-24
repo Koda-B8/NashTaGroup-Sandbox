@@ -163,7 +163,9 @@ export default function Checkout() {
 						size={45}
 						className="text-deep-valid/70"
 					/>
-					<h5>Sukses Proses pesanan</h5>
+					<p className="text-xl font-semibold text-text-h">
+						Sukses Proses pesanan
+					</p>
 				</div>
 			</Modal>
 			<form
@@ -185,7 +187,9 @@ export default function Checkout() {
 				<main className="flex flex-col gap-3 pb-7">
 					<Card padding="sm">
 						<header className="flex items-center justify-between">
-							<h6>Pesanan {cart.length} Items</h6>
+							<h6 className="text-sm font-semibold text-text-h">
+								Pesanan {cart.length} Items
+							</h6>
 						</header>
 
 						<main className="mt-2 flex flex-col gap-3">
@@ -233,7 +237,9 @@ export default function Checkout() {
 													strokeWidth={3}
 												/>
 											</Button>
-											<h6>{item.qty}</h6>
+											<span className="font-semibold text-text-h">
+												{item.qty}
+											</span>
 											<Button
 												variant="ghost"
 												className="cursor-pointer "
@@ -251,7 +257,9 @@ export default function Checkout() {
 									</div>
 
 									<div className="flex shrink-0 items-center justify-end pr-10 text-right">
-										<h6>{formatRupiah(item.total)}</h6>
+										<p className="font-semibold text-text-h">
+											{formatRupiah(item.total)}
+										</p>
 									</div>
 									<div className="shrink-0">
 										<Button
@@ -297,7 +305,9 @@ export default function Checkout() {
 
 					<Card padding="sm">
 						<header className="flex items-center justify-between">
-							<h6>Metode Pembayaran</h6>
+							<h6 className="text-sm font-semibold text-text-h">
+								Metode Pembayaran
+							</h6>
 						</header>
 
 						<main className="mt-2 grid grid-cols-3 gap-3">
@@ -320,9 +330,9 @@ export default function Checkout() {
 									>
 										<div className="centerized gap-2 text-center text-text-h group-[:has(input:checked)]:text-primary">
 											{item.icon}
-											<h6 className="group-[:has(input:checked)]:text-primary">
+											<p className="font-semibold group-[:has(input:checked)]:text-primary">
 												{item.name}
-											</h6>
+											</p>
 										</div>
 									</div>
 									<p className="mt-1 hidden text-center text-sm">{item.desc}</p>

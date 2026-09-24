@@ -48,8 +48,8 @@ function Summary({ rows, total }: Readonly<SummaryProps>) {
 				</ul>
 			</section>
 			<section className="flex items-center justify-between py-3">
-				<h6>Total</h6>
-				<h6>{formatRupiah(total)}</h6>
+				<p className="font-semibold text-text-h">Total</p>
+				<p className="font-semibold text-text-h">{formatRupiah(total)}</p>
 			</section>
 		</>
 	);

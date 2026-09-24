@@ -61,9 +61,9 @@ export default function StructStatus() {
 						<Check className="text-deep-valid" />
 					</div>
 					<div className="flex h-full flex-col">
-						<h6>
+						<p className="font-semibold text-text-h">
 							Pembayaran Berhasil <span>Lunas</span>
-						</h6>
+						</p>
 						<p className="text-sm">#TRX-8421</p>
 						<p className="text-sm">
 							{" "}
@@ -82,14 +82,14 @@ export default function StructStatus() {
 
 				<Card padding="md">
 					<header className="flex h-15 flex-col items-center justify-center border-b border-base-border py-2">
-						<h6>NashTa Group</h6>
+						<h6 className="text-sm font-semibold text-text-h">NashTa Group</h6>
 						<p>Jl. Melati No.12, Malang • 0812-3456-7890</p>
 					</header>
 
 					<main className="mt-2 flex flex-col gap-1">
 						<section className="flex items-start justify-between border-b border-base-border py-3">
 							<div className="flex flex-col">
-								<h6>#RTX-8731</h6>
+								<p className="font-semibold text-text-h">#RTX-8731</p>
 								<p>No telp: {stateData?.phone}</p>
 								<p>Pembayaran: {stateData?.paymentMethod}</p>
 							</div>

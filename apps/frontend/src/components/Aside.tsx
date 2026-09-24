@@ -21,7 +21,7 @@ export default function Aside({
 			className="relative flex h-full w-60 flex-1 flex-col"
 		>
 			<header className="flex items-center justify-between border-b border-b-base-border py-2">
-				<h6>{headerName}</h6>
+				<h6 className="text-sm font-semibold text-text-h">{headerName}</h6>
 				{Attribute}
 			</header>
 			<main>{Content}</main>

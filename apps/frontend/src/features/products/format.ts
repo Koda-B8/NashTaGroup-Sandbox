@@ -59,13 +59,6 @@ export function stockBadgeVariant(stock: number): "valid" | "warn" | "danger" {
 	return "valid";
 }
 
-export function rowClassName(isSelected: boolean, index: number): string {
-	if (isSelected) return "border-l-primary bg-primary-light/50";
-	if (index % 2 === 1)
-		return "border-l-transparent bg-base/40 hover:bg-base/70";
-	return "border-l-transparent hover:bg-base/60";
-}
-
 export const PRODUCT_CODE_PATTERN = /^[A-Z0-9][A-Z0-9-]{0,49}$/;
 export const PRICE_PATTERN = /^\d{1,13}(\.\d{1,2})?$/;
 export const STOCK_PATTERN = /^\d+$/;

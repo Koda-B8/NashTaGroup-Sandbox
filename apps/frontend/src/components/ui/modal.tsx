@@ -32,6 +32,8 @@ export interface ModalProps {
 	title?: string;
 	description?: string;
 	size?: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl";
+	/** accessible name for dialogs that render their own header instead of `title` */
+	label?: string;
 	children: ReactNode;
 	/** show close button in header, defaults true when title is set */
 	showClose?: boolean;
@@ -43,6 +45,7 @@ export default function Modal({
 	title,
 	description,
 	size = "md",
+	label,
 	children,
 	showClose = true,
 }: ModalProps) {
@@ -53,7 +56,10 @@ export default function Modal({
 		>
 			<Dialog.Portal>
 				<Dialog.Backdrop className={overlay()} />
-				<Dialog.Popup className={popup({ size })}>
+				<Dialog.Popup
+					aria-label={title ? undefined : label}
+					className={popup({ size })}
+				>
 					{(title || description) && (
 						<div className="flex items-start justify-between gap-4 border-b border-base-border px-5 py-4">
 							<div className="flex-1">

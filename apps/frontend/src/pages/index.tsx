@@ -233,6 +233,7 @@ export default function Home() {
 				open={activeModal}
 				onOpenChange={setActiveModal}
 				size="xl"
+				label={dataSubmit.name || "Pilih varian produk"}
 			>
 				<form onSubmit={handleSubmit}>
 					<header className="flex w-full flex-col gap-4 border-b border-base-border pb-4">

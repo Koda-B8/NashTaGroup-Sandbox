@@ -156,6 +156,7 @@ export default function Checkout() {
 				open={activeModal}
 				onOpenChange={setActiveModal}
 				size="sm"
+				label="Sukses Proses pesanan"
 			>
 				<div className="centerized h-50 flex-col gap-3">
 					<CircleCheckBig

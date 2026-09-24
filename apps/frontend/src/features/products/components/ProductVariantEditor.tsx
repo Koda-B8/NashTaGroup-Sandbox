@@ -78,14 +78,16 @@ export default function ProductVariantEditor({
 										</span>
 									</div>
 									{onRemove && (
-										<button
+										<Button
 											type="button"
 											aria-label={`Hapus item ${index + 1}`}
 											onClick={() => onRemove(item.key)}
-											className="inline-flex size-6 shrink-0 items-center justify-center rounded-lg text-text hover:bg-danger hover:text-deep-danger"
+											variant="ghostDanger"
+											size="icon"
+											className="size-6 shrink-0"
 										>
 											<Trash2 size={13} />
-										</button>
+										</Button>
 									)}
 								</div>
 								<div className="grid grid-cols-2 gap-2 sm:grid-cols-[1.4fr_1fr_0.7fr]">

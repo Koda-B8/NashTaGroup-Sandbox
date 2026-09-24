@@ -760,14 +760,16 @@ export default function ProductFormModal({
 										</span>
 									</label>
 									{imageFile && (
-										<button
+										<Button
 											type="button"
 											aria-label="Hapus gambar"
 											onClick={() => handleImageChange(null)}
-											className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg text-text hover:bg-danger hover:text-deep-danger"
+											variant="ghostDanger"
+											size="icon"
+											className="size-8 shrink-0"
 										>
 											<X size={15} />
-										</button>
+										</Button>
 									)}
 								</div>
 								{imageError && (

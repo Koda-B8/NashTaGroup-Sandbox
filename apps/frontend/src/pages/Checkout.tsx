@@ -163,32 +163,33 @@ export default function Checkout() {
 						size={45}
 						className="text-deep-valid/70"
 					/>
-					<h5>Sukses Proses pesanan</h5>
+					<p className="text-xl font-semibold text-text-h">
+						Sukses Proses pesanan
+					</p>
 				</div>
 			</Modal>
 			<form
 				onSubmit={handleSubmit}
 				className="flex w-full flex-col gap-2 px-3"
 			>
-				<header className="flex items-center justify-between">
-					<div
-						className="flex h-10 w-[84%] items-center rounded-lg border border-base-border 
-				bg-surface pl-4 text-sm"
-					>
+				<header className="flex items-center gap-2">
+					<div className="flex h-10 flex-1 items-center rounded-lg border border-base-border bg-surface pl-4 text-sm">
 						<p>Siap dibayar • Estimasi 30–45 menit</p>
 					</div>
 					<Button
-						variant={"inverse"}
-						className=" w-[15%] border border-base-border"
+						variant="outline"
+						className="shrink-0"
 					>
-						<p>Bantuan ?</p>
+						Bantuan ?
 					</Button>
 				</header>
 
 				<main className="flex flex-col gap-3 pb-7">
 					<Card padding="sm">
 						<header className="flex items-center justify-between">
-							<h6>Pesanan {cart.length} Items</h6>
+							<h6 className="text-sm font-semibold text-text-h">
+								Pesanan {cart.length} Items
+							</h6>
 						</header>
 
 						<main className="mt-2 flex flex-col gap-3">
@@ -197,7 +198,7 @@ export default function Checkout() {
 									key={item.id}
 									className="flex items-center justify-between"
 								>
-									<div className="flex w-[55%] gap-3">
+									<div className="flex min-w-0 flex-1 gap-3">
 										<div className="h-18 w-16 rounded-lg border border-base-border bg-base">
 											<img
 												src={item.image ?? ""}
@@ -217,7 +218,7 @@ export default function Checkout() {
 										</div>
 									</div>
 
-									<div className="w-[15%]">
+									<div className="shrink-0">
 										<div
 											className="flex h-11 w-35 items-center justify-between 
 												rounded-lg border border-base-border"
@@ -236,7 +237,9 @@ export default function Checkout() {
 													strokeWidth={3}
 												/>
 											</Button>
-											<h6>{item.qty}</h6>
+											<span className="font-semibold text-text-h">
+												{item.qty}
+											</span>
 											<Button
 												variant="ghost"
 												className="cursor-pointer "
@@ -253,10 +256,12 @@ export default function Checkout() {
 										</div>
 									</div>
 
-									<div className="flex w-[25%] items-center justify-end pr-10 text-right">
-										<h6>{formatRupiah(item.total)}</h6>
+									<div className="flex shrink-0 items-center justify-end pr-10 text-right">
+										<p className="font-semibold text-text-h">
+											{formatRupiah(item.total)}
+										</p>
 									</div>
-									<div className="w-[5%]">
+									<div className="shrink-0">
 										<Button
 											variant="ghost"
 											onClick={() => dispatch(deleteCartItem({ id: item.id }))}
@@ -300,7 +305,9 @@ export default function Checkout() {
 
 					<Card padding="sm">
 						<header className="flex items-center justify-between">
-							<h6>Metode Pembayaran</h6>
+							<h6 className="text-sm font-semibold text-text-h">
+								Metode Pembayaran
+							</h6>
 						</header>
 
 						<main className="mt-2 grid grid-cols-3 gap-3">
@@ -323,9 +330,9 @@ export default function Checkout() {
 									>
 										<div className="centerized gap-2 text-center text-text-h group-[:has(input:checked)]:text-primary">
 											{item.icon}
-											<h6 className="group-[:has(input:checked)]:text-primary">
+											<p className="font-semibold group-[:has(input:checked)]:text-primary">
 												{item.name}
-											</h6>
+											</p>
 										</div>
 									</div>
 									<p className="mt-1 hidden text-center text-sm">{item.desc}</p>

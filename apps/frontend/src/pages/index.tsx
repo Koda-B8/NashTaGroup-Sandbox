@@ -241,11 +241,13 @@ export default function Home() {
 							<div className="flex items-center gap-4">
 								<section className="h-35 w-30 rounded-lg bg-base"></section>
 								<section className="flex flex-col justify-center gap-1">
-									<h6>{dataSubmit.name || "iPhone"}</h6>
-									<p>{dataSubmit.category} | Ready stock</p>
-									<h6 className="text-primary">
-										{formatRupiah(dataSubmit.price)}
+									<h6 className="text-sm font-semibold text-text-h">
+										{dataSubmit.name || "iPhone"}
 									</h6>
+									<p>{dataSubmit.category} | Ready stock</p>
+									<p className="text-sm font-semibold text-primary">
+										{formatRupiah(dataSubmit.price)}
+									</p>
 								</section>
 							</div>
 							<div>
@@ -288,10 +290,10 @@ export default function Home() {
 											className="peer hidden"
 										/>
 										<div
-											className="centerized h-13.5 w-13.5 rounded-full border border-white 
+											className="centerized size-13.5 rounded-full border border-white 
 												peer-checked:border-primary"
 										>
-											<div className="h-10 w-10 rounded-full bg-primary px-4"></div>
+											<div className="size-10 rounded-full bg-primary px-4"></div>
 										</div>
 										<p className="text-xs font-semibold peer-checked:text-primary">
 											Biru
@@ -314,8 +316,8 @@ export default function Home() {
 											id="color-gray"
 											className="peer hidden"
 										/>
-										<div className="centerized h-13.5 w-13.5 rounded-full border border-white peer-checked:border-primary">
-											<div className="h-10 w-10 rounded-full bg-gray-400 px-4"></div>
+										<div className="centerized size-13.5 rounded-full border border-white peer-checked:border-primary">
+											<div className="size-10 rounded-full bg-gray-400 px-4"></div>
 										</div>
 										<p className="text-xs font-semibold peer-checked:text-primary">
 											Gray
@@ -369,9 +371,9 @@ export default function Home() {
 										<p className="hidden">.</p>
 										<div className="centerized h-full w-full overflow-hidden rounded-lg border border-base-border peer-checked:border-primary peer-checked:bg-primary/10">
 											<div className="centerized flex-col gap-1 text-center text-text-h group-[:has(input:checked)]:text-primary">
-												<h6 className="font-semibold group-[:has(input:checked)]:text-primary">
+												<p className="font-semibold group-[:has(input:checked)]:text-primary">
 													{item.name}
-												</h6>
+												</p>
 												<p className="text-sm text-primary">
 													+{formatRupiah(item.price)}
 												</p>
@@ -410,7 +412,7 @@ export default function Home() {
 												className="flex w-full items-center justify-between gap-1 px-3 text-center text-text-h 
 												group-[:has(input:checked)]:text-primary"
 											>
-												<div className="flex w-[50%] items-center gap-2">
+												<div className="flex min-w-0 flex-1 items-center gap-2">
 													<Checkbox
 														name={`optional ${index + 1}`}
 														value={item.name}
@@ -435,18 +437,18 @@ export default function Home() {
 														id={`opt${item.id.toString()}`}
 														className="peer group"
 													/>
-													<h6 className="font-semibold group-[:has(input:checked)]:text-primary">
+													<p className="font-semibold group-[:has(input:checked)]:text-primary">
 														{item.name}
-													</h6>
+													</p>
 												</div>
-												<div className="centerized w-[20%]">
+												<div className="centerized shrink-0">
 													<p
 														className={`${item.stock > 0 ? "text-text-h" : "text-deep-danger/80"} rounded-lg bg-base px-3 py-1.5 text-xs font-semibold`}
 													>
 														{item.stock > 0 ? `Stok ${item.stock}` : "Habis"}
 													</p>
 												</div>
-												<p className="w-[30%] text-right text-sm text-primary">
+												<p className="shrink-0 text-right text-sm text-primary">
 													+{formatRupiah(item.price)}
 												</p>
 											</div>
@@ -461,8 +463,12 @@ export default function Home() {
 								>
 									<p className="text-xs">KOMBINASI TERPILIH</p>
 									<div className="flex items-center gap-2">
-										<h6>{dataSubmit?.color}</h6>
-										<h6>{dataSubmit?.specs}</h6>
+										<p className="font-semibold text-text-h">
+											{dataSubmit?.color}
+										</p>
+										<p className="font-semibold text-text-h">
+											{dataSubmit?.specs}
+										</p>
 									</div>
 								</div>
 								<div className="flex items-center justify-between">
@@ -491,7 +497,9 @@ export default function Home() {
 													strokeWidth={3}
 												/>
 											</Button>
-											<h6>{prodQty}</h6>
+											<span className="font-semibold text-text-h">
+												{prodQty}
+											</span>
 											<Button
 												variant="inverse"
 												onClick={() => {
@@ -511,13 +519,15 @@ export default function Home() {
 												/>
 											</Button>
 										</div>
-										<h5>{formatRupiah(dataSubmit.total)}</h5>
+										<p className="text-xl font-semibold text-text-h">
+											{formatRupiah(dataSubmit.total)}
+										</p>
 									</div>
 									<Button
 										variant="primary"
 										type="submit"
 									>
-										<p>Tambah Ke Keranjang</p>
+										Tambah Ke Keranjang
 									</Button>
 								</div>
 							</footer>
@@ -537,23 +547,25 @@ export default function Home() {
 								padding={"none"}
 								className="p-1"
 							>
-								<header className="centerized h-45 w-full rounded-t-xl bg-base">
+								<header className="centerized h-45 w-full rounded-t-lg bg-base">
 									{/* {item.image ? (
 										<img
 											src={item.image ?? item.image}
 											alt={item?.alt}
 										/>
 									) : ( */}
-									<h1 className="text-base-border!">N</h1>
+									<span className="text-3xl font-semibold text-base-border">
+										N
+									</span>
 									{/* )} */}
 								</header>
 								<main className="h-25 w-full p-2">
 									<p className="text-sm">{item.brand.name}</p>
-									<h6>{item.name}</h6>
+									<p className="font-semibold text-text-h">{item.name}</p>
 									<div className="mt-1 flex items-center justify-between">
-										<h5>
+										<p className="text-xl font-semibold text-text-h">
 											{formatRupiah(Number.parseInt(item.items[0]?.price))}
-										</h5>
+										</p>
 										<Button
 											onClick={() => addItem(item.id)}
 											className="cursor-pointer  rounded-full"
@@ -571,7 +583,7 @@ export default function Home() {
 				)}
 				{!loading && products?.length < 1 && (
 					<div className="centerized h-50">
-						<h1 className="">Product Not Found</h1>
+						<p className="text-sm text-text">No products found.</p>
 					</div>
 				)}
 				<Pagination

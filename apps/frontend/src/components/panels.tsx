@@ -48,8 +48,8 @@ function Summary({ rows, total }: Readonly<SummaryProps>) {
 				</ul>
 			</section>
 			<section className="flex items-center justify-between py-3">
-				<h6>Total</h6>
-				<h6>{formatRupiah(total)}</h6>
+				<p className="font-semibold text-text-h">Total</p>
+				<p className="font-semibold text-text-h">{formatRupiah(total)}</p>
 			</section>
 		</>
 	);
@@ -106,7 +106,7 @@ export function FiltersPanel() {
 					onClick={resetFilters}
 					variant={"inverse"}
 				>
-					<p>Clear</p>
+					Clear
 				</Button>
 			}
 			Content={
@@ -161,7 +161,7 @@ export function FiltersPanel() {
 						variant={"primary"}
 						className="px-6"
 					>
-						<p>Terapkan</p>
+						Terapkan
 					</Button>
 				</div>
 			}
@@ -188,7 +188,7 @@ export function CartPanel() {
 										className="flex items-center justify-between"
 									>
 										<section className="flex items-center gap-3 py-2">
-											<div className="relative h-10 w-10 rounded-lg bg-base">
+											<div className="relative size-10 rounded-lg bg-base">
 												<div
 													className="centerized absolute top-0 left-0 h-4 min-w-4 rounded-full
 												bg-primary px-1 text-4xs font-bold text-white"
@@ -229,7 +229,7 @@ export function CartPanel() {
 					onClick={() => navigate("/checkout")}
 					className="w-full"
 				>
-					<p>Checkout</p>
+					Checkout
 					<ArrowRight size={15} />
 				</Button>
 			}
@@ -269,7 +269,7 @@ function OrderSteps({ current, nextAction }: Readonly<OrderStepsProps>) {
 										className="flex w-full items-center gap-3"
 									>
 										{number < current ? (
-											<div className="centerized h-9 w-9 rounded-full border border-primary bg-primary-light">
+											<div className="centerized size-9 rounded-full border border-primary bg-primary-light">
 												<Check
 													size={14}
 													className="text-primary"
@@ -277,7 +277,7 @@ function OrderSteps({ current, nextAction }: Readonly<OrderStepsProps>) {
 											</div>
 										) : (
 											<div
-												className={`centerized h-9 w-9 rounded-full ${
+												className={`centerized size-9 rounded-full ${
 													number === current
 														? "border border-primary bg-primary text-white"
 														: "bg-base"
@@ -303,7 +303,7 @@ function OrderSteps({ current, nextAction }: Readonly<OrderStepsProps>) {
 						variant={"outline"}
 						className="px-6"
 					>
-						<p>Batal</p>
+						Batal
 					</Button>
 					<Button
 						onClick={nextAction}

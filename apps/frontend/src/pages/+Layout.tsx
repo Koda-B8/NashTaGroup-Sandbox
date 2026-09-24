@@ -41,7 +41,7 @@ export default function MainLayout() {
 				)
 			}
 		>
-			<div className="p-2">
+			<div className="p-4">
 				<Outlet />
 			</div>
 		</Shell>

@@ -40,18 +40,15 @@ export default function StructStatus() {
 
 	return (
 		<form className="flex w-full flex-col gap-2 px-3">
-			<header className="flex items-center justify-between">
-				<div
-					className="flex h-10 w-[84%] items-center rounded-lg border border-base-border 
-				bg-surface pl-4 text-sm"
-				>
+			<header className="flex items-center gap-2">
+				<div className="flex h-10 flex-1 items-center rounded-lg border border-base-border bg-surface pl-4 text-sm">
 					<p>Siap dibayar • Estimasi 30–45 menit</p>
 				</div>
 				<Button
-					variant={"inverse"}
-					className=" w-[15%] border border-base-border"
+					variant="outline"
+					className="shrink-0"
 				>
-					<p>Bantuan ?</p>
+					Bantuan ?
 				</Button>
 			</header>
 
@@ -60,13 +57,13 @@ export default function StructStatus() {
 					padding="md"
 					className="flex w-full items-center gap-5"
 				>
-					<div className="centerized h-10 w-10 rounded-full border border-deep-valid bg-valid">
+					<div className="centerized size-10 rounded-full border border-deep-valid bg-valid">
 						<Check className="text-deep-valid" />
 					</div>
 					<div className="flex h-full flex-col">
-						<h6>
+						<p className="font-semibold text-text-h">
 							Pembayaran Berhasil <span>Lunas</span>
-						</h6>
+						</p>
 						<p className="text-sm">#TRX-8421</p>
 						<p className="text-sm">
 							{" "}
@@ -85,18 +82,18 @@ export default function StructStatus() {
 
 				<Card padding="md">
 					<header className="flex h-15 flex-col items-center justify-center border-b border-base-border py-2">
-						<h6>NashTa Group</h6>
+						<h6 className="text-sm font-semibold text-text-h">NashTa Group</h6>
 						<p>Jl. Melati No.12, Malang • 0812-3456-7890</p>
 					</header>
 
 					<main className="mt-2 flex flex-col gap-1">
 						<section className="flex items-start justify-between border-b border-base-border py-3">
 							<div className="flex flex-col">
-								<h6>#RTX-8731</h6>
+								<p className="font-semibold text-text-h">#RTX-8731</p>
 								<p>No telp: {stateData?.phone}</p>
 								<p>Pembayaran: {stateData?.paymentMethod}</p>
 							</div>
-							<div className="felx h-full ">
+							<div className="h-full">
 								<p>
 									{" "}
 									{new Date().toLocaleString("en-GB", {

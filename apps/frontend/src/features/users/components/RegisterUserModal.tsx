@@ -150,7 +150,7 @@ export default function RegisterUserModal({
 							autoComplete="name"
 						/>
 						{errors.fullname && (
-							<span className="text-[11px] text-deep-danger">
+							<span className="text-2xs text-deep-danger">
 								{errors.fullname}
 							</span>
 						)}
@@ -171,11 +171,11 @@ export default function RegisterUserModal({
 							autoComplete="username"
 						/>
 						{errors.username ? (
-							<span className="text-[11px] text-deep-danger">
+							<span className="text-2xs text-deep-danger">
 								{errors.username}
 							</span>
 						) : (
-							<span className="text-[11px] text-text">
+							<span className="text-2xs text-text">
 								3-100 karakter, huruf/angka/._-
 							</span>
 						)}
@@ -197,11 +197,11 @@ export default function RegisterUserModal({
 							autoComplete="new-password"
 						/>
 						{errors.password ? (
-							<span className="text-[11px] text-deep-danger">
+							<span className="text-2xs text-deep-danger">
 								{errors.password}
 							</span>
 						) : (
-							<span className="text-[11px] text-text">8-128 karakter</span>
+							<span className="text-2xs text-text">8-128 karakter</span>
 						)}
 					</div>
 					<div className="flex flex-col gap-1">
@@ -219,9 +219,7 @@ export default function RegisterUserModal({
 							className="w-full"
 						/>
 						{errors.role && (
-							<span className="text-[11px] text-deep-danger">
-								{errors.role}
-							</span>
+							<span className="text-2xs text-deep-danger">{errors.role}</span>
 						)}
 					</div>
 					<label
@@ -235,7 +233,7 @@ export default function RegisterUserModal({
 							aria-label="Active status"
 						/>
 						<span className="text-xs font-medium">Active</span>
-						<span className="text-[11px] text-text">— isActive</span>
+						<span className="text-2xs text-text">— isActive</span>
 					</label>
 				</ModalBody>
 				<ModalFooter>

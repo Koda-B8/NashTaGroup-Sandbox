@@ -227,10 +227,10 @@ export default function Home() {
 		<>
 			{activeModal && (
 				<div className="z-100 bg-black/30 left-0 top-0 fixed w-screen h-screen centerized">
-					<div className="w-150 h-160 overflow-hidden shadow-lg z-200 bg-white rounded-lg">
+					<div className="w-150 h-160 overflow-hidden shadow-lg z-200 bg-surface rounded-lg">
 						<form
 							onSubmit={handleSubmit}
-							className="w-150 h-160 overflow-y-scroll  p-4 z-200 bg-white rounded-lg"
+							className="w-150 h-160 overflow-y-scroll  p-4 z-200 bg-surface rounded-lg"
 						>
 							<header className="flex flex-col gap-4 pb-4 border-b w-full border-base-border">
 								<div className="flex justify-between w-full  items-start">
@@ -261,7 +261,7 @@ export default function Home() {
 
 							<main className="flex mt-2 w-full flex-col gap-2">
 								<section className="flex w-full flex-col py-3  text-sm">
-									<header className="w-full flex justify-between text-[12px] items-center h-fit">
+									<header className="w-full flex justify-between text-xs items-center h-fit">
 										<p className="font-semibold">
 											<span className="border-l-5 border-primary mr-3 rounded-lg bg-primary"></span>{" "}
 											Warna
@@ -323,7 +323,7 @@ export default function Home() {
 								</section>
 
 								<section className="flex w-full flex-col py-3  text-sm">
-									<header className="w-full flex justify-between text-[12px] items-center h-fit">
+									<header className="w-full flex justify-between text-xs items-center h-fit">
 										<p className="font-semibold">
 											<span className="border-l-5 border-primary mr-3 rounded-lg bg-primary"></span>
 											Kapasitas
@@ -383,7 +383,7 @@ export default function Home() {
 								</section>
 
 								<section className="flex w-full flex-col py-3  text-sm">
-									<header className="w-full flex justify-between text-[12px] items-center h-fit">
+									<header className="w-full flex justify-between text-xs items-center h-fit">
 										<p className="font-semibold">
 											<span className="border-l-5 border-primary mr-3 rounded-lg bg-primary"></span>
 											Tambahan
@@ -611,12 +611,12 @@ function ParamsSection({ params }) {
 					defaultValue={searchParams.get("search") ?? ""}
 					onChange={handleSearchProduct}
 					placeholder="Search Products.."
-					className="bg-white outline-none pl-3 text-sm rounded-md border 
+					className="bg-surface outline-none pl-3 text-sm rounded-md border 
 					border-base-border w-70 h-10"
 				/>
 
 				<select
-					className="w-40 text-sm outline-none pl-2 h-10 rounded-md bg-white 
+					className="w-40 text-sm outline-none pl-2 h-10 rounded-md bg-surface 
 					border border-base-border"
 					name="sort"
 					id="sort"

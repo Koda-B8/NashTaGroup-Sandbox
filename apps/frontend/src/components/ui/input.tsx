@@ -2,7 +2,7 @@ import { Input as BaseInput } from "@base-ui/react/input";
 import { tv, type VariantProps } from "tailwind-variants";
 
 const input = tv({
-	base: "w-full rounded-lg border border-base-border bg-white text-text-h placeholder:text-text focus:outline-2 focus:-outline-offset-1 focus:outline-primary disabled:opacity-50",
+	base: "w-full rounded-lg border border-base-border bg-surface text-text-h placeholder:text-text focus:outline-2 focus:-outline-offset-1 focus:outline-primary disabled:opacity-50",
 	variants: {
 		size: {
 			sm: "h-8 px-3 text-xs",

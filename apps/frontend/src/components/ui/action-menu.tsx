@@ -49,7 +49,7 @@ export default function ActionMenu({
 					align="end"
 					className="z-10 outline-none"
 				>
-					<Menu.Popup className="min-w-40 rounded-lg border border-base-border bg-white py-1 shadow-lg outline-none">
+					<Menu.Popup className="min-w-40 rounded-lg border border-base-border bg-surface py-1 shadow-lg outline-none">
 						{items.map((item) => (
 							<Menu.Item
 								key={item.label}

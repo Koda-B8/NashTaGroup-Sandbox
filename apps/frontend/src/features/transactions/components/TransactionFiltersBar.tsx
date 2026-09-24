@@ -22,7 +22,7 @@ import type { FilterOption } from "../hooks/useTransactionFilterOptions";
 function Field({ label, children }: { label: string; children: ReactNode }) {
 	return (
 		<div className="flex flex-col gap-1">
-			<span className="text-[11px] font-semibold tracking-wider text-text uppercase">
+			<span className="text-2xs font-semibold tracking-wider text-text uppercase">
 				{label}
 			</span>
 			{children}
@@ -199,11 +199,11 @@ export default function TransactionFiltersBar({
 			</div>
 
 			{optionsLoading && (
-				<p className="text-[11px] text-text">Memuat opsi filter...</p>
+				<p className="text-2xs text-text">Memuat opsi filter...</p>
 			)}
 
 			{(month || cashierId || paymentMethodId || customerId) && (
-				<div className="flex flex-wrap items-center gap-1.5 text-[11px] text-text">
+				<div className="flex flex-wrap items-center gap-1.5 text-2xs text-text">
 					<span className="font-semibold tracking-wider uppercase">Active</span>
 					{month && (
 						<span className="rounded-full border border-base-border bg-base px-2 py-0.5">

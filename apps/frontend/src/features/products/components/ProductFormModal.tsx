@@ -662,7 +662,7 @@ export default function ProductFormModal({
 
 					<div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:items-start">
 						<section className="flex flex-col gap-3 rounded-xl border border-base-border p-4">
-							<p className="text-[10px] font-bold tracking-wider text-text uppercase">
+							<p className="text-3xs font-bold tracking-wider text-text uppercase">
 								Details
 							</p>
 							<div className="flex flex-col gap-1">
@@ -724,7 +724,7 @@ export default function ProductFormModal({
 									placeholder="Deskripsi singkat product"
 									value={description}
 									onChange={(e) => setDescription(e.currentTarget.value)}
-									className="w-full resize-none rounded-lg border border-base-border bg-white px-3 py-2 text-sm text-text-h placeholder:text-text focus:outline-2 focus:-outline-offset-1 focus:outline-primary"
+									className="w-full resize-none rounded-lg border border-base-border bg-surface px-3 py-2 text-sm text-text-h placeholder:text-text focus:outline-2 focus:-outline-offset-1 focus:outline-primary"
 								/>
 							</div>
 							<div className="flex flex-col gap-1">
@@ -754,7 +754,7 @@ export default function ProductFormModal({
 											<span className="truncate text-xs font-medium text-text-h">
 												{imageFile ? imageFile.name : "Pilih gambar"}
 											</span>
-											<span className="text-[11px] text-text">
+											<span className="text-2xs text-text">
 												AVIF, JPEG, PNG, WebP · maks 5 MB
 											</span>
 										</span>
@@ -771,7 +771,7 @@ export default function ProductFormModal({
 									)}
 								</div>
 								{imageError && (
-									<span className="text-[11px] text-deep-danger">
+									<span className="text-2xs text-deep-danger">
 										{imageError}
 									</span>
 								)}
@@ -787,9 +787,7 @@ export default function ProductFormModal({
 									aria-label="Active status"
 								/>
 								<span className="text-xs font-medium">Active</span>
-								<span className="text-[11px] text-text">
-									— tampil di katalog
-								</span>
+								<span className="text-2xs text-text">— tampil di katalog</span>
 							</label>
 						</section>
 
@@ -806,11 +804,11 @@ export default function ProductFormModal({
 								{composer && (
 									<div className="flex flex-col gap-4 border-t border-base-border pt-3">
 										<div className="flex items-center justify-between gap-2">
-											<p className="text-[10px] font-bold tracking-wider text-text uppercase">
+											<p className="text-3xs font-bold tracking-wider text-text uppercase">
 												{composer.itemId ? "Edit varian" : "Tambah varian"}
 											</p>
 											{category && (
-												<span className="text-[11px] text-text">
+												<span className="text-2xs text-text">
 													dari category {category.name}
 												</span>
 											)}
@@ -904,11 +902,11 @@ export default function ProductFormModal({
 							<div className="flex flex-col gap-4">
 								<section className="flex flex-col gap-3 rounded-xl border border-base-border p-4">
 									<div className="flex items-center justify-between gap-2">
-										<p className="text-[10px] font-bold tracking-wider text-text uppercase">
+										<p className="text-3xs font-bold tracking-wider text-text uppercase">
 											Atribut
 										</p>
 										{category && (
-											<span className="text-[11px] text-text">
+											<span className="text-2xs text-text">
 												dari category {category.name}
 											</span>
 										)}
@@ -973,9 +971,7 @@ export default function ProductFormModal({
 						)}
 					</div>
 
-					{error && (
-						<span className="text-[11px] text-deep-danger">{error}</span>
-					)}
+					{error && <span className="text-2xs text-deep-danger">{error}</span>}
 				</ModalBody>
 				<ModalFooter className={isEdit ? "justify-between" : undefined}>
 					{isEdit && (

@@ -31,10 +31,10 @@ export default function ProductVariantList({
 		<div className="flex flex-col gap-3">
 			<div className="flex items-center justify-between gap-2">
 				<div className="flex items-baseline gap-2">
-					<p className="text-[10px] font-bold tracking-wider text-text uppercase">
+					<p className="text-3xs font-bold tracking-wider text-text uppercase">
 						Varian
 					</p>
-					<span className="text-[11px] text-text">{items.length} varian</span>
+					<span className="text-2xs text-text">{items.length} varian</span>
 				</div>
 				{onAdd && (
 					<Button
@@ -66,7 +66,7 @@ export default function ProductVariantList({
 												key={
 													attribute.optionId ?? attribute.id ?? attribute.name
 												}
-												className="inline-flex items-center rounded-md border border-base-border bg-base px-1.5 py-0.5 text-[11px] font-medium text-text-h"
+												className="inline-flex items-center rounded-md border border-base-border bg-base px-1.5 py-0.5 text-2xs font-medium text-text-h"
 											>
 												{attribute.value ?? attribute.name ?? "—"}
 											</span>
@@ -77,7 +77,7 @@ export default function ProductVariantList({
 										{item.name}
 									</span>
 								)}
-								<span className="truncate font-mono text-[11px] text-text">
+								<span className="truncate font-mono text-2xs text-text">
 									{item.productCode ?? "—"} · {formatPrice(item.price)} · stok{" "}
 									{item.stock}
 								</span>
@@ -107,8 +107,8 @@ export default function ProductVariantList({
 									<span
 										className={
 											item.isActive === false
-												? "rounded-md bg-base px-1.5 py-0.5 text-[10px] font-semibold text-text"
-												: "rounded-md bg-primary-light px-1.5 py-0.5 text-[10px] font-semibold text-primary"
+												? "rounded-md bg-base px-1.5 py-0.5 text-3xs font-semibold text-text"
+												: "rounded-md bg-primary-light px-1.5 py-0.5 text-3xs font-semibold text-primary"
 										}
 									>
 										{item.isActive === false ? "Nonaktif" : "Aktif"}

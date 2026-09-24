@@ -84,7 +84,7 @@ export default function StatCard({
 				)}
 			</div>
 			<p className="text-xs font-medium text-text-h">{label}</p>
-			{note && <p className="text-[11px] text-text">{note}</p>}
+			{note && <p className="text-2xs text-text">{note}</p>}
 		</Card>
 	);
 }

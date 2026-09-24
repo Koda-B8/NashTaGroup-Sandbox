@@ -28,7 +28,7 @@ interface Props {
 }
 
 const HEAD_CELL =
-	"px-3 py-3 text-[11px] font-semibold tracking-wide text-text uppercase whitespace-nowrap";
+	"px-3 py-3 text-2xs font-semibold tracking-wide text-text uppercase whitespace-nowrap";
 
 export default function InventoryMovementsTable({
 	loading,
@@ -187,7 +187,7 @@ export default function InventoryMovementsTable({
 														{movement.productItem.productName}
 													</span>
 													<span
-														className="block truncate text-[11px] text-text"
+														className="block truncate text-2xs text-text"
 														title={movement.productItem.id}
 													>
 														{movement.productItem.productCode ||
@@ -242,7 +242,7 @@ export default function InventoryMovementsTable({
 										<td className="px-3 py-3 text-xs whitespace-nowrap text-text">
 											{movement.performedBy?.fullname ?? "—"}
 										</td>
-										<td className="px-3 py-3 text-[11px] whitespace-nowrap text-text">
+										<td className="px-3 py-3 text-2xs whitespace-nowrap text-text">
 											{formatDateTime(movement.createdAt)}
 										</td>
 									</tr>

@@ -2,7 +2,7 @@ import type { ComponentProps } from "react";
 import { tv, type VariantProps } from "tailwind-variants";
 
 const card = tv({
-	base: "rounded-xl border border-base-border bg-white",
+	base: "rounded-xl border border-base-border bg-surface",
 	variants: {
 		padding: {
 			none: "",

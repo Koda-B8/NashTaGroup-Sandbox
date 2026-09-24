@@ -37,7 +37,7 @@ export function toMonthValue(year: number, month: number): string {
 }
 
 const trigger = tv({
-	base: "flex items-center justify-between gap-2 rounded-lg border border-base-border bg-white text-text-h select-none hover:bg-base data-popup-open:bg-base focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+	base: "flex items-center justify-between gap-2 rounded-lg border border-base-border bg-surface text-text-h select-none hover:bg-base data-popup-open:bg-base focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
 	variants: {
 		size: {
 			sm: "h-8 min-w-36 px-3 text-xs",
@@ -68,7 +68,7 @@ const monthCell = tv({
 });
 
 const footerButton = tv({
-	base: "rounded-md px-2 py-1 text-[11px] font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+	base: "rounded-md px-2 py-1 text-2xs font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
 	variants: {
 		primary: {
 			true: "text-primary hover:bg-primary-light",
@@ -145,7 +145,7 @@ export default function DatePicker({
 					align="start"
 					className="z-10 outline-none"
 				>
-					<Popover.Popup className="w-64 rounded-lg border border-base-border bg-white p-3 shadow-lg outline-none">
+					<Popover.Popup className="w-64 rounded-lg border border-base-border bg-surface p-3 shadow-lg outline-none">
 						{view === "months" && (
 							<>
 								<div className="mb-2 flex items-center justify-between">

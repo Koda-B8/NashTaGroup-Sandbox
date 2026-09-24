@@ -24,7 +24,7 @@ export default function Section({
 			<div className="flex flex-col gap-0.5">
 				<h2
 					id={headingId}
-					className="text-[11px] font-semibold tracking-wider text-text uppercase"
+					className="text-2xs font-semibold tracking-wider text-text uppercase"
 				>
 					{title}
 				</h2>

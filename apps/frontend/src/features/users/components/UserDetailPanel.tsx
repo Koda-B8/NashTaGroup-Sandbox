@@ -33,7 +33,7 @@ export default function UserDetailPanel({ user }: { user: User | undefined }) {
 					<p className="text-sm font-bold text-text-h">{user.fullname}</p>
 					<p className="text-xs text-text">@{user.username}</p>
 					<p
-						className="truncate text-[10px] text-text"
+						className="truncate text-3xs text-text"
 						title={user.id}
 					>
 						{user.id}

@@ -153,7 +153,7 @@ export default function Checkout() {
 				<div className="z-100 bg-black/30 left-0 top-0 fixed w-screen h-screen centerized">
 					<div
 						className="w-100 h-50 centerized gap-3 flex-col overflow-hidden shadow-lg z-200
-					 bg-white rounded-lg"
+					 bg-surface rounded-lg"
 					>
 						<CircleCheckBig
 							size={45}
@@ -169,7 +169,7 @@ export default function Checkout() {
 			>
 				<header className="flex items-center justify-between">
 					<div
-						className="w-[84%] flex items-center text-sm h-10 bg-white rounded-md 
+						className="w-[84%] flex items-center text-sm h-10 bg-surface rounded-md 
 				pl-4 border border-base-border"
 					>
 						<p>Siap dibayar • Estimasi 30–45 menit</p>
@@ -183,7 +183,7 @@ export default function Checkout() {
 				</header>
 
 				<main className="flex flex-col gap-3 pb-7">
-					<section className="bg-white rounded-md border border-base-border p-3">
+					<section className="bg-surface rounded-md border border-base-border p-3">
 						<header className="flex items-center justify-between">
 							<h6>Pesanan {cart.length} Items</h6>
 						</header>
@@ -271,7 +271,7 @@ export default function Checkout() {
 					</section>
 
 					<section
-						className="bg-white flex flex-col rounded-lg gap-2 w-full p-3 
+						className="bg-surface flex flex-col rounded-lg gap-2 w-full p-3 
 					border border-base-border"
 					>
 						<label
@@ -297,7 +297,7 @@ export default function Checkout() {
 						</div>
 					</section>
 
-					<section className="bg-white rounded-lg border border-base-border p-3">
+					<section className="bg-surface rounded-lg border border-base-border p-3">
 						<header className="flex items-center justify-between">
 							<h6>Metode Pembayaran</h6>
 						</header>

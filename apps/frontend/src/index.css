@@ -16,8 +16,18 @@
 	--color-danger: #fee2e2;
 	--color-deep-info: #6d28d9;
 	--color-info: #ede9fe;
+	--color-surface: #ffffff;
 	--color-base: #f9f9fa;
 	--color-base-border: #ececee;
+
+	--text-2xs: 0.6875rem;
+	--text-2xs--line-height: calc(1 / 0.6875);
+	--text-3xs: 0.625rem;
+	--text-3xs--line-height: calc(1 / 0.625);
+	--text-4xs: 0.5625rem;
+	--text-4xs--line-height: calc(1 / 0.5625);
+	--text-5xs: 0.5rem;
+	--text-5xs--line-height: calc(1 / 0.5);
 }
 
 @layer base {

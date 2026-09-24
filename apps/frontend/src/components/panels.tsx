@@ -120,7 +120,7 @@ export function FiltersPanel() {
 								className="border-b border-base-border py-3"
 							>
 								<p className="text-sm font-semibold">{group.title}</p>
-								<ul className="flex flex-col gap-1 text-[15px] mt-2 w-full ml-0">
+								<ul className="flex flex-col gap-1 text-sm mt-2 w-full ml-0">
 									{group?.options?.map((option) => (
 										<li
 											key={option.id}
@@ -191,7 +191,7 @@ export function CartPanel() {
 											<div className="w-10 h-10 rounded-lg bg-base relative">
 												<div
 													className="min-w-4 h-4 px-1 absolute top-0 left-0 rounded-full
-												text-[9px] font-bold bg-primary centerized text-white"
+												text-4xs font-bold bg-primary centerized text-white"
 												>
 													{item.qty}
 												</div>

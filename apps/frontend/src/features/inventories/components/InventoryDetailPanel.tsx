@@ -34,7 +34,7 @@ export default function InventoryDetailPanel({
 						style={{ backgroundColor: dotColor(item.category) }}
 						aria-hidden
 					/>
-					<p className="text-base font-bold text-text-h">{item.productName}</p>
+					<p className="font-bold text-base text-text-h">{item.productName}</p>
 				</div>
 				<p
 					className="truncate text-xs text-text"

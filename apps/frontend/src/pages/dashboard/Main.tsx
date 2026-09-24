@@ -229,7 +229,7 @@ export default function MainDashboard() {
 						<div className="flex items-center gap-4 text-xs">
 							<div className="flex items-center gap-1.5">
 								<span className="size-2.5 rounded-full bg-primary" />
-								<span className="text-text-h font-medium">Revenue</span>
+								<span className="font-medium text-text-h">Revenue</span>
 							</div>
 							<span className="rounded-lg bg-base px-2.5 py-1 text-2xs font-semibold text-text-h">
 								Total: Rp 128.45M
@@ -270,8 +270,8 @@ export default function MainDashboard() {
 						<div className="overflow-x-auto">
 							<table className="w-full text-left text-xs">
 								<thead>
-									<tr className="border-b border-base-border bg-base text-2xs font-semibold uppercase tracking-wider text-text">
-										<th className="px-3 py-2.5 w-10">#</th>
+									<tr className="border-b border-base-border bg-base text-2xs font-semibold tracking-wider text-text uppercase">
+										<th className="w-10 px-3 py-2.5">#</th>
 										<th className="px-3 py-2.5">Product</th>
 										<th className="px-3 py-2.5 text-right">Sold</th>
 										<th className="px-3 py-2.5 text-right">Revenue</th>
@@ -364,11 +364,11 @@ export default function MainDashboard() {
 													</span>
 												</div>
 												<div className="flex items-center gap-2">
-													<span className="text-text font-normal text-2xs">
+													<span className="text-2xs font-normal text-text">
 														{pm.count} txn
 													</span>
 													<span
-														className="font-bold text-xs"
+														className="text-xs font-bold"
 														style={{ color: pm.color }}
 													>
 														{pm.pct}%

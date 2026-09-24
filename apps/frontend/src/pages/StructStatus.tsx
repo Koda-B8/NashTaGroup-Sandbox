@@ -39,11 +39,11 @@ export default function StructStatus() {
 	}, [location]);
 
 	return (
-		<form className="w-full flex flex-col gap-2 px-3">
+		<form className="flex w-full flex-col gap-2 px-3">
 			<header className="flex items-center justify-between">
 				<div
-					className="w-[84%] flex items-center text-sm h-10 bg-surface rounded-lg 
-				pl-4 border border-base-border"
+					className="flex h-10 w-[84%] items-center rounded-lg border border-base-border 
+				bg-surface pl-4 text-sm"
 				>
 					<p>Siap dibayar • Estimasi 30–45 menit</p>
 				</div>
@@ -58,12 +58,12 @@ export default function StructStatus() {
 			<main className="flex flex-col gap-3">
 				<Card
 					padding="md"
-					className="w-full flex items-center gap-5"
+					className="flex w-full items-center gap-5"
 				>
-					<div className="w-10 h-10 rounded-full centerized bg-valid border border-deep-valid">
+					<div className="centerized h-10 w-10 rounded-full border border-deep-valid bg-valid">
 						<Check className="text-deep-valid" />
 					</div>
-					<div className="flex flex-col h-full">
+					<div className="flex h-full flex-col">
 						<h6>
 							Pembayaran Berhasil <span>Lunas</span>
 						</h6>
@@ -84,13 +84,13 @@ export default function StructStatus() {
 				</Card>
 
 				<Card padding="md">
-					<header className="flex flex-col items-center justify-center h-15 border-b border-base-border py-2">
+					<header className="flex h-15 flex-col items-center justify-center border-b border-base-border py-2">
 						<h6>NashTa Group</h6>
 						<p>Jl. Melati No.12, Malang • 0812-3456-7890</p>
 					</header>
 
 					<main className="mt-2 flex flex-col gap-1">
-						<section className="border-b py-3 border-base-border flex items-start justify-between">
+						<section className="flex items-start justify-between border-b border-base-border py-3">
 							<div className="flex flex-col">
 								<h6>#RTX-8731</h6>
 								<p>No telp: {stateData?.phone}</p>
@@ -111,11 +111,11 @@ export default function StructStatus() {
 							</div>
 						</section>
 
-						<section className="py-3 flex border-b border-base-border flex-col gap-3">
+						<section className="flex flex-col gap-3 border-b border-base-border py-3">
 							{stateData.items?.map((item) => (
 								<div
 									key={item.id}
-									className="flex justify-between items-center"
+									className="flex items-center justify-between"
 								>
 									<div className="flex flex-col">
 										<p className="text-text-h">{item.name}</p>
@@ -135,8 +135,8 @@ export default function StructStatus() {
 							))}
 						</section>
 
-						<section className="py-3 flex border-b border-base-border">
-							<ul className="flex flex-col w-full">
+						<section className="flex border-b border-base-border py-3">
+							<ul className="flex w-full flex-col">
 								<li className="flex items-center justify-between">
 									<p>Subtotal</p>
 									<p>
@@ -173,7 +173,7 @@ export default function StructStatus() {
 								</li>
 							</ul>
 						</section>
-						<section className="flex flex-col justify-center h-10 pt-4 items-center w-full">
+						<section className="flex h-10 w-full flex-col items-center justify-center pt-4">
 							<p>Terima kasih — Sampai jumpa lagi!</p>
 						</section>
 					</main>

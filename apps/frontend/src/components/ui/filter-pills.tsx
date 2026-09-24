@@ -126,7 +126,7 @@ export default function FilterPills<Value extends string>({
 					<span>{item.label}</span>
 					{item.badge !== undefined && (
 						<span
-							className={`ml-0.5 inline-flex items-center justify-center rounded-full px-1.5 py-0.5 text-3xs font-semibold leading-none ${
+							className={`ml-0.5 inline-flex items-center justify-center rounded-full px-1.5 py-0.5 text-3xs leading-none font-semibold ${
 								value === item.value
 									? variant === "outline"
 										? "bg-white/20 text-white"

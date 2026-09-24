@@ -48,7 +48,7 @@ export default function BrandDetailPanel({
 						style={{ backgroundColor: dot }}
 						aria-hidden
 					/>
-					<p className="text-base font-bold text-text-h">{brand.name}</p>
+					<p className="font-bold text-base text-text-h">{brand.name}</p>
 					<ActiveBadge isActive={brand.isActive} />
 				</div>
 				<p

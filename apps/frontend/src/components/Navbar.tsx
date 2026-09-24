@@ -99,7 +99,7 @@ function LogoutAction() {
 function CartAction({ count }: Readonly<CartActionProps>) {
 	return (
 		<div className="relative h-9 w-9 cursor-pointer rounded-full border border-primary bg-base">
-			<div className="absolute -top-2 -right-1 h-5 w-5 rounded-full bg-primary text-xs text-white centerized">
+			<div className="centerized absolute -top-2 -right-1 h-5 w-5 rounded-full bg-primary text-xs text-white">
 				{count}
 			</div>
 		</div>

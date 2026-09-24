@@ -34,7 +34,7 @@ function subtotal(cart: CartItem[]): number {
 function Summary({ rows, total }: Readonly<SummaryProps>) {
 	return (
 		<>
-			<section className="border-b py-3 text-sm border-b-base-border min-h-10">
+			<section className="min-h-10 border-b border-b-base-border py-3 text-sm">
 				<ul className="flex flex-col gap-1">
 					{rows.map(([label, amount]) => (
 						<li
@@ -47,7 +47,7 @@ function Summary({ rows, total }: Readonly<SummaryProps>) {
 					))}
 				</ul>
 			</section>
-			<section className="flex py-3 items-center justify-between">
+			<section className="flex items-center justify-between py-3">
 				<h6>Total</h6>
 				<h6>{formatRupiah(total)}</h6>
 			</section>
@@ -120,11 +120,11 @@ export function FiltersPanel() {
 								className="border-b border-base-border py-3"
 							>
 								<p className="text-sm font-semibold">{group.title}</p>
-								<ul className="flex flex-col gap-1 text-sm mt-2 w-full ml-0">
+								<ul className="mt-2 ml-0 flex w-full flex-col gap-1 text-sm">
 									{group?.options?.map((option) => (
 										<li
 											key={option.id}
-											className="flex gap-2 items-center justify-start list-outside"
+											className="flex list-outside items-center justify-start gap-2"
 										>
 											<input
 												onChange={() => chooseFilter(group.param, option.id)}
@@ -132,11 +132,11 @@ export function FiltersPanel() {
 												type="radio"
 												name={group.title}
 												id={option.id}
-												className="peer"
+												className="peer size-4 shrink-0 accent-primary"
 											/>
 											<label
 												htmlFor={option.id}
-												className="peer-checked:text-text-h text-sm"
+												className="text-sm peer-checked:text-text-h"
 											>
 												{option.name}
 											</label>
@@ -180,7 +180,7 @@ export function CartPanel() {
 			Content={
 				<div>
 					{cart?.length > 0 ? (
-						<section className="min-h-2 border-b py-2 border-base-border">
+						<section className="min-h-2 border-b border-base-border py-2">
 							<div className="flex flex-col gap-2">
 								{cart?.map((item) => (
 									<div
@@ -188,16 +188,16 @@ export function CartPanel() {
 										className="flex items-center justify-between"
 									>
 										<section className="flex items-center gap-3 py-2">
-											<div className="w-10 h-10 rounded-lg bg-base relative">
+											<div className="relative h-10 w-10 rounded-lg bg-base">
 												<div
-													className="min-w-4 h-4 px-1 absolute top-0 left-0 rounded-full
-												text-4xs font-bold bg-primary centerized text-white"
+													className="centerized absolute top-0 left-0 h-4 min-w-4 rounded-full
+												bg-primary px-1 text-4xs font-bold text-white"
 												>
 													{item.qty}
 												</div>
 											</div>
 											<div className="flex flex-col justify-center text-left">
-												<p className="text-text-h text-sm">{item.name}</p>
+												<p className="text-sm text-text-h">{item.name}</p>
 												<p className="text-sm">{formatRupiah(item.price)}</p>
 											</div>
 										</section>
@@ -206,12 +206,12 @@ export function CartPanel() {
 							</div>
 						</section>
 					) : (
-						<div className="border-b gap-2 flex  py-2 h-66 border-base-border centerized">
+						<div className="centerized flex h-66  gap-2 border-b border-base-border py-2">
 							<ShoppingCart
 								strokeWidth={2.5}
 								size={17}
 							/>
-							<p className="font-semibold text-sm">Keranjang Kosong</p>
+							<p className="text-sm font-semibold">Keranjang Kosong</p>
 						</div>
 					)}
 
@@ -253,23 +253,23 @@ function OrderSteps({ current, nextAction }: Readonly<OrderStepsProps>) {
 		<Aside
 			headerName={"Proses Pesanan"}
 			Attribute={
-				<p className="w-14 text-primary font-semibold text-xs text-right text-wrap">
+				<p className="w-14 text-right text-xs font-semibold text-wrap text-primary">
 					Langkah {current}/{ORDER_STEPS.length}
 				</p>
 			}
 			Content={
 				<div>
 					<section className="flex py-3">
-						<ul className="flex items-center flex-col w-full gap-4 cursor-pointer">
+						<ul className="flex w-full cursor-pointer flex-col items-center gap-4">
 							{ORDER_STEPS.map((step, index) => {
 								const number = index + 1;
 								return (
 									<li
 										key={step.title}
-										className="flex items-center w-full gap-3"
+										className="flex w-full items-center gap-3"
 									>
 										{number < current ? (
-											<div className="w-9 h-9 rounded-full centerized border border-primary bg-primary-light">
+											<div className="centerized h-9 w-9 rounded-full border border-primary bg-primary-light">
 												<Check
 													size={14}
 													className="text-primary"
@@ -277,7 +277,7 @@ function OrderSteps({ current, nextAction }: Readonly<OrderStepsProps>) {
 											</div>
 										) : (
 											<div
-												className={`w-9 h-9 rounded-full centerized ${
+												className={`centerized h-9 w-9 rounded-full ${
 													number === current
 														? "border border-primary bg-primary text-white"
 														: "bg-base"
@@ -286,7 +286,7 @@ function OrderSteps({ current, nextAction }: Readonly<OrderStepsProps>) {
 												<p className="text-sm font-semibold">{number}</p>
 											</div>
 										)}
-										<div className="flex text-xs flex-col justify-center text-left ">
+										<div className="flex flex-col justify-center text-left text-xs ">
 											<p className="text-text-h">{step.title}</p>
 											<p>{step.caption}</p>
 										</div>

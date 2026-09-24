@@ -1,4 +1,3 @@
-import PaginationControls from "../../../components/PaginationControls";
 import DataTable, {
 	createTableColumnHelper,
 	type TableMeta,
@@ -170,14 +169,10 @@ export default function ProductTable({
 					]}
 				/>
 			)}
-			footer={
-				<PaginationControls
-					totalLabel={totalLabel}
-					pageCount={pageCount}
-					safePage={safePage}
-					onPageChange={onPageChange}
-				/>
-			}
+			pageCount={pageCount}
+			safePage={safePage}
+			onPageChange={onPageChange}
+			totalLabel={totalLabel}
 		/>
 	);
 }

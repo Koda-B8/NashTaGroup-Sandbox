@@ -1,17 +1,20 @@
 import {
-	createColumnHelper,
+	type PaginationState,
 	type RowData,
+	createColumnHelper,
+	rowPaginationFeature,
 	tableFeatures,
 	useTable,
 } from "@tanstack/react-table";
 import type { KeyboardEvent, MouseEvent, ReactNode } from "react";
 
+import PaginationControls from "../PaginationControls";
 import Card from "../ui/card";
 import Checkbox from "../ui/checkbox";
 
-// core row model only: pagination lives in usePaginatedList and selection in
-// useRowSelection, so opting into those features would fight the page's state
-export const tableFeatures_ = tableFeatures({});
+// manual pagination: the server already paginated, so no paginatedRowModel.
+// page state stays in usePaginatedList and is passed in controlled.
+export const tableFeatures_ = tableFeatures({ rowPaginationFeature });
 
 export type TableFeatures = typeof tableFeatures_;
 
@@ -39,7 +42,12 @@ export interface DataTableProps<Row extends RowData> {
 	loadingLabel: string;
 	emptyLabel: string;
 	tableClassName?: string;
-	footer?: ReactNode;
+
+	pageCount: number;
+	safePage: number;
+	onPageChange: (page: number) => void;
+	totalLabel: string;
+	pageSize?: number;
 
 	activeId?: string | undefined;
 	onRowClick?: (row: Row) => void;
@@ -64,7 +72,11 @@ export default function DataTable<Row extends RowData>({
 	loadingLabel,
 	emptyLabel,
 	tableClassName = "",
-	footer,
+	pageCount,
+	safePage,
+	onPageChange,
+	totalLabel,
+	pageSize = 10,
 	activeId,
 	onRowClick,
 	selectedIds,
@@ -80,6 +92,16 @@ export default function DataTable<Row extends RowData>({
 		features: tableFeatures_,
 		columns,
 		data: rows,
+		manualPagination: true,
+		pageCount,
+		state: { pagination: { pageIndex: safePage, pageSize } },
+		onPaginationChange: (updater) => {
+			const next: PaginationState =
+				typeof updater === "function"
+					? updater({ pageIndex: safePage, pageSize })
+					: updater;
+			onPageChange(next.pageIndex);
+		},
 		meta: { activeId } satisfies TableMeta,
 	});
 
@@ -225,7 +247,16 @@ export default function DataTable<Row extends RowData>({
 					</tbody>
 				</table>
 			</div>
-			{footer}
+			<PaginationControls
+				totalLabel={totalLabel}
+				pageCount={table.getPageCount()}
+				safePage={table.state.pagination.pageIndex}
+				canPreviousPage={table.getCanPreviousPage()}
+				canNextPage={table.getCanNextPage()}
+				onPrevious={() => table.previousPage()}
+				onNext={() => table.nextPage()}
+				onPageChange={(page) => table.setPageIndex(page)}
+			/>
 		</Card>
 	);
 }

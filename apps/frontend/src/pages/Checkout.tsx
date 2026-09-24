@@ -14,6 +14,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router";
 
+import OrderStatusBar from "../components/OrderStatusBar";
 import Button from "../components/ui/button";
 import Card from "../components/ui/card";
 import Input from "../components/ui/input";
@@ -172,17 +173,7 @@ export default function Checkout() {
 				onSubmit={handleSubmit}
 				className="flex w-full flex-col gap-2 px-3"
 			>
-				<header className="flex items-center gap-2">
-					<div className="flex h-10 flex-1 items-center rounded-lg border border-base-border bg-surface pl-4 text-sm">
-						<p>Siap dibayar • Estimasi 30–45 menit</p>
-					</div>
-					<Button
-						variant="outline"
-						className="shrink-0"
-					>
-						Bantuan ?
-					</Button>
-				</header>
+				<OrderStatusBar />
 
 				<main className="flex flex-col gap-3 pb-7">
 					<Card padding="sm">

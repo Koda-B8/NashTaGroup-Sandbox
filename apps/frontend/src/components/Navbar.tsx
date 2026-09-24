@@ -1,4 +1,3 @@
-import { Loader2, LogOutIcon } from "lucide-react";
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router";
@@ -9,7 +8,7 @@ import type { AppDispatch } from "../store";
 import { clearCredentials } from "../store/slices/auth";
 import { clearCart } from "../store/slices/cart";
 import AppHeader from "./AppHeader";
-import Button from "./ui/button";
+import LogoutButton from "./LogoutButton";
 import Input from "./ui/input";
 
 interface SearchBoxProps {
@@ -77,22 +76,10 @@ function LogoutAction() {
 	}
 
 	return (
-		<Button
-			variant="ghost"
-			size="icon"
-			aria-label="Log out"
-			disabled={isLoggingOut}
+		<LogoutButton
+			loading={isLoggingOut}
 			onClick={handleLogout}
-		>
-			{isLoggingOut ? (
-				<Loader2
-					size={16}
-					className="animate-spin"
-				/>
-			) : (
-				<LogOutIcon size={16} />
-			)}
-		</Button>
+		/>
 	);
 }
 

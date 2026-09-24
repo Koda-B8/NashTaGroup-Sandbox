@@ -15,6 +15,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router";
 
 import Button from "../components/ui/button";
+import Card from "../components/ui/card";
 import { apiFetch } from "../libs/api";
 import { formatRupiah } from "../libs/formatRupiah";
 import type { AppDispatch, RootState } from "../store";
@@ -169,7 +170,7 @@ export default function Checkout() {
 			>
 				<header className="flex items-center justify-between">
 					<div
-						className="w-[84%] flex items-center text-sm h-10 bg-surface rounded-md 
+						className="w-[84%] flex items-center text-sm h-10 bg-surface rounded-lg 
 				pl-4 border border-base-border"
 					>
 						<p>Siap dibayar • Estimasi 30–45 menit</p>
@@ -183,7 +184,7 @@ export default function Checkout() {
 				</header>
 
 				<main className="flex flex-col gap-3 pb-7">
-					<section className="bg-surface rounded-md border border-base-border p-3">
+					<Card padding="sm">
 						<header className="flex items-center justify-between">
 							<h6>Pesanan {cart.length} Items</h6>
 						</header>
@@ -195,7 +196,7 @@ export default function Checkout() {
 									className="flex items-center justify-between"
 								>
 									<div className="flex gap-3 w-[55%]">
-										<div className="w-16 h-18 border border-base-border rounded-md bg-base">
+										<div className="w-16 h-18 border border-base-border rounded-lg bg-base">
 											<img
 												src={item.image ?? ""}
 												alt={item.alt}
@@ -257,7 +258,7 @@ export default function Checkout() {
 										<Button
 											variant="ghost"
 											onClick={() => dispatch(deleteCartItem({ id: item.id }))}
-											className="shadow-sm rounded-md p-2 cursor-pointer"
+											className="shadow-sm rounded-lg p-2 cursor-pointer"
 										>
 											<Trash
 												size={18}
@@ -268,7 +269,7 @@ export default function Checkout() {
 								</div>
 							))}
 						</main>
-					</section>
+					</Card>
 
 					<section
 						className="bg-surface flex flex-col rounded-lg gap-2 w-full p-3 
@@ -297,7 +298,7 @@ export default function Checkout() {
 						</div>
 					</section>
 
-					<section className="bg-surface rounded-lg border border-base-border p-3">
+					<Card padding="sm">
 						<header className="flex items-center justify-between">
 							<h6>Metode Pembayaran</h6>
 						</header>
@@ -331,7 +332,7 @@ export default function Checkout() {
 								</label>
 							))}
 						</main>
-					</section>
+					</Card>
 
 					<section>
 						<Button

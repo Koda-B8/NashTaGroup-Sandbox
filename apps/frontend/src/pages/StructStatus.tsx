@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 
 import Button from "../components/ui/button";
+import Card from "../components/ui/card";
 import { formatRupiah } from "../libs/formatRupiah";
 import type { CartItem } from "../store/slices/cart";
 
@@ -41,7 +42,7 @@ export default function StructStatus() {
 		<form className="w-full flex flex-col gap-2 px-3">
 			<header className="flex items-center justify-between">
 				<div
-					className="w-[84%] flex items-center text-sm h-10 bg-surface rounded-md 
+					className="w-[84%] flex items-center text-sm h-10 bg-surface rounded-lg 
 				pl-4 border border-base-border"
 				>
 					<p>Siap dibayar • Estimasi 30–45 menit</p>
@@ -55,7 +56,10 @@ export default function StructStatus() {
 			</header>
 
 			<main className="flex flex-col gap-3">
-				<section className="bg-surface w-full flex items-center gap-5 rounded-md border border-base-border p-5">
+				<Card
+					padding="md"
+					className="w-full flex items-center gap-5"
+				>
 					<div className="w-10 h-10 rounded-full centerized bg-valid border border-deep-valid">
 						<Check className="text-deep-valid" />
 					</div>
@@ -77,9 +81,9 @@ export default function StructStatus() {
 							• Kasir: Budi Santoso
 						</p>
 					</div>
-				</section>
+				</Card>
 
-				<section className="bg-surface rounded-md border border-base-border p-5">
+				<Card padding="md">
 					<header className="flex flex-col items-center justify-center h-15 border-b border-base-border py-2">
 						<h6>NashTa Group</h6>
 						<p>Jl. Melati No.12, Malang • 0812-3456-7890</p>
@@ -173,7 +177,7 @@ export default function StructStatus() {
 							<p>Terima kasih — Sampai jumpa lagi!</p>
 						</section>
 					</main>
-				</section>
+				</Card>
 			</main>
 		</form>
 	);

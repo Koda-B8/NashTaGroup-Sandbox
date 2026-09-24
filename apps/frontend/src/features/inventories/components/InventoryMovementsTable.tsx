@@ -1,6 +1,7 @@
 import PaginationControls from "../../../components/PaginationControls";
 import DataTable, {
-	type DataTableColumn,
+	createTableColumnHelper,
+	type TableMeta,
 } from "../../../components/tables/data-table";
 import Avatar from "../../../components/ui/avatar";
 import type { InventoryMovement } from "../api";
@@ -28,98 +29,109 @@ interface Props {
 	totalLabel: string;
 }
 
-const COLUMNS: DataTableColumn<InventoryMovement>[] = [
-	{
-		key: "product",
+const helper = createTableColumnHelper<InventoryMovement>();
+
+const COLUMNS = helper.columns([
+	helper.display({
+		id: "product",
 		header: "Product",
-		cell: (row, active) => (
-			<div className="flex items-center gap-2.5">
-				<Avatar
-					size="sm"
-					shape="square"
-					name={row.productItem.productName}
-				/>
-				<div className="min-w-0">
-					<span
-						className={`block truncate text-sm font-medium ${active ? "text-primary" : "text-text-h"}`}
-					>
-						{row.productItem.productName}
-					</span>
-					<span
-						className="block truncate text-2xs text-text"
-						title={row.productItem.id}
-					>
-						{row.productItem.productCode || row.productItem.variantName || "—"}
-					</span>
+		cell: ({ row, table }) => {
+			const active =
+				(table.options.meta as TableMeta | undefined)?.activeId ===
+				row.original.id;
+			return (
+				<div className="flex items-center gap-2.5">
+					<Avatar
+						size="sm"
+						shape="square"
+						name={row.original.productItem.productName}
+					/>
+					<div className="min-w-0">
+						<span
+							className={`block truncate text-sm font-medium ${active ? "text-primary" : "text-text-h"}`}
+						>
+							{row.original.productItem.productName}
+						</span>
+						<span
+							className="block truncate text-2xs text-text"
+							title={row.original.productItem.id}
+						>
+							{row.original.productItem.productCode ||
+								row.original.productItem.variantName ||
+								"—"}
+						</span>
+					</div>
 				</div>
-			</div>
-		),
-	},
-	{
-		key: "type",
+			);
+		},
+	}),
+	helper.accessor("type", {
 		header: "Type",
-		cell: (row) => <MovementTypeBadge type={row.type} />,
-	},
-	{
-		key: "qty",
+		cell: ({ row }) => <MovementTypeBadge type={row.original.type} />,
+	}),
+	helper.accessor("quantity", {
 		header: "Qty",
-		cell: (row) => (
-			<span className={`text-sm font-semibold ${MOVEMENT_TYPE_TEXT[row.type]}`}>
-				{formatMovementQuantity(row.type, row.quantity)}
+		cell: ({ row }) => (
+			<span
+				className={`text-sm font-semibold ${MOVEMENT_TYPE_TEXT[row.original.type]}`}
+			>
+				{formatMovementQuantity(row.original.type, row.original.quantity)}
 			</span>
 		),
-	},
-	{
-		key: "stock",
+	}),
+	helper.display({
+		id: "stock",
 		header: "Stock",
-		cell: (row) => (
+		cell: ({ row }) => (
 			<>
-				<span className="font-medium text-text-h">{row.stockBefore}</span>
+				<span className="font-medium text-text-h">
+					{row.original.stockBefore}
+				</span>
 				<span
 					className="mx-1 text-text"
 					aria-hidden
 				>
 					→
 				</span>
-				<span className="font-medium text-text-h">{row.stockAfter}</span>
+				<span className="font-medium text-text-h">
+					{row.original.stockAfter}
+				</span>
 			</>
 		),
-		cellClassName: "text-xs whitespace-nowrap text-text",
-	},
-	{
-		key: "source",
+		meta: { cellClassName: "text-xs whitespace-nowrap text-text" },
+	}),
+	helper.accessor("source", {
 		header: "Source",
-		cell: (row) => <MovementSourceBadge source={row.source} />,
-	},
-	{
-		key: "transaction",
+		cell: ({ row }) => <MovementSourceBadge source={row.original.source} />,
+	}),
+	helper.display({
+		id: "transaction",
 		header: "Transaction",
-		cell: (row) =>
-			row.transaction ? (
+		cell: ({ row }) =>
+			row.original.transaction ? (
 				<span
 					className="font-medium text-text-h"
-					title={row.transaction.transactionNumber}
+					title={row.original.transaction.transactionNumber}
 				>
-					{row.transaction.transactionNumber}
+					{row.original.transaction.transactionNumber}
 				</span>
 			) : (
 				<span className="text-text">—</span>
 			),
-		cellClassName: "text-xs whitespace-nowrap",
-	},
-	{
-		key: "by",
+		meta: { cellClassName: "text-xs whitespace-nowrap" },
+	}),
+	helper.display({
+		id: "by",
 		header: "By",
-		cell: (row) => row.performedBy?.fullname ?? "—",
-		cellClassName: "text-xs whitespace-nowrap text-text",
-	},
-	{
-		key: "date",
+		cell: ({ row }) => row.original.performedBy?.fullname ?? "—",
+		meta: { cellClassName: "text-xs whitespace-nowrap text-text" },
+	}),
+	helper.accessor("createdAt", {
 		header: "Date",
-		cell: (row) => formatDateTime(row.createdAt),
-		cellClassName: "text-2xs whitespace-nowrap text-text",
-	},
-];
+		cell: ({ row }) => formatDateTime(row.original.createdAt),
+		meta: { cellClassName: "text-2xs whitespace-nowrap text-text" },
+	}),
+]);
 
 export default function InventoryMovementsTable({
 	loading,

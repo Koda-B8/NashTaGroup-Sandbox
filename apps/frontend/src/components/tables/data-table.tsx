@@ -1,22 +1,38 @@
+import {
+	createColumnHelper,
+	type RowData,
+	tableFeatures,
+	useTable,
+} from "@tanstack/react-table";
 import type { KeyboardEvent, MouseEvent, ReactNode } from "react";
 
 import Card from "../ui/card";
 import Checkbox from "../ui/checkbox";
 
+// core row model only: pagination lives in usePaginatedList and selection in
+// useRowSelection, so opting into those features would fight the page's state
+export const tableFeatures_ = tableFeatures({});
+
+export type TableFeatures = typeof tableFeatures_;
+
+export function createTableColumnHelper<Row extends RowData>() {
+	return createColumnHelper<TableFeatures, Row>();
+}
+
+export interface TableMeta {
+	activeId?: string | undefined;
+}
+
 const HEAD_CELL =
 	"px-3 py-3 text-2xs font-semibold tracking-wide text-text uppercase";
 
-export interface DataTableColumn<Row> {
-	key: string;
-	header?: ReactNode;
-	cell: (row: Row, active: boolean) => ReactNode;
-	headClassName?: string;
-	cellClassName?: string;
-}
+type Columns<Row extends RowData> = Parameters<
+	typeof useTable<TableFeatures, Row>
+>[0]["columns"];
 
-export interface DataTableProps<Row> {
+export interface DataTableProps<Row extends RowData> {
 	label: string;
-	columns: DataTableColumn<Row>[];
+	columns: Columns<Row>;
 	rows: Row[];
 	rowId: (row: Row) => string;
 	loading: boolean;
@@ -39,7 +55,7 @@ export interface DataTableProps<Row> {
 	actions?: (row: Row) => ReactNode;
 }
 
-export default function DataTable<Row>({
+export default function DataTable<Row extends RowData>({
 	label,
 	columns,
 	rows,
@@ -60,11 +76,20 @@ export default function DataTable<Row>({
 	rowSelectLabel,
 	actions,
 }: DataTableProps<Row>) {
-	const selectable = Boolean(onToggleOne && selectedIds);
-	const colSpan = columns.length + (selectable ? 1 : 0) + (actions ? 1 : 0);
+	const table = useTable({
+		features: tableFeatures_,
+		columns,
+		data: rows,
+		meta: { activeId } satisfies TableMeta,
+	});
 
-	// the checkbox and the action menu live inside the row, so using them must
-	// not also open the row's detail panel
+	const selectable = Boolean(onToggleOne && selectedIds);
+	const modelRows = table.getRowModel().rows;
+	const colSpan =
+		table.getAllLeafColumns().length + (selectable ? 1 : 0) + (actions ? 1 : 0);
+
+	// the checkbox and the action menu sit inside the row, so using them must not
+	// also open the row's detail panel
 	const stop = (event: MouseEvent) => event.stopPropagation();
 
 	return (
@@ -78,40 +103,50 @@ export default function DataTable<Row>({
 					aria-label={label}
 				>
 					<thead className="border-b border-base-border bg-base">
-						<tr>
-							{selectable && (
-								<th
-									scope="col"
-									className="w-10 px-3 py-3"
-								>
-									<Checkbox
-										checked={allPageSelected}
-										indeterminate={somePageSelected}
-										onCheckedChange={(c) => onToggleAll?.(c === true)}
-										aria-label={selectAllLabel ?? `Select all on this page`}
+						{table.getHeaderGroups().map((group) => (
+							<tr key={group.id}>
+								{selectable && (
+									<th
+										scope="col"
+										className="w-10 px-3 py-3"
+									>
+										<Checkbox
+											checked={allPageSelected}
+											indeterminate={somePageSelected}
+											onCheckedChange={(c) => onToggleAll?.(c === true)}
+											aria-label={selectAllLabel ?? "Select all on this page"}
+										/>
+									</th>
+								)}
+								{group.headers.map((header) => (
+									<th
+										key={header.id}
+										scope="col"
+										className={`${HEAD_CELL} ${
+											(
+												header.column.columnDef.meta as
+													| { headClassName?: string }
+													| undefined
+											)?.headClassName ?? ""
+										}`.trim()}
+									>
+										{header.isPlaceholder ? undefined : (
+											<table.FlexRender header={header} />
+										)}
+									</th>
+								))}
+								{actions && (
+									<th
+										scope="col"
+										className="w-10 px-3 py-3"
+										aria-label="Actions"
 									/>
-								</th>
-							)}
-							{columns.map((column) => (
-								<th
-									key={column.key}
-									scope="col"
-									className={`${HEAD_CELL} ${column.headClassName ?? ""}`.trim()}
-								>
-									{column.header}
-								</th>
-							))}
-							{actions && (
-								<th
-									scope="col"
-									className="w-10 px-3 py-3"
-									aria-label="Actions"
-								/>
-							)}
-						</tr>
+								)}
+							</tr>
+						))}
 					</thead>
 					<tbody className="divide-y divide-base-border">
-						{loading || rows.length === 0 ? (
+						{loading || modelRows.length === 0 ? (
 							<tr>
 								<td
 									colSpan={colSpan}
@@ -121,14 +156,16 @@ export default function DataTable<Row>({
 								</td>
 							</tr>
 						) : (
-							rows.map((row) => {
-								const id = rowId(row);
+							modelRows.map((row) => {
+								const id = rowId(row.original);
 								const active = id === activeId;
 
 								return (
 									<tr
-										key={id}
-										onClick={onRowClick ? () => onRowClick(row) : undefined}
+										key={row.id}
+										onClick={
+											onRowClick ? () => onRowClick(row.original) : undefined
+										}
 										onKeyDown={
 											onRowClick
 												? (event: KeyboardEvent<HTMLTableRowElement>) => {
@@ -136,7 +173,7 @@ export default function DataTable<Row>({
 															return;
 														if (event.target !== event.currentTarget) return;
 														event.preventDefault();
-														onRowClick(row);
+														onRowClick(row.original);
 													}
 												: undefined
 										}
@@ -153,16 +190,24 @@ export default function DataTable<Row>({
 												<Checkbox
 													checked={selectedIds?.has(id)}
 													onCheckedChange={(c) => onToggleOne?.(id, c === true)}
-													aria-label={rowSelectLabel?.(row) ?? `Select row`}
+													aria-label={
+														rowSelectLabel?.(row.original) ?? "Select row"
+													}
 												/>
 											</td>
 										)}
-										{columns.map((column) => (
+										{row.getAllCells().map((cell) => (
 											<td
-												key={column.key}
-												className={`px-3 py-3 ${column.cellClassName ?? ""}`.trim()}
+												key={cell.id}
+												className={`px-3 py-3 ${
+													(
+														cell.column.columnDef.meta as
+															| { cellClassName?: string }
+															| undefined
+													)?.cellClassName ?? ""
+												}`.trim()}
 											>
-												{column.cell(row, active)}
+												<table.FlexRender cell={cell} />
 											</td>
 										))}
 										{actions && (
@@ -170,7 +215,7 @@ export default function DataTable<Row>({
 												className="px-3 py-3"
 												onClick={stop}
 											>
-												{actions(row)}
+												{actions(row.original)}
 											</td>
 										)}
 									</tr>

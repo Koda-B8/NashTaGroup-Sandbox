@@ -1,6 +1,7 @@
 import PaginationControls from "../../../components/PaginationControls";
 import DataTable, {
-	type DataTableColumn,
+	createTableColumnHelper,
+	type TableMeta,
 } from "../../../components/tables/data-table";
 import ActionMenu from "../../../components/ui/action-menu";
 import Avatar from "../../../components/ui/avatar";
@@ -29,84 +30,89 @@ interface Props {
 	onPageChange: (page: number) => void;
 }
 
-const COLUMNS: DataTableColumn<Transaction>[] = [
-	{
-		key: "transaction",
+const helper = createTableColumnHelper<Transaction>();
+
+const COLUMNS = helper.columns([
+	helper.accessor("transactionNumber", {
 		header: "Transaction",
-		cell: (row, active) => (
-			<>
-				<p
-					className={`truncate text-sm font-medium ${active ? "text-primary" : "text-text-h"}`}
-					title={row.transactionNumber}
-				>
-					{row.transactionNumber}
-				</p>
-				<p className="truncate text-2xs text-text">
-					{row.cashier?.fullname ?? "—"}
-				</p>
-			</>
-		),
-	},
-	{
-		key: "customer",
+		cell: ({ row, table }) => {
+			const active =
+				(table.options.meta as TableMeta | undefined)?.activeId ===
+				row.original.id;
+			return (
+				<>
+					<p
+						className={`truncate text-sm font-medium ${active ? "text-primary" : "text-text-h"}`}
+						title={row.original.transactionNumber}
+					>
+						{row.original.transactionNumber}
+					</p>
+					<p className="truncate text-2xs text-text">
+						{row.original.cashier?.fullname ?? "—"}
+					</p>
+				</>
+			);
+		},
+	}),
+	helper.display({
+		id: "customer",
 		header: "Customer",
-		cell: (row) => (
+		cell: ({ row }) => (
 			<div className="flex items-center gap-2">
 				<Avatar
-					name={row.customer?.name ?? "Non-member"}
+					name={row.original.customer?.name ?? "Non-member"}
 					size="sm"
 				/>
 				<div className="min-w-0">
 					<p className="truncate text-sm font-medium text-text-h">
-						{row.customer?.name ?? "Non-member"}
+						{row.original.customer?.name ?? "Non-member"}
 					</p>
 					<p className="truncate text-2xs text-text">
-						{row.customer?.phone ?? "Guest checkout"}
+						{row.original.customer?.phone ?? "Guest checkout"}
 					</p>
 				</div>
 			</div>
 		),
-	},
-	{
-		key: "payment",
+	}),
+	helper.display({
+		id: "payment",
 		header: "Payment",
-		cell: (row) => (
+		cell: ({ row }) => (
 			<>
 				<p className="truncate text-sm text-text-h">
-					{row.payment.method ?? "—"}
+					{row.original.payment.method ?? "—"}
 				</p>
-				{row.payment.status && (
+				{row.original.payment.status && (
 					<Badge
-						variant={paymentStatusVariant(row.payment.status)}
+						variant={paymentStatusVariant(row.original.payment.status)}
 						size="sm"
 						className="mt-1"
 					>
-						{row.payment.status}
+						{row.original.payment.status}
 					</Badge>
 				)}
 			</>
 		),
-	},
-	{
-		key: "total",
+	}),
+	helper.accessor("totalAmount", {
 		header: "Total",
-		cell: (row) => formatRupiah(toNumber(row.totalAmount)),
-		headClassName: "text-right",
-		cellClassName:
-			"text-right text-sm font-medium whitespace-nowrap text-text-h",
-	},
-	{
-		key: "date",
+		cell: ({ row }) => formatRupiah(toNumber(row.original.totalAmount)),
+		meta: {
+			headClassName: "text-right",
+			cellClassName:
+				"text-right text-sm font-medium whitespace-nowrap text-text-h",
+		},
+	}),
+	helper.accessor("createdAt", {
 		header: "Date",
-		cell: (row) => formatDate(row.createdAt),
-		cellClassName: "text-2xs whitespace-nowrap text-text",
-	},
-	{
-		key: "status",
+		cell: ({ row }) => formatDate(row.original.createdAt),
+		meta: { cellClassName: "text-2xs whitespace-nowrap text-text" },
+	}),
+	helper.accessor("status", {
 		header: "Status",
-		cell: (row) => <TransactionStatusBadge status={row.status} />,
-	},
-];
+		cell: ({ row }) => <TransactionStatusBadge status={row.original.status} />,
+	}),
+]);
 
 export default function TransactionTable({
 	loading,

@@ -1,6 +1,7 @@
 import PaginationControls from "../../../components/PaginationControls";
 import DataTable, {
-	type DataTableColumn,
+	createTableColumnHelper,
+	type TableMeta,
 } from "../../../components/tables/data-table";
 import ActionMenu from "../../../components/ui/action-menu";
 import { ActiveBadge } from "../../../components/ui/status-badge";
@@ -25,43 +26,46 @@ interface Props {
 	totalLabel: string;
 }
 
-const COLUMNS: DataTableColumn<Category>[] = [
-	{
-		key: "name",
+const helper = createTableColumnHelper<Category>();
+
+const COLUMNS = helper.columns([
+	helper.accessor("name", {
 		header: "Name",
-		cell: (row, active) => (
-			<div className="flex items-center gap-2.5">
-				<span
-					className="size-2.5 shrink-0 rounded-full"
-					style={{ backgroundColor: dotColor(row.name) }}
-					aria-hidden
-				/>
-				<span
-					className={`text-sm font-medium ${active ? "text-primary" : "text-text-h"}`}
-				>
-					{row.name}
-				</span>
-			</div>
-		),
-	},
-	{
-		key: "status",
+		cell: ({ row, table }) => {
+			const active =
+				(table.options.meta as TableMeta | undefined)?.activeId ===
+				row.original.id;
+			return (
+				<div className="flex items-center gap-2.5">
+					<span
+						className="size-2.5 shrink-0 rounded-full"
+						style={{ backgroundColor: dotColor(row.original.name) }}
+						aria-hidden
+					/>
+					<span
+						className={`text-sm font-medium ${active ? "text-primary" : "text-text-h"}`}
+					>
+						{row.original.name}
+					</span>
+				</div>
+			);
+		},
+	}),
+	helper.accessor("isActive", {
 		header: "Status",
-		cell: (row) => <ActiveBadge isActive={row.isActive} />,
-	},
-	{
-		key: "created",
+		cell: ({ row }) => <ActiveBadge isActive={row.original.isActive} />,
+	}),
+	helper.accessor("createdAt", {
 		header: "Created",
-		cell: (row) => formatDate(row.createdAt),
-		cellClassName: "text-sm text-text",
-	},
-	{
-		key: "updated",
+		cell: ({ row }) => formatDate(row.original.createdAt),
+		meta: { cellClassName: "text-sm text-text" },
+	}),
+	helper.accessor("updatedAt", {
 		header: "Last Updated",
-		cell: (row) => formatDate(row.updatedAt),
-		cellClassName: "text-sm text-text",
-	},
-];
+		cell: ({ row }) => formatDate(row.original.updatedAt),
+		meta: { cellClassName: "text-sm text-text" },
+	}),
+]);
 
 export default function CategoryTable({
 	loading,

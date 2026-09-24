@@ -1,6 +1,7 @@
 import PaginationControls from "../../../components/PaginationControls";
 import DataTable, {
-	type DataTableColumn,
+	createTableColumnHelper,
+	type TableMeta,
 } from "../../../components/tables/data-table";
 import ActionMenu from "../../../components/ui/action-menu";
 import Avatar from "../../../components/ui/avatar";
@@ -25,76 +26,76 @@ interface Props {
 	totalLabel: string;
 }
 
-const COLUMNS: DataTableColumn<InventoryItem>[] = [
-	{
-		key: "product",
+const helper = createTableColumnHelper<InventoryItem>();
+
+const COLUMNS = helper.columns([
+	helper.accessor("productName", {
 		header: "Product",
-		cell: (row, active) => (
-			<div className="flex items-center gap-2.5">
-				<Avatar
-					size="sm"
-					shape="square"
-					name={row.productName}
-				/>
-				<div className="min-w-0">
-					<span
-						className={`block truncate text-sm font-medium ${active ? "text-primary" : "text-text-h"}`}
-					>
-						{row.productName}
-					</span>
-					<span
-						className="block truncate text-2xs text-text"
-						title={row.id}
-					>
-						{row.productCode || row.id}
-					</span>
+		cell: ({ row, table }) => {
+			const active =
+				(table.options.meta as TableMeta | undefined)?.activeId ===
+				row.original.id;
+			return (
+				<div className="flex items-center gap-2.5">
+					<Avatar
+						size="sm"
+						shape="square"
+						name={row.original.productName}
+					/>
+					<div className="min-w-0">
+						<span
+							className={`block truncate text-sm font-medium ${active ? "text-primary" : "text-text-h"}`}
+						>
+							{row.original.productName}
+						</span>
+						<span
+							className="block truncate text-2xs text-text"
+							title={row.original.id}
+						>
+							{row.original.productCode || row.original.id}
+						</span>
+					</div>
 				</div>
-			</div>
-		),
-	},
-	{
-		key: "variant",
+			);
+		},
+	}),
+	helper.accessor("variantName", {
 		header: "Variant",
-		cell: (row) => row.variantName || "—",
-		cellClassName: "text-xs text-text",
-	},
-	{
-		key: "brand",
+		cell: ({ row }) => row.original.variantName || "—",
+		meta: { cellClassName: "text-xs text-text" },
+	}),
+	helper.accessor("brand", {
 		header: "Brand",
-		cell: (row) => row.brand,
-		cellClassName: "text-xs text-text",
-	},
-	{
-		key: "category",
+		meta: { cellClassName: "text-xs text-text" },
+	}),
+	helper.accessor("category", {
 		header: "Category",
-		cell: (row) => (
+		cell: ({ row }) => (
 			<span className="inline-flex items-center gap-1.5 text-xs text-text">
 				<span
 					className="size-2 shrink-0 rounded-full"
-					style={{ backgroundColor: dotColor(row.category) }}
+					style={{ backgroundColor: dotColor(row.original.category) }}
 					aria-hidden
 				/>
-				{row.category}
+				{row.original.category}
 			</span>
 		),
-	},
-	{
-		key: "stock",
+	}),
+	helper.accessor("stock", {
 		header: "Stock",
-		cell: (row) => (
+		cell: ({ row }) => (
 			<span
-				className={`text-sm font-semibold ${STOCK_STATUS_TEXT[row.stockStatus]}`}
+				className={`text-sm font-semibold ${STOCK_STATUS_TEXT[row.original.stockStatus]}`}
 			>
-				{row.stock}
+				{row.original.stock}
 			</span>
 		),
-	},
-	{
-		key: "status",
+	}),
+	helper.accessor("stockStatus", {
 		header: "Status",
-		cell: (row) => <StockStatusBadge status={row.stockStatus} />,
-	},
-];
+		cell: ({ row }) => <StockStatusBadge status={row.original.stockStatus} />,
+	}),
+]);
 
 export default function InventoryTable({
 	loading,

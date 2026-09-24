@@ -1,6 +1,7 @@
 import PaginationControls from "../../../components/PaginationControls";
 import DataTable, {
-	type DataTableColumn,
+	createTableColumnHelper,
+	type TableMeta,
 } from "../../../components/tables/data-table";
 import ActionMenu from "../../../components/ui/action-menu";
 import Avatar from "../../../components/ui/avatar";
@@ -25,57 +26,62 @@ interface Props {
 	totalLabel: string;
 }
 
-const COLUMNS: DataTableColumn<User>[] = [
-	{
-		key: "name",
+const helper = createTableColumnHelper<User>();
+
+const COLUMNS = helper.columns([
+	helper.accessor("fullname", {
 		header: "Name",
-		cell: (row, active) => (
-			<div className="flex items-center gap-2.5">
-				<Avatar
-					name={row.fullname}
-					size="sm"
-				/>
-				<div className="min-w-0">
-					<p
-						className={`truncate text-sm font-medium ${active ? "text-primary" : "text-text-h"}`}
-					>
-						{row.fullname}
-					</p>
-					<p className="truncate text-2xs text-text">{row.id.slice(0, 8)}…</p>
+		cell: ({ row, table }) => {
+			const active =
+				(table.options.meta as TableMeta | undefined)?.activeId ===
+				row.original.id;
+			return (
+				<div className="flex items-center gap-2.5">
+					<Avatar
+						name={row.original.fullname}
+						size="sm"
+					/>
+					<div className="min-w-0">
+						<p
+							className={`truncate text-sm font-medium ${active ? "text-primary" : "text-text-h"}`}
+						>
+							{row.original.fullname}
+						</p>
+						<p className="truncate text-2xs text-text">
+							{row.original.id.slice(0, 8)}…
+						</p>
+					</div>
 				</div>
-			</div>
-		),
-	},
-	{
-		key: "username",
+			);
+		},
+	}),
+	helper.accessor("username", {
 		header: "Username",
-		cell: (row) => row.username,
-		cellClassName: "text-sm text-text-h",
-	},
-	{
-		key: "role",
+		meta: { cellClassName: "text-sm text-text-h" },
+	}),
+	helper.accessor("role", {
 		header: "Role",
-		cell: (row) => (
+		cell: ({ row }) => (
 			<Badge
-				variant={getRoleName(row.role) === "admin" ? "info" : "neutral"}
+				variant={
+					getRoleName(row.original.role) === "admin" ? "info" : "neutral"
+				}
 				size="sm"
 			>
-				{getRoleName(row.role)}
+				{getRoleName(row.original.role)}
 			</Badge>
 		),
-	},
-	{
-		key: "status",
+	}),
+	helper.accessor("isActive", {
 		header: "Status",
-		cell: (row) => <ActiveBadge isActive={row.isActive} />,
-	},
-	{
-		key: "created",
+		cell: ({ row }) => <ActiveBadge isActive={row.original.isActive} />,
+	}),
+	helper.accessor("createdAt", {
 		header: "Created",
-		cell: (row) => formatDate(row.createdAt),
-		cellClassName: "text-sm text-text",
-	},
-];
+		cell: ({ row }) => formatDate(row.original.createdAt),
+		meta: { cellClassName: "text-sm text-text" },
+	}),
+]);
 
 export default function UserTable({
 	loading,

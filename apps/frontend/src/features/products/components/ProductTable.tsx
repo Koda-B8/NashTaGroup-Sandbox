@@ -1,6 +1,7 @@
 import PaginationControls from "../../../components/PaginationControls";
 import DataTable, {
-	type DataTableColumn,
+	createTableColumnHelper,
+	type TableMeta,
 } from "../../../components/tables/data-table";
 import ActionMenu from "../../../components/ui/action-menu";
 import Avatar from "../../../components/ui/avatar";
@@ -35,85 +36,95 @@ interface Props {
 	onPageChange: (page: number) => void;
 }
 
-const COLUMNS: DataTableColumn<Product>[] = [
-	{
-		key: "product",
+const helper = createTableColumnHelper<Product>();
+
+const COLUMNS = helper.columns([
+	helper.accessor("name", {
 		header: "Product",
-		cell: (row, active) => (
-			<div className="flex items-center gap-2.5">
-				<Avatar
-					size="sm"
-					shape="square"
-					src={row.image?.url ?? undefined}
-					alt={row.image?.alt ?? row.name}
-					name={row.name}
-				/>
-				<div className="min-w-0">
-					<span
-						className={`block truncate text-sm font-medium ${active ? "text-primary" : "text-text-h"}`}
-					>
-						{row.name}
-					</span>
-					<span
-						className="block truncate text-2xs text-text"
-						title={row.id}
-					>
-						{row.description ?? row.id}
-					</span>
+		cell: ({ row, table }) => {
+			const active =
+				(table.options.meta as TableMeta | undefined)?.activeId ===
+				row.original.id;
+			return (
+				<div className="flex items-center gap-2.5">
+					<Avatar
+						size="sm"
+						shape="square"
+						src={row.original.image?.url ?? undefined}
+						alt={row.original.image?.alt ?? row.original.name}
+						name={row.original.name}
+					/>
+					<div className="min-w-0">
+						<span
+							className={`block truncate text-sm font-medium ${active ? "text-primary" : "text-text-h"}`}
+						>
+							{row.original.name}
+						</span>
+						<span
+							className="block truncate text-2xs text-text"
+							title={row.original.id}
+						>
+							{row.original.description ?? row.original.id}
+						</span>
+					</div>
 				</div>
-			</div>
-		),
-	},
-	{
-		key: "category",
+			);
+		},
+	}),
+	helper.display({
+		id: "category",
 		header: "Category",
-		cell: (row) => (
+		cell: ({ row }) => (
 			<span className="inline-flex items-center gap-1.5 text-xs text-text">
 				<span
 					className="size-2 shrink-0 rounded-full"
-					style={{ backgroundColor: dotColor(row.category?.name ?? "—") }}
+					style={{
+						backgroundColor: dotColor(row.original.category?.name ?? "—"),
+					}}
 					aria-hidden
 				/>
-				{row.category?.name ?? "—"}
+				{row.original.category?.name ?? "—"}
 			</span>
 		),
-	},
-	{
-		key: "brand",
+	}),
+	helper.display({
+		id: "brand",
 		header: "Brand",
-		cell: (row) => row.brand?.name ?? "—",
-		cellClassName: "text-xs text-text",
-	},
-	{
-		key: "variant",
+		cell: ({ row }) => row.original.brand?.name ?? "—",
+		meta: { cellClassName: "text-xs text-text" },
+	}),
+	helper.display({
+		id: "variant",
 		header: "Variant",
-		cell: (row) => <VariantPill count={(row.items ?? []).length} />,
-	},
-	{
-		key: "stock",
+		cell: ({ row }) => (
+			<VariantPill count={(row.original.items ?? []).length} />
+		),
+	}),
+	helper.accessor("stock", {
 		header: "Stock",
-		cell: (row) => {
-			const stock = toNumber(row.stock);
+		cell: ({ row }) => {
+			const stock = toNumber(row.original.stock);
 			return (
 				<span className={`text-sm font-semibold ${stockTone(stock).className}`}>
 					{stock}
 				</span>
 			);
 		},
-	},
-	{
-		key: "price",
+	}),
+	helper.display({
+		id: "price",
 		header: "Price",
-		cell: (row) => priceLabel(row.items ?? []),
-		headClassName: "text-right",
-		cellClassName: "text-right text-sm font-semibold text-text-h",
-	},
-	{
-		key: "status",
+		cell: ({ row }) => priceLabel(row.original.items ?? []),
+		meta: {
+			headClassName: "text-right",
+			cellClassName: "text-right text-sm font-semibold text-text-h",
+		},
+	}),
+	helper.accessor("isActive", {
 		header: "Status",
-		cell: (row) => <StatusBadge isActive={row.isActive} />,
-	},
-];
+		cell: ({ row }) => <StatusBadge isActive={row.original.isActive} />,
+	}),
+]);
 
 export default function ProductTable({
 	loading,

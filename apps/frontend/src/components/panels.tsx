@@ -132,11 +132,11 @@ export function FiltersPanel() {
 												type="radio"
 												name={group.title}
 												id={option.id}
-												className="peer"
+												className="peer size-4 shrink-0 accent-primary"
 											/>
 											<label
 												htmlFor={option.id}
-												className="peer-checked:text-text-h text-sm"
+												className="text-sm peer-checked:text-text-h"
 											>
 												{option.name}
 											</label>

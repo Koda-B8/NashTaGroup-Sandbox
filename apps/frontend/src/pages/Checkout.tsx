@@ -16,6 +16,8 @@ import { useNavigate } from "react-router";
 
 import Button from "../components/ui/button";
 import Card from "../components/ui/card";
+import Input from "../components/ui/input";
+import Modal from "../components/ui/modal";
 import { apiFetch } from "../libs/api";
 import { formatRupiah } from "../libs/formatRupiah";
 import type { AppDispatch, RootState } from "../store";
@@ -150,20 +152,19 @@ export default function Checkout() {
 
 	return (
 		<>
-			{activeModal && (
-				<div className="z-100 bg-black/30 left-0 top-0 fixed w-screen h-screen centerized">
-					<div
-						className="w-100 h-50 centerized gap-3 flex-col overflow-hidden shadow-lg z-200
-					 bg-surface rounded-lg"
-					>
-						<CircleCheckBig
-							size={45}
-							className="text-deep-valid/70"
-						/>
-						<h5>Sukses Proses pesanan</h5>
-					</div>
+			<Modal
+				open={activeModal}
+				onOpenChange={setActiveModal}
+				size="sm"
+			>
+				<div className="centerized h-50 flex-col gap-3">
+					<CircleCheckBig
+						size={45}
+						className="text-deep-valid/70"
+					/>
+					<h5>Sukses Proses pesanan</h5>
 				</div>
-			)}
+			</Modal>
 			<form
 				onSubmit={handleSubmit}
 				className="w-full flex flex-col gap-2 px-3"
@@ -271,32 +272,30 @@ export default function Checkout() {
 						</main>
 					</Card>
 
-					<section
-						className="bg-surface flex flex-col rounded-lg gap-2 w-full p-3 
-					border border-base-border"
+					<Card
+						padding="sm"
+						className="flex w-full flex-col gap-2"
 					>
 						<label
 							htmlFor="phone"
-							className="text-text-h"
+							className="text-xs font-medium text-text-h"
 						>
 							Customer Phone
 						</label>
-						<div className="w-full bg-base rounded-lg flex h-10">
-							<div className="h-full  centerized px-4">
-								<Phone
-									size={14}
-									className="text-text/50"
-								/>
-							</div>
-							<input
+						<div className="relative">
+							<Phone
+								size={14}
+								className="absolute top-1/2 left-3 -translate-y-1/2 text-text"
+							/>
+							<Input
 								placeholder="08xxxx"
 								id="phone"
 								name="phone"
-								className="bg-base w-full outline-none text-md rounded-lg h-10 "
 								type="number"
+								className="pl-9"
 							/>
 						</div>
-					</section>
+					</Card>
 
 					<Card padding="sm">
 						<header className="flex items-center justify-between">

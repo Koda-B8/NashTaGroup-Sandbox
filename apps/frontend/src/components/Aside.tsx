@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import Card from "./ui/card";
+
 interface AsideProps {
 	headerName: string;
 	Attribute?: ReactNode;
@@ -14,13 +16,16 @@ export default function Aside({
 	Footer,
 }: Readonly<AsideProps>) {
 	return (
-		<div className=" w-60 bg-surface border border-base-border p-4 h-full flex-1 rounded-lg flex flex-col relative ">
-			<header className=" border-b py-2 border-b-base-border flex items-center justify-between ">
+		<Card
+			padding="sm"
+			className="relative flex h-full w-60 flex-1 flex-col"
+		>
+			<header className="flex items-center justify-between border-b border-b-base-border py-2">
 				<h6>{headerName}</h6>
 				{Attribute}
 			</header>
 			<main>{Content}</main>
-			<footer className="w-full mt-auto">{Footer}</footer>
-		</div>
+			<footer className="mt-auto w-full">{Footer}</footer>
+		</Card>
 	);
 }

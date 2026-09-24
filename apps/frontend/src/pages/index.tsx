@@ -1,12 +1,16 @@
-import { Plus, ChevronLeft, ChevronRight, X, Minus } from "lucide-react";
+import { Plus, X, Minus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useSearchParams } from "react-router";
 
 import CardSkel from "../components/CardSkel";
+import PaginationControls from "../components/PaginationControls";
 import Button from "../components/ui/button";
 import Card from "../components/ui/card";
 import Checkbox from "../components/ui/checkbox";
+import Input from "../components/ui/input";
+import Modal from "../components/ui/modal";
+import Select from "../components/ui/select";
 import { apiFetch } from "../libs/api";
 import { formatRupiah } from "../libs/formatRupiah";
 import type { AppDispatch } from "../store";
@@ -225,307 +229,301 @@ export default function Home() {
 
 	return (
 		<>
-			{activeModal && (
-				<div className="z-100 bg-black/30 left-0 top-0 fixed w-screen h-screen centerized">
-					<div className="w-150 h-160 overflow-hidden shadow-lg z-200 bg-surface rounded-lg">
-						<form
-							onSubmit={handleSubmit}
-							className="w-150 h-160 overflow-y-scroll  p-4 z-200 bg-surface rounded-lg"
-						>
-							<header className="flex flex-col gap-4 pb-4 border-b w-full border-base-border">
-								<div className="flex justify-between w-full  items-start">
-									<div className="flex gap-4 items-center">
-										<section className="w-30 h-35 rounded-lg bg-base"></section>
-										<section className="flex gap-1 flex-col justify-center">
-											<h6>{dataSubmit.name || "iPhone"}</h6>
-											<p>{dataSubmit.category} | Ready stock</p>
-											<h6 className="text-primary">
-												{formatRupiah(dataSubmit.price)}
-											</h6>
-										</section>
-									</div>
-									<div>
-										<Button
-											onClick={() => setActiveModal(false)}
-											className="rounded-full bg-base"
-											variant="ghost"
-										>
-											<X />
-										</Button>
-									</div>
-								</div>
-								<p className="text-sm">
-									Pilih variant dulu sebelum ke Keranjang
+			<Modal
+				open={activeModal}
+				onOpenChange={setActiveModal}
+				size="xl"
+			>
+				<form onSubmit={handleSubmit}>
+					<header className="flex flex-col gap-4 pb-4 border-b w-full border-base-border">
+						<div className="flex justify-between w-full  items-start">
+							<div className="flex gap-4 items-center">
+								<section className="h-35 w-30 rounded-lg bg-base"></section>
+								<section className="flex gap-1 flex-col justify-center">
+									<h6>{dataSubmit.name || "iPhone"}</h6>
+									<p>{dataSubmit.category} | Ready stock</p>
+									<h6 className="text-primary">
+										{formatRupiah(dataSubmit.price)}
+									</h6>
+								</section>
+							</div>
+							<div>
+								<Button
+									onClick={() => setActiveModal(false)}
+									aria-label="Close"
+									variant="ghost"
+									size="icon"
+								>
+									<X size={16} />
+								</Button>
+							</div>
+						</div>
+						<p className="text-sm">Pilih variant dulu sebelum ke Keranjang</p>
+					</header>
+
+					<main className="flex mt-2 w-full flex-col gap-2">
+						<section className="flex w-full flex-col py-3  text-sm">
+							<header className="w-full flex justify-between text-xs items-center h-fit">
+								<p className="font-semibold">
+									<span className="border-l-5 border-primary mr-3 rounded-lg bg-primary"></span>{" "}
+									Warna
 								</p>
+								<p className="text-primary">Wajib dipilih</p>
+							</header>
+							<main className="flex gap-3 flex-wrap mt-2">
+								<div>
+									<label
+										htmlFor="color-blue"
+										className="w-fit h-fit flex flex-col items-center gap-2"
+									>
+										<input
+											type="radio"
+											id="color-blue"
+											value={"Blue"}
+											onChange={() =>
+												setDataSubmit({ ...dataSubmit, color: "Blue" })
+											}
+											name="color"
+											className="peer hidden"
+										/>
+										<div
+											className="w-13.5 h-13.5 centerized border border-white peer-checked:border-primary 
+												rounded-full"
+										>
+											<div className="w-10 rounded-full h-10 px-4 bg-primary"></div>
+										</div>
+										<p className="peer-checked:text-primary text-xs font-semibold">
+											Biru
+										</p>
+									</label>
+								</div>
+
+								<div>
+									<label
+										htmlFor="color-gray"
+										className="w-fit h-fit flex flex-col items-center gap-2"
+									>
+										<input
+											type="radio"
+											value={"Gray"}
+											name="color"
+											onChange={() =>
+												setDataSubmit({ ...dataSubmit, color: "Gray" })
+											}
+											id="color-gray"
+											className="peer hidden"
+										/>
+										<div className="w-13.5 h-13.5 centerized border border-white peer-checked:border-primary rounded-full">
+											<div className="w-10 rounded-full h-10 px-4 bg-gray-400"></div>
+										</div>
+										<p className="peer-checked:text-primary font-semibold text-xs">
+											Gray
+										</p>
+									</label>
+								</div>
+							</main>
+						</section>
+
+						<section className="flex w-full flex-col py-3  text-sm">
+							<header className="w-full flex justify-between text-xs items-center h-fit">
+								<p className="font-semibold">
+									<span className="border-l-5 border-primary mr-3 rounded-lg bg-primary"></span>
+									Kapasitas
+								</p>
+								<p className="text-primary">Wajib dipilih</p>
 							</header>
 
-							<main className="flex mt-2 w-full flex-col gap-2">
-								<section className="flex w-full flex-col py-3  text-sm">
-									<header className="w-full flex justify-between text-xs items-center h-fit">
-										<p className="font-semibold">
-											<span className="border-l-5 border-primary mr-3 rounded-lg bg-primary"></span>{" "}
-											Warna
-										</p>
-										<p className="text-primary">Wajib dipilih</p>
-									</header>
-									<main className="flex gap-3 flex-wrap mt-2">
-										<div>
-											<label
-												htmlFor="color-blue"
-												className="w-fit h-fit flex flex-col items-center gap-2"
-											>
-												<input
-													type="radio"
-													id="color-blue"
-													value={"Blue"}
-													onChange={() =>
-														setDataSubmit({ ...dataSubmit, color: "Blue" })
-													}
-													name="color"
-													className="peer hidden"
-												/>
-												<div
-													className="w-13.5 h-13.5 centerized border border-white peer-checked:border-primary 
-												rounded-full"
-												>
-													<div className="w-10 rounded-full h-10 px-4 bg-primary"></div>
-												</div>
-												<p className="peer-checked:text-primary text-xs font-semibold">
-													Biru
+							<main className="flex gap-3 flex-wrap mt-2">
+								{specs.map((item) => (
+									<label
+										key={item.id}
+										htmlFor={item.id.toString()}
+										className="group h-22 w-37 flex text-white flex-col cursor-pointer"
+									>
+										<input
+											className="peer sr-only"
+											name="specs"
+											onChange={(e) => {
+												if (e) {
+													setDataSubmit((prev) => {
+														return {
+															...prev,
+															specs: item.name,
+															total: prev.total + item.price,
+														};
+													});
+												} else {
+													setDataSubmit((prev) => {
+														return {
+															...prev,
+															total: prev.total - item.price,
+														};
+													});
+												}
+											}}
+											value={item.name}
+											id={item.id.toString()}
+											type="radio"
+										/>
+										<p className="hidden">.</p>
+										<div className="centerized h-full w-full overflow-hidden rounded-lg border border-base-border peer-checked:border-primary peer-checked:bg-primary/10">
+											<div className="text-text-h flex-col centerized gap-1 text-center group-[:has(input:checked)]:text-primary">
+												<h6 className="font-semibold group-[:has(input:checked)]:text-primary">
+													{item.name}
+												</h6>
+												<p className="text-sm text-primary">
+													+{formatRupiah(item.price)}
 												</p>
-											</label>
-										</div>
-
-										<div>
-											<label
-												htmlFor="color-gray"
-												className="w-fit h-fit flex flex-col items-center gap-2"
-											>
-												<input
-													type="radio"
-													value={"Gray"}
-													name="color"
-													onChange={() =>
-														setDataSubmit({ ...dataSubmit, color: "Gray" })
-													}
-													id="color-gray"
-													className="peer hidden"
-												/>
-												<div className="w-13.5 h-13.5 centerized border border-white peer-checked:border-primary rounded-full">
-													<div className="w-10 rounded-full h-10 px-4 bg-gray-400"></div>
-												</div>
-												<p className="peer-checked:text-primary font-semibold text-xs">
-													Gray
+												<p className="text-xs text-text group-[:has(input:checked)]:text-deep-danger/80">
+													Stok {item.stock}
 												</p>
-											</label>
-										</div>
-									</main>
-								</section>
-
-								<section className="flex w-full flex-col py-3  text-sm">
-									<header className="w-full flex justify-between text-xs items-center h-fit">
-										<p className="font-semibold">
-											<span className="border-l-5 border-primary mr-3 rounded-lg bg-primary"></span>
-											Kapasitas
-										</p>
-										<p className="text-primary">Wajib dipilih</p>
-									</header>
-
-									<main className="flex gap-3 flex-wrap mt-2">
-										{specs.map((item) => (
-											<label
-												key={item.id}
-												htmlFor={item.id.toString()}
-												className="group h-22 w-37 flex text-white flex-col cursor-pointer"
-											>
-												<input
-													className="peer sr-only"
-													name="specs"
-													onChange={(e) => {
-														if (e) {
-															setDataSubmit((prev) => {
-																return {
-																	...prev,
-																	specs: item.name,
-																	total: prev.total + item.price,
-																};
-															});
-														} else {
-															setDataSubmit((prev) => {
-																return {
-																	...prev,
-																	total: prev.total - item.price,
-																};
-															});
-														}
-													}}
-													value={item.name}
-													id={item.id.toString()}
-													type="radio"
-												/>
-												<p className="hidden">.</p>
-												<div className="centerized h-full w-full overflow-hidden rounded-lg border border-base-border peer-checked:border-primary peer-checked:bg-primary/10">
-													<div className="text-text-h flex-col centerized gap-1 text-center group-[:has(input:checked)]:text-primary">
-														<h6 className="font-semibold group-[:has(input:checked)]:text-primary">
-															{item.name}
-														</h6>
-														<p className="text-sm text-primary">
-															+{formatRupiah(item.price)}
-														</p>
-														<p className="text-xs text-text group-[:has(input:checked)]:text-deep-danger/80">
-															Stok {item.stock}
-														</p>
-													</div>
-												</div>
-											</label>
-										))}
-									</main>
-								</section>
-
-								<section className="flex w-full flex-col py-3  text-sm">
-									<header className="w-full flex justify-between text-xs items-center h-fit">
-										<p className="font-semibold">
-											<span className="border-l-5 border-primary mr-3 rounded-lg bg-primary"></span>
-											Tambahan
-										</p>
-										<p className="text-primary">Optional</p>
-									</header>
-
-									<main className="flex gap-3 flex-col flex-wrap mt-2">
-										{optional.map((item, index) => (
-											<label
-												key={item.id}
-												htmlFor={`opt${item.id.toString()}`}
-												className="group h-14 w-full flex flex-col cursor-pointer"
-											>
-												<p className="hidden">.</p>
-												<div
-													className="centerized h-full w-full overflow-hidden rounded-lg border border-base-border 
-											peer-checked:border-primary group-[:has(input:checked)]:border-primary peer-checked:bg-primary/10"
-												>
-													<div
-														className="text-text-h flex w-full px-3 items-center justify-between gap-1 text-center 
-												group-[:has(input:checked)]:text-primary"
-													>
-														<div className="flex w-[50%] items-center gap-2">
-															<Checkbox
-																name={`optional ${index + 1}`}
-																value={item.name}
-																onCheckedChange={(e) => {
-																	if (e) {
-																		setDataSubmit((prev) => {
-																			return {
-																				...prev,
-																				total: prev.total + item.price,
-																			};
-																		});
-																	} else {
-																		setDataSubmit((prev) => {
-																			return {
-																				...prev,
-																				total: prev.total - item.price,
-																			};
-																		});
-																	}
-																}}
-																disabled={item.stock < 1}
-																id={`opt${item.id.toString()}`}
-																className="peer group"
-															/>
-															<h6 className="font-semibold group-[:has(input:checked)]:text-primary">
-																{item.name}
-															</h6>
-														</div>
-														<div className="w-[20%] centerized">
-															<p
-																className={`${item.stock > 0 ? "text-text-h" : "text-deep-danger/80"} px-3 text-xs font-semibold py-1.5 rounded-lg bg-base`}
-															>
-																{item.stock > 0
-																	? `Stok ${item.stock}`
-																	: "Habis"}
-															</p>
-														</div>
-														<p className="text-sm w-[30%] text-right text-primary">
-															+{formatRupiah(item.price)}
-														</p>
-													</div>
-												</div>
-											</label>
-										))}
-									</main>
-									<footer className="flex mt-10 flex-col gap-3">
-										<div
-											className="w-full p-4 text-left bg-base border border-base-border rounded-lg 
-									gap-1 h-17 flex flex-col justify-center"
-										>
-											<p className="text-xs">KOMBINASI TERPILIH</p>
-											<div className="flex items-center gap-2">
-												<h6>{dataSubmit?.color}</h6>
-												<h6>{dataSubmit?.specs}</h6>
 											</div>
 										</div>
-										<div className="flex justify-between items-center">
-											<div className="flex gap-4 items-center">
-												<div
-													className="flex items-center justify-between w-35 h-11 
-													rounded-lg border border-base-border"
-												>
-													<Button
-														variant="inverse"
-														onClick={() => {
-															if (prodQty > 1) {
+									</label>
+								))}
+							</main>
+						</section>
+
+						<section className="flex w-full flex-col py-3  text-sm">
+							<header className="w-full flex justify-between text-xs items-center h-fit">
+								<p className="font-semibold">
+									<span className="border-l-5 border-primary mr-3 rounded-lg bg-primary"></span>
+									Tambahan
+								</p>
+								<p className="text-primary">Optional</p>
+							</header>
+
+							<main className="flex gap-3 flex-col flex-wrap mt-2">
+								{optional.map((item, index) => (
+									<label
+										key={item.id}
+										htmlFor={`opt${item.id.toString()}`}
+										className="group h-14 w-full flex flex-col cursor-pointer"
+									>
+										<p className="hidden">.</p>
+										<div
+											className="centerized h-full w-full overflow-hidden rounded-lg border border-base-border 
+											peer-checked:border-primary group-[:has(input:checked)]:border-primary peer-checked:bg-primary/10"
+										>
+											<div
+												className="text-text-h flex w-full px-3 items-center justify-between gap-1 text-center 
+												group-[:has(input:checked)]:text-primary"
+											>
+												<div className="flex w-[50%] items-center gap-2">
+													<Checkbox
+														name={`optional ${index + 1}`}
+														value={item.name}
+														onCheckedChange={(e) => {
+															if (e) {
 																setDataSubmit((prev) => {
 																	return {
 																		...prev,
-																		total: prev.total - prev.price,
-																		qty: prev.qty - 1,
+																		total: prev.total + item.price,
 																	};
 																});
-																setProdQty((prev) => prev - 1);
+															} else {
+																setDataSubmit((prev) => {
+																	return {
+																		...prev,
+																		total: prev.total - item.price,
+																	};
+																});
 															}
 														}}
-													>
-														<Minus
-															size={14}
-															strokeWidth={3}
-														/>
-													</Button>
-													<h6>{prodQty}</h6>
-													<Button
-														variant="inverse"
-														onClick={() => {
-															setDataSubmit((prev) => {
-																return {
-																	...prev,
-																	total: prev.total + prev.price,
-																	qty: prev.qty + 1,
-																};
-															});
-															setProdQty((prev) => prev + 1);
-														}}
-													>
-														<Plus
-															size={14}
-															strokeWidth={3}
-														/>
-													</Button>
+														disabled={item.stock < 1}
+														id={`opt${item.id.toString()}`}
+														className="peer group"
+													/>
+													<h6 className="font-semibold group-[:has(input:checked)]:text-primary">
+														{item.name}
+													</h6>
 												</div>
-												<h5>{formatRupiah(dataSubmit.total)}</h5>
+												<div className="w-[20%] centerized">
+													<p
+														className={`${item.stock > 0 ? "text-text-h" : "text-deep-danger/80"} px-3 text-xs font-semibold py-1.5 rounded-lg bg-base`}
+													>
+														{item.stock > 0 ? `Stok ${item.stock}` : "Habis"}
+													</p>
+												</div>
+												<p className="text-sm w-[30%] text-right text-primary">
+													+{formatRupiah(item.price)}
+												</p>
 											</div>
+										</div>
+									</label>
+								))}
+							</main>
+							<footer className="flex mt-10 flex-col gap-3">
+								<div
+									className="w-full p-4 text-left bg-base border border-base-border rounded-lg 
+									gap-1 h-17 flex flex-col justify-center"
+								>
+									<p className="text-xs">KOMBINASI TERPILIH</p>
+									<div className="flex items-center gap-2">
+										<h6>{dataSubmit?.color}</h6>
+										<h6>{dataSubmit?.specs}</h6>
+									</div>
+								</div>
+								<div className="flex justify-between items-center">
+									<div className="flex gap-4 items-center">
+										<div
+											className="flex items-center justify-between w-35 h-11 
+													rounded-lg border border-base-border"
+										>
 											<Button
-												variant="primary"
-												type="submit"
+												variant="inverse"
+												onClick={() => {
+													if (prodQty > 1) {
+														setDataSubmit((prev) => {
+															return {
+																...prev,
+																total: prev.total - prev.price,
+																qty: prev.qty - 1,
+															};
+														});
+														setProdQty((prev) => prev - 1);
+													}
+												}}
 											>
-												<p>Tambah Ke Keranjang</p>
+												<Minus
+													size={14}
+													strokeWidth={3}
+												/>
+											</Button>
+											<h6>{prodQty}</h6>
+											<Button
+												variant="inverse"
+												onClick={() => {
+													setDataSubmit((prev) => {
+														return {
+															...prev,
+															total: prev.total + prev.price,
+															qty: prev.qty + 1,
+														};
+													});
+													setProdQty((prev) => prev + 1);
+												}}
+											>
+												<Plus
+													size={14}
+													strokeWidth={3}
+												/>
 											</Button>
 										</div>
-									</footer>
-								</section>
-							</main>
-						</form>
-					</div>
-				</div>
-			)}
+										<h5>{formatRupiah(dataSubmit.total)}</h5>
+									</div>
+									<Button
+										variant="primary"
+										type="submit"
+									>
+										<p>Tambah Ke Keranjang</p>
+									</Button>
+								</div>
+							</footer>
+						</section>
+					</main>
+				</form>
+			</Modal>
 			<div className="flex w-full px-3 flex-col">
 				<ParamsSection params={params} />
 				{loading ? (
@@ -585,6 +583,8 @@ export default function Home() {
 	);
 }
 
+const SORT_OPTIONS = [{ label: "Popular", value: "popular" }];
+
 function ParamsSection({ params }) {
 	const [searchParams, setSearchParams] = useSearchParams();
 
@@ -606,23 +606,20 @@ function ParamsSection({ params }) {
 				action=""
 				className="w-full flex justify-between"
 			>
-				<input
+				<Input
 					type="text"
 					defaultValue={searchParams.get("search") ?? ""}
 					onChange={handleSearchProduct}
 					placeholder="Search Products.."
-					className="bg-surface outline-none pl-3 text-sm rounded-lg border 
-					border-base-border w-70 h-10"
+					className="w-70"
 				/>
 
-				<select
-					className="w-40 text-sm outline-none pl-2 h-10 rounded-lg bg-surface 
-					border border-base-border"
-					name="sort"
-					id="sort"
-				>
-					<option value="popular">Popular</option>
-				</select>
+				<Select
+					label="Sort"
+					defaultValue="popular"
+					items={SORT_OPTIONS}
+					className="w-40"
+				/>
 			</form>
 		</div>
 	);
@@ -630,37 +627,11 @@ function ParamsSection({ params }) {
 
 function Pagination({ products, pagination, setPageCount }) {
 	return (
-		<div className="flex mt-12 mb-5 items-center w-full justify-between">
-			<p className="text-sm">
-				Showing {products?.length} of {pagination.total_items} products
-			</p>
-
-			<div className="flex items-center gap-2">
-				<Button
-					disabled={true}
-					size={"sm"}
-					variant={"inverse"}
-				>
-					<ChevronLeft size={15} />
-				</Button>
-				{pages?.map((item) => (
-					<Button
-						size={"sm"}
-						className="cursor-pointer"
-						onClick={() => setPageCount(item.page)}
-						variant={pagination?.page === item.page ? "primary" : "inverse"}
-						key={item.page}
-					>
-						<p>{item.page}</p>
-					</Button>
-				))}
-				<Button
-					size={"sm"}
-					variant={"inverse"}
-				>
-					<ChevronRight size={15} />
-				</Button>
-			</div>
-		</div>
+		<PaginationControls
+			totalLabel={`Showing ${products?.length} of ${pagination.total_items} products`}
+			pageCount={pages.length}
+			safePage={(pagination?.page ?? 1) - 1}
+			onPageChange={(page) => setPageCount(String(page + 1))}
+		/>
 	);
 }

@@ -5,6 +5,7 @@ import { useLocation, useNavigate } from "react-router";
 
 import Button from "../../components/ui/button";
 import Checkbox from "../../components/ui/checkbox";
+import ErrorBanner from "../../components/ui/error-banner";
 import Input from "../../components/ui/input";
 import { login } from "../../features/auth/api";
 import { APP_NAME } from "../../libs/app";
@@ -35,7 +36,7 @@ function BrandingPanel() {
 				</div>
 			</div>
 
-			<div className="relative z-10 max-w-md space-y-4">
+			<div className="relative z-10 flex max-w-md flex-col gap-4">
 				<h3 className="text-3xl leading-tight font-bold text-white">
 					Portal Operasional Kasir & Administrasi
 				</h3>
@@ -91,8 +92,8 @@ export default function LoginPage() {
 			<BrandingPanel />
 
 			<div className="flex w-full items-center justify-center p-6 sm:p-12 lg:w-1/2">
-				<div className="w-full max-w-md space-y-8">
-					<header className="space-y-2 text-center lg:text-left">
+				<div className="flex w-full max-w-md flex-col gap-8">
+					<header className="flex flex-col gap-2 text-center lg:text-left">
 						<h1 className="text-2xl font-bold text-text-h">
 							Selamat Datang Kembali
 						</h1>
@@ -101,24 +102,17 @@ export default function LoginPage() {
 						</p>
 					</header>
 
-					{errorMessage && (
-						<div
-							role="alert"
-							className="rounded-lg border border-danger/20 bg-danger/10 p-3 text-sm text-deep-danger"
-						>
-							{errorMessage}
-						</div>
-					)}
+					{errorMessage && <ErrorBanner message={errorMessage} />}
 
 					<form
 						onSubmit={handleSubmit}
-						className="space-y-5"
+						className="flex flex-col gap-5"
 						noValidate
 					>
-						<div className="space-y-1.5">
+						<div className="flex flex-col gap-1.5">
 							<label
 								htmlFor="username"
-								className="block text-xs font-semibold tracking-wider text-text-h uppercase"
+								className="text-xs font-medium text-text-h"
 							>
 								Username
 							</label>
@@ -136,11 +130,11 @@ export default function LoginPage() {
 							</div>
 						</div>
 
-						<div className="space-y-1.5">
+						<div className="flex flex-col gap-1.5">
 							<div className="flex items-center justify-between">
 								<label
 									htmlFor="password"
-									className="block text-xs font-semibold tracking-wider text-text-h uppercase"
+									className="text-xs font-medium text-text-h"
 								>
 									Password
 								</label>
@@ -171,7 +165,7 @@ export default function LoginPage() {
 									aria-label={
 										showPassword ? "Sembunyikan password" : "Tampilkan password"
 									}
-									className="absolute top-1/2 right-3 -translate-y-1/2 text-text transition-colors hover:text-text-h disabled:opacity-50"
+									className="absolute top-1/2 right-3 -translate-y-1/2 text-text transition-colors hover:text-text-h focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50"
 								>
 									{showPassword ? (
 										<EyeOff className="size-4" />
@@ -201,7 +195,7 @@ export default function LoginPage() {
 							block
 							size="md"
 							disabled={isLoading}
-							className="mt-2 w-full"
+							className="mt-2"
 						>
 							{isLoading ? (
 								<>

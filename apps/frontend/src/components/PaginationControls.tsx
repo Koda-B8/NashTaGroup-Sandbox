@@ -20,7 +20,7 @@ export default function PaginationControls({
 					aria-label="Previous page"
 					disabled={safePage === 0}
 					onClick={() => onPageChange(Math.max(0, safePage - 1))}
-					className="flex size-7 items-center justify-center rounded-lg border border-base-border bg-white text-text-h hover:bg-base disabled:opacity-40"
+					className="flex size-7 items-center justify-center rounded-lg border border-base-border bg-surface text-text-h hover:bg-base disabled:opacity-40"
 				>
 					<ChevronLeftIcon size={14} />
 				</button>
@@ -31,7 +31,7 @@ export default function PaginationControls({
 						aria-label={`Page ${i + 1}`}
 						aria-current={safePage === i ? "page" : undefined}
 						onClick={() => onPageChange(i)}
-						className={`flex size-7 items-center justify-center rounded-lg border text-xs ${safePage === i ? "border-primary bg-primary text-white" : "border-base-border bg-white text-text-h hover:bg-base"}`}
+						className={`flex size-7 items-center justify-center rounded-lg border text-xs ${safePage === i ? "border-primary bg-primary text-white" : "border-base-border bg-surface text-text-h hover:bg-base"}`}
 					>
 						{i + 1}
 					</button>
@@ -41,7 +41,7 @@ export default function PaginationControls({
 					aria-label="Next page"
 					disabled={safePage >= pageCount - 1}
 					onClick={() => onPageChange(Math.min(pageCount - 1, safePage + 1))}
-					className="flex size-7 items-center justify-center rounded-lg border border-base-border bg-white text-text-h hover:bg-base disabled:opacity-40"
+					className="flex size-7 items-center justify-center rounded-lg border border-base-border bg-surface text-text-h hover:bg-base disabled:opacity-40"
 				>
 					<ChevronRightIcon size={14} />
 				</button>

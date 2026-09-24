@@ -31,7 +31,7 @@ function FilterField({
 }) {
 	return (
 		<div className="flex flex-col gap-1">
-			<span className="text-[11px] font-semibold tracking-wider text-text uppercase">
+			<span className="text-xs font-semibold tracking-wider text-text uppercase">
 				{label}
 			</span>
 			{children}

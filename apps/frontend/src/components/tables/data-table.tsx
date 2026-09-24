@@ -67,7 +67,7 @@ export default function DataTable<Row extends object>({
 	);
 
 	return (
-		<div className="overflow-hidden rounded-xl border border-base-border bg-white">
+		<div className="overflow-hidden rounded-xl border border-base-border bg-surface">
 			<div className="overflow-x-auto">
 				<table
 					className="w-full text-sm"
@@ -259,7 +259,7 @@ function PageButton({
 			className={`flex size-8 items-center justify-center rounded-lg border text-xs ${
 				active
 					? "border-primary bg-primary text-white"
-					: "border-base-border bg-white text-text-h hover:bg-base"
+					: "border-base-border bg-surface text-text-h hover:bg-base"
 			} disabled:opacity-40`}
 		>
 			{children}

@@ -27,12 +27,12 @@ const filterItem = tv({
 	variants: {
 		variant: {
 			outline:
-				"border border-base-border bg-white text-text-h hover:bg-base hover:border-text/20 data-pressed:border-primary data-pressed:bg-primary data-pressed:text-white data-pressed:shadow-xs",
+				"border border-base-border bg-surface text-text-h hover:bg-base hover:border-text/20 data-pressed:border-primary data-pressed:bg-primary data-pressed:text-white data-pressed:shadow-xs",
 			ghost:
 				"text-text hover:bg-base hover:text-text-h data-pressed:bg-primary-light data-pressed:text-primary data-pressed:font-semibold",
 			segmented:
-				"text-text hover:text-text-h data-pressed:bg-white data-pressed:text-primary data-pressed:shadow-xs data-pressed:font-semibold",
-			card: "text-text hover:text-text-h hover:bg-white/60 data-pressed:bg-white data-pressed:text-primary data-pressed:shadow-xs data-pressed:font-semibold",
+				"text-text hover:text-text-h data-pressed:bg-surface data-pressed:text-primary data-pressed:shadow-xs data-pressed:font-semibold",
+			card: "text-text hover:text-text-h hover:bg-white/60 data-pressed:bg-surface data-pressed:text-primary data-pressed:shadow-xs data-pressed:font-semibold",
 		},
 		size: {
 			xs: "h-7 px-2.5 text-xs gap-1",
@@ -126,7 +126,7 @@ export default function FilterPills<Value extends string>({
 					<span>{item.label}</span>
 					{item.badge !== undefined && (
 						<span
-							className={`ml-0.5 inline-flex items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold leading-none ${
+							className={`ml-0.5 inline-flex items-center justify-center rounded-full px-1.5 py-0.5 text-2xs font-semibold leading-none ${
 								value === item.value
 									? variant === "outline"
 										? "bg-white/20 text-white"

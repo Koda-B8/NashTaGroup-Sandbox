@@ -13,7 +13,7 @@ const badge = tv({
 			neutral: "bg-base text-text",
 		},
 		size: {
-			sm: "px-2 py-0.5 text-[11px]",
+			sm: "px-2 py-0.5 text-xs",
 			md: "px-2.5 py-1 text-xs",
 		},
 	},

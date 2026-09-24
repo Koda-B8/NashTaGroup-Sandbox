@@ -96,7 +96,7 @@ export default function TransactionDetailPanel({
 				>
 					{transaction.transactionNumber}
 				</p>
-				<p className="text-[11px] text-text">
+				<p className="text-xs text-text">
 					{formatDateTime(transaction.createdAt)}
 				</p>
 			</div>
@@ -106,7 +106,7 @@ export default function TransactionDetailPanel({
 			<div className="border-t border-base-border" />
 
 			<div className="flex flex-col gap-2">
-				<p className="text-[11px] font-semibold tracking-wider text-text uppercase">
+				<p className="text-xs font-semibold tracking-wider text-text uppercase">
 					Customer
 				</p>
 				<div className="flex items-center gap-2.5">
@@ -118,7 +118,7 @@ export default function TransactionDetailPanel({
 						<p className="truncate text-sm font-semibold text-text-h">
 							{transaction.customer?.name ?? "Non-member"}
 						</p>
-						<p className="truncate text-[11px] text-text">
+						<p className="truncate text-xs text-text">
 							{transaction.customer?.phone ?? "Guest checkout"}
 						</p>
 					</div>
@@ -126,7 +126,7 @@ export default function TransactionDetailPanel({
 			</div>
 
 			<div className="flex flex-col gap-2">
-				<p className="text-[11px] font-semibold tracking-wider text-text uppercase">
+				<p className="text-xs font-semibold tracking-wider text-text uppercase">
 					Cashier
 				</p>
 				<div className="flex items-center gap-2.5">
@@ -138,7 +138,7 @@ export default function TransactionDetailPanel({
 						<p className="truncate text-sm font-semibold text-text-h">
 							{transaction.cashier?.fullname ?? "—"}
 						</p>
-						<p className="text-[11px] text-text">Processed by</p>
+						<p className="text-xs text-text">Processed by</p>
 					</div>
 				</div>
 			</div>
@@ -146,7 +146,7 @@ export default function TransactionDetailPanel({
 			<div className="border-t border-base-border" />
 
 			<div className="flex flex-col gap-1">
-				<p className="text-[11px] font-semibold tracking-wider text-text uppercase">
+				<p className="text-xs font-semibold tracking-wider text-text uppercase">
 					Items Ordered
 				</p>
 				{loading ? (
@@ -177,7 +177,7 @@ export default function TransactionDetailPanel({
 									<p className="truncate text-sm text-text-h">
 										{item.productName}
 									</p>
-									<p className="truncate text-[11px] text-text">
+									<p className="truncate text-xs text-text">
 										{item.productCode ? `${item.productCode} · ` : ""}
 										{item.qty} × {formatRupiah(toNumber(item.unitPrice))}
 									</p>
@@ -195,7 +195,7 @@ export default function TransactionDetailPanel({
 				<>
 					<div className="border-t border-base-border" />
 					<div className="flex flex-col gap-1.5">
-						<p className="text-[11px] font-semibold tracking-wider text-text uppercase">
+						<p className="text-xs font-semibold tracking-wider text-text uppercase">
 							Summary
 						</p>
 						{summaryRows.map(([key, value]) => {
@@ -233,7 +233,7 @@ export default function TransactionDetailPanel({
 			<div className="border-t border-base-border" />
 
 			<div className="flex flex-col gap-2">
-				<p className="text-[11px] font-semibold tracking-wider text-text uppercase">
+				<p className="text-xs font-semibold tracking-wider text-text uppercase">
 					Payment
 				</p>
 				<div className="flex flex-wrap items-center gap-2">

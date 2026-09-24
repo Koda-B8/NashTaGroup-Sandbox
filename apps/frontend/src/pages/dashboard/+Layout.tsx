@@ -150,10 +150,10 @@ function WorkspaceSwitcher() {
 				N
 			</span>
 			<span className="flex-1">
-				<span className="block text-[13px] font-medium text-text-h">
+				<span className="block text-sm font-medium text-text-h">
 					Nashta Group
 				</span>
-				<span className="block text-[10px] text-text">Dashboard</span>
+				<span className="block text-2xs text-text">Dashboard</span>
 			</span>
 			<ChevronDownIcon
 				size={14}
@@ -177,7 +177,7 @@ function SidebarNavNode({ item, depth = 0 }: SidebarNavNodeProps) {
 			(hasChildren && location.pathname.startsWith(item.path))
 		: false;
 
-	const rowClass = `flex h-8 w-full items-center gap-2 rounded-md px-2.5 text-[13px] select-none ${
+	const rowClass = `flex h-8 w-full items-center gap-2 rounded-md px-2.5 text-sm select-none ${
 		isActive
 			? "bg-primary-light font-medium text-primary"
 			: "text-text hover:bg-base hover:text-text-h"
@@ -238,7 +238,7 @@ function SidebarNavNode({ item, depth = 0 }: SidebarNavNodeProps) {
 					</Badge>
 				)}
 				{item.shortcut && (
-					<span className="text-[10px] text-text">{item.shortcut}</span>
+					<span className="text-2xs text-text">{item.shortcut}</span>
 				)}
 			</Link>
 		</div>
@@ -260,7 +260,7 @@ function Sidebar() {
 	};
 
 	return (
-		<aside className="flex h-full w-64 shrink-0 flex-col border-r border-base-border bg-[#fcfcfd]">
+		<aside className="flex h-full w-64 shrink-0 flex-col border-r border-base-border bg-surface">
 			<div className="flex-1 overflow-y-auto p-3">
 				<WorkspaceSwitcher />
 				<div className="my-3 border-t border-base-border" />
@@ -271,7 +271,7 @@ function Sidebar() {
 							className="flex flex-col gap-0.5"
 						>
 							{group.heading && (
-								<p className="mt-3 px-2.5 pb-1 text-[9px] font-semibold tracking-wider text-text">
+								<p className="mt-3 px-2.5 pb-1 text-2xs font-semibold tracking-wider text-text">
 									{group.heading}
 								</p>
 							)}
@@ -294,7 +294,7 @@ function Sidebar() {
 					<p className="text-xs font-medium text-text-h">
 						{user?.fullname ?? "Admin"}
 					</p>
-					<p className="text-[10px] text-text capitalize">{user?.role}</p>
+					<p className="text-2xs text-text capitalize">{user?.role}</p>
 				</div>
 				<Button
 					variant="ghost"

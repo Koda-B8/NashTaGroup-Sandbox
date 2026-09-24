@@ -10,7 +10,7 @@ import StatusBadge from "./StatusBadge";
 
 function VariantPill({ count }: { count: number }) {
 	return (
-		<span className="inline-flex h-5 min-w-11 items-center justify-center rounded-full border border-base-border bg-base px-2 text-[11px] font-medium text-text">
+		<span className="inline-flex h-5 min-w-11 items-center justify-center rounded-full border border-base-border bg-base px-2 text-xs font-medium text-text">
 			{count} varian
 		</span>
 	);
@@ -76,43 +76,43 @@ export default function ProductTable({
 							</th>
 							<th
 								scope="col"
-								className="px-3 py-3 text-[11px] font-semibold tracking-wide text-text uppercase"
+								className="px-3 py-3 text-xs font-semibold tracking-wide text-text uppercase"
 							>
 								Product
 							</th>
 							<th
 								scope="col"
-								className="px-3 py-3 text-[11px] font-semibold tracking-wide text-text uppercase"
+								className="px-3 py-3 text-xs font-semibold tracking-wide text-text uppercase"
 							>
 								Category
 							</th>
 							<th
 								scope="col"
-								className="px-3 py-3 text-[11px] font-semibold tracking-wide text-text uppercase"
+								className="px-3 py-3 text-xs font-semibold tracking-wide text-text uppercase"
 							>
 								Brand
 							</th>
 							<th
 								scope="col"
-								className="px-3 py-3 text-[11px] font-semibold tracking-wide text-text uppercase"
+								className="px-3 py-3 text-xs font-semibold tracking-wide text-text uppercase"
 							>
 								Variant
 							</th>
 							<th
 								scope="col"
-								className="px-3 py-3 text-[11px] font-semibold tracking-wide text-text uppercase"
+								className="px-3 py-3 text-xs font-semibold tracking-wide text-text uppercase"
 							>
 								Stock
 							</th>
 							<th
 								scope="col"
-								className="px-3 py-3 text-right text-[11px] font-semibold tracking-wide text-text uppercase"
+								className="px-3 py-3 text-right text-xs font-semibold tracking-wide text-text uppercase"
 							>
 								Price
 							</th>
 							<th
 								scope="col"
-								className="px-3 py-3 text-[11px] font-semibold tracking-wide text-text uppercase"
+								className="px-3 py-3 text-xs font-semibold tracking-wide text-text uppercase"
 							>
 								Status
 							</th>
@@ -186,7 +186,7 @@ export default function ProductTable({
 														{row.name}
 													</span>
 													<span
-														className="block truncate text-[11px] text-text"
+														className="block truncate text-xs text-text"
 														title={row.id}
 													>
 														{row.description ?? row.id}

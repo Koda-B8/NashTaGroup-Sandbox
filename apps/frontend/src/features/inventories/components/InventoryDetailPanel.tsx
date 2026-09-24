@@ -70,14 +70,14 @@ export default function InventoryDetailPanel({
 
 			<div className="flex items-center justify-between rounded-lg border border-base-border bg-base px-3 py-2.5">
 				<div className="flex flex-col">
-					<span className="text-[11px] text-text">Stock on hand</span>
+					<span className="text-xs text-text">Stock on hand</span>
 					<span
 						className={`text-lg font-bold ${STOCK_STATUS_TEXT[item.stockStatus]}`}
 					>
 						{item.stock}
 					</span>
 				</div>
-				<span className="text-[11px] font-medium text-text">
+				<span className="text-xs font-medium text-text">
 					{STOCK_STATUS_LABEL[item.stockStatus]}
 				</span>
 			</div>

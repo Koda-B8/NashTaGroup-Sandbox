@@ -120,11 +120,9 @@ export default function BrandFormModal({
 							autoComplete="off"
 						/>
 						{nameError ? (
-							<span className="text-[11px] text-deep-danger">{nameError}</span>
+							<span className="text-xs text-deep-danger">{nameError}</span>
 						) : (
-							<span className="text-[11px] text-text">
-								Maks 100 karakter, unik
-							</span>
+							<span className="text-xs text-text">Maks 100 karakter, unik</span>
 						)}
 					</div>
 					{isEdit && (
@@ -139,7 +137,7 @@ export default function BrandFormModal({
 								aria-label="Active status"
 							/>
 							<span className="text-xs font-medium">Active</span>
-							<span className="text-[11px] text-text">— is_active</span>
+							<span className="text-xs text-text">— is_active</span>
 						</label>
 					)}
 				</ModalBody>

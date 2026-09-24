@@ -4,7 +4,7 @@ import { useCallback } from "react";
 import { tv } from "tailwind-variants";
 
 const trigger = tv({
-	base: "flex h-10 min-w-40 items-center justify-between gap-3 rounded-lg border border-base-border bg-white px-3 text-sm text-text-h select-none hover:bg-base focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+	base: "flex h-10 min-w-40 items-center justify-between gap-3 rounded-lg border border-base-border bg-surface px-3 text-sm text-text-h select-none hover:bg-base focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
 });
 
 export interface SelectProps<Value extends string> {
@@ -58,7 +58,7 @@ export default function Select<Value extends string>({
 					sideOffset={4}
 					className="z-10 outline-none"
 				>
-					<BaseSelect.Popup className="min-w-[var(--anchor-width)] rounded-lg border border-base-border bg-white py-1 shadow-lg outline-none">
+					<BaseSelect.Popup className="min-w-[var(--anchor-width)] rounded-lg border border-base-border bg-surface py-1 shadow-lg outline-none">
 						<BaseSelect.List className="max-h-[var(--available-height)] overflow-y-auto">
 							{items.map((item) => (
 								<BaseSelect.Item

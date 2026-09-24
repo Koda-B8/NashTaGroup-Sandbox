@@ -157,7 +157,7 @@ export default function UserTable({
 													>
 														{row.fullname}
 													</p>
-													<p className="truncate text-[11px] text-text">
+													<p className="truncate text-xs text-text">
 														{row.id.slice(0, 8)}…
 													</p>
 												</div>

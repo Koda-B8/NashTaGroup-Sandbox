@@ -81,7 +81,7 @@ export default function TransactionTable({
 								<th
 									key={column.key}
 									scope="col"
-									className={`py-3 text-[11px] font-semibold tracking-wide text-text uppercase ${column.className}`}
+									className={`py-3 text-xs font-semibold tracking-wide text-text uppercase ${column.className}`}
 								>
 									{column.label}
 								</th>
@@ -126,14 +126,14 @@ export default function TransactionTable({
 										</td>
 										<td className="px-3 py-3">
 											<p
-												className={`truncate text-[13px] font-medium ${
+												className={`truncate text-sm font-medium ${
 													isActiveRow ? "text-primary" : "text-text-h"
 												}`}
 												title={transaction.transactionNumber}
 											>
 												{transaction.transactionNumber}
 											</p>
-											<p className="truncate text-[11px] text-text">
+											<p className="truncate text-xs text-text">
 												{transaction.cashier?.fullname ?? "—"}
 											</p>
 										</td>
@@ -144,17 +144,17 @@ export default function TransactionTable({
 													size="sm"
 												/>
 												<div className="min-w-0">
-													<p className="truncate text-[13px] font-medium text-text-h">
+													<p className="truncate text-sm font-medium text-text-h">
 														{transaction.customer?.name ?? "Non-member"}
 													</p>
-													<p className="truncate text-[11px] text-text">
+													<p className="truncate text-xs text-text">
 														{transaction.customer?.phone ?? "Guest checkout"}
 													</p>
 												</div>
 											</div>
 										</td>
 										<td className="px-3 py-3">
-											<p className="truncate text-[13px] text-text-h">
+											<p className="truncate text-sm text-text-h">
 												{transaction.payment.method ?? "—"}
 											</p>
 											{transaction.payment.status && (
@@ -169,10 +169,10 @@ export default function TransactionTable({
 												</Badge>
 											)}
 										</td>
-										<td className="px-3 py-3 text-right text-[13px] font-medium whitespace-nowrap text-text-h">
+										<td className="px-3 py-3 text-right text-sm font-medium whitespace-nowrap text-text-h">
 											{formatRupiah(toNumber(transaction.totalAmount))}
 										</td>
-										<td className="px-3 py-3 text-[11px] whitespace-nowrap text-text">
+										<td className="px-3 py-3 text-xs whitespace-nowrap text-text">
 											{formatDate(transaction.createdAt)}
 										</td>
 										<td className="px-2 py-3">

@@ -53,3 +53,54 @@ export async function listBrands(
 		getPaginationMeta(data.length, params.limit ?? 20, params.page ?? 1);
 	return { data, meta };
 }
+
+export async function createBrand(payload: { name: string }): Promise<void> {
+	const res = await apiFetch("/api/v1/brands", {
+		method: "POST",
+		body: JSON.stringify(payload),
+	});
+	const data = await res.json().catch(() => ({}));
+	if (!res.ok) {
+		throw new Error(
+			data?.message ??
+				(res.status === 409
+					? "Nama brand sudah ada"
+					: res.status === 403
+						? "Hanya admin yang dapat membuat brand"
+						: `Gagal membuat brand (${res.status})`),
+		);
+	}
+}
+
+export async function updateBrand(
+	id: string,
+	payload: { name?: string; is_active?: boolean },
+): Promise<void> {
+	const res = await apiFetch(`/api/v1/brands/${id}`, {
+		method: "PATCH",
+		body: JSON.stringify(payload),
+	});
+	const data = await res.json().catch(() => ({}));
+	if (!res.ok) {
+		throw new Error(
+			data?.message ??
+				(res.status === 409
+					? "Nama brand sudah ada"
+					: res.status === 404
+						? "Brand tidak ditemukan"
+						: `Gagal memperbarui brand (${res.status})`),
+		);
+	}
+}
+
+export async function deleteBrand(id: string): Promise<void> {
+	const res = await apiFetch(`/api/v1/brands/${id}`, { method: "DELETE" });
+	const data = await res.json().catch(() => ({}));
+	if (!res.ok)
+		throw new Error(
+			data?.message ??
+				(res.status === 409
+					? "Brand sedang dipakai oleh produk"
+					: `Gagal menghapus brand (${res.status})`),
+		);
+}

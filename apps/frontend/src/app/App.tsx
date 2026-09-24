@@ -15,6 +15,7 @@ import Layout from "../pages/+Layout";
 import LoginPage from "../pages/auth/Login";
 import Checkout from "../pages/Checkout";
 import {
+	BrandsDashboard,
 	CategoriesDashboard,
 	InventoriesManagementDashboard,
 	MainDashboard,
@@ -72,6 +73,10 @@ const router = createBrowserRouter([
 					{
 						path: "products/categories",
 						element: <CategoriesDashboard />,
+					},
+					{
+						path: "products/brands",
+						element: <BrandsDashboard />,
 					},
 					{
 						path: "products",

@@ -85,7 +85,7 @@ export default function Combobox<Value extends string>({
 				/>
 				<BaseCombobox.Trigger
 					aria-label={`${label} — open options`}
-					className="absolute right-1.5 flex size-5 items-center justify-center rounded-md text-text hover:text-text-h focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+					className="absolute right-1.5 flex size-5 items-center justify-center rounded-lg text-text hover:text-text-h focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
 				>
 					<ChevronDownIcon size={16} />
 				</BaseCombobox.Trigger>

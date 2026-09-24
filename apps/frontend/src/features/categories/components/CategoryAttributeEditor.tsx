@@ -116,7 +116,7 @@ export default function CategoryAttributeEditor({
 									onClick={() =>
 										onChange(attributes.filter((a) => a.key !== attribute.key))
 									}
-									className="inline-flex size-6 items-center justify-center rounded-md text-text hover:bg-danger hover:text-deep-danger"
+									className="inline-flex size-6 items-center justify-center rounded-lg text-text hover:bg-danger hover:text-deep-danger"
 								>
 									<Trash2 size={13} />
 								</button>
@@ -226,7 +226,7 @@ export default function CategoryAttributeEditor({
 													className="flex items-center gap-2"
 												>
 													<span
-														className="size-8 shrink-0 rounded-md border border-base-border"
+														className="size-8 shrink-0 rounded-lg border border-base-border"
 														style={{
 															backgroundColor: HEX_PATTERN.test(
 																option.hex.trim(),
@@ -272,7 +272,7 @@ export default function CategoryAttributeEditor({
 																),
 															})
 														}
-														className="inline-flex size-7 shrink-0 items-center justify-center rounded-md text-text hover:bg-danger hover:text-deep-danger"
+														className="inline-flex size-7 shrink-0 items-center justify-center rounded-lg text-text hover:bg-danger hover:text-deep-danger"
 													>
 														<Trash2 size={13} />
 													</button>

@@ -66,7 +66,7 @@ export default function ProductVariantList({
 												key={
 													attribute.optionId ?? attribute.id ?? attribute.name
 												}
-												className="inline-flex items-center rounded-md border border-base-border bg-base px-1.5 py-0.5 text-2xs font-medium text-text-h"
+												className="inline-flex items-center rounded-lg border border-base-border bg-base px-1.5 py-0.5 text-2xs font-medium text-text-h"
 											>
 												{attribute.value ?? attribute.name ?? "—"}
 											</span>
@@ -107,8 +107,8 @@ export default function ProductVariantList({
 									<span
 										className={
 											item.isActive === false
-												? "rounded-md bg-base px-1.5 py-0.5 text-3xs font-semibold text-text"
-												: "rounded-md bg-primary-light px-1.5 py-0.5 text-3xs font-semibold text-primary"
+												? "rounded-lg bg-base px-1.5 py-0.5 text-3xs font-semibold text-text"
+												: "rounded-lg bg-primary-light px-1.5 py-0.5 text-3xs font-semibold text-primary"
 										}
 									>
 										{item.isActive === false ? "Nonaktif" : "Aktif"}

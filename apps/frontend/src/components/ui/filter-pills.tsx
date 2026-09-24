@@ -9,8 +9,8 @@ const filterPillsContainer = tv({
 		variant: {
 			outline: "gap-2",
 			ghost: "gap-1.5",
-			segmented: "p-1 rounded-xl bg-base border border-base-border/60 gap-1",
-			card: "p-1 rounded-xl bg-base/50 border border-base-border/60 gap-1.5",
+			segmented: "p-1 rounded-lg bg-base border border-base-border/60 gap-1",
+			card: "p-1 rounded-lg bg-base/50 border border-base-border/60 gap-1.5",
 		},
 		fullWidth: {
 			true: "w-full flex",
@@ -44,7 +44,7 @@ const filterItem = tv({
 			rounded: "rounded-lg",
 			pill: "rounded-full",
 			square: "rounded-none",
-			sm: "rounded-md",
+			sm: "rounded-lg",
 		},
 		fullWidth: {
 			true: "flex-1",

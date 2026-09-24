@@ -14,8 +14,8 @@ export default function CardSkel({ count }: Readonly<{ count: number }>) {
 						<h1 className="text-base-border!">N</h1>
 					</header>
 					<main className="w-full h-25 py-2">
-						<div className="w-20 h-5 mb-1 block rounded-md bg-base animate-pulse"></div>
-						<div className="w-40 h-5 block rounded-md bg-base animate-pulse"></div>
+						<div className="w-20 h-5 mb-1 block rounded-lg bg-base animate-pulse"></div>
+						<div className="w-40 h-5 block rounded-lg bg-base animate-pulse"></div>
 						<div className="flex items-center justify-between mt-1">
 							<div className="w-30 rounded-lg h-6 bg-base animate-pulse"></div>
 							<Button className="px-7 cursor-pointer bg-base! animate-pulse"></Button>

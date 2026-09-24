@@ -82,7 +82,7 @@ export default function ProductVariantEditor({
 											type="button"
 											aria-label={`Hapus item ${index + 1}`}
 											onClick={() => onRemove(item.key)}
-											className="inline-flex size-6 shrink-0 items-center justify-center rounded-md text-text hover:bg-danger hover:text-deep-danger"
+											className="inline-flex size-6 shrink-0 items-center justify-center rounded-lg text-text hover:bg-danger hover:text-deep-danger"
 										>
 											<Trash2 size={13} />
 										</button>

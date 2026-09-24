@@ -146,7 +146,7 @@ function WorkspaceSwitcher() {
 			type="button"
 			className="flex w-full items-center gap-3 rounded-lg px-1 py-1 text-left hover:bg-base"
 		>
-			<span className="flex size-7.5 items-center justify-center rounded-md bg-primary text-xs font-bold text-white">
+			<span className="flex size-7.5 items-center justify-center rounded-lg bg-primary text-xs font-bold text-white">
 				N
 			</span>
 			<span className="flex-1">
@@ -177,7 +177,7 @@ function SidebarNavNode({ item, depth = 0 }: SidebarNavNodeProps) {
 			(hasChildren && location.pathname.startsWith(item.path))
 		: false;
 
-	const rowClass = `flex h-8 w-full items-center gap-2 rounded-md px-2.5 text-sm select-none ${
+	const rowClass = `flex h-8 w-full items-center gap-2 rounded-lg px-2.5 text-sm select-none ${
 		isActive
 			? "bg-primary-light font-medium text-primary"
 			: "text-text hover:bg-base hover:text-text-h"

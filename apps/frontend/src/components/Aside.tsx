@@ -14,7 +14,7 @@ export default function Aside({
 	Footer,
 }: Readonly<AsideProps>) {
 	return (
-		<div className=" w-60 bg-surface border border-base-border p-4 h-full flex-1 rounded-md flex flex-col relative ">
+		<div className=" w-60 bg-surface border border-base-border p-4 h-full flex-1 rounded-lg flex flex-col relative ">
 			<header className=" border-b py-2 border-b-base-border flex items-center justify-between ">
 				<h6>{headerName}</h6>
 				{Attribute}

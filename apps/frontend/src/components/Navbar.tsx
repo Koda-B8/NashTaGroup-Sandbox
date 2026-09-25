@@ -1,3 +1,4 @@
+import { ShoppingCart } from "lucide-react";
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router";
@@ -11,6 +12,7 @@ import { clearCredentials } from "../store/slices/auth";
 import { clearCart } from "../store/slices/cart";
 import AppHeader from "./AppHeader";
 import LogoutButton from "./LogoutButton";
+import Button from "./ui/button";
 import Input from "./ui/input";
 
 interface SearchBoxProps {
@@ -86,10 +88,18 @@ function LogoutAction() {
 
 function CartAction({ count }: Readonly<CartActionProps>) {
 	return (
-		<div className="relative size-9 cursor-pointer rounded-full border border-primary bg-base">
-			<div className="centerized absolute -top-2 -right-1 size-5 rounded-full bg-primary text-xs text-white">
-				{count}
-			</div>
-		</div>
+		<Button
+			variant="ghost"
+			size="icon"
+			aria-label={`Keranjang, ${count} item`}
+			className="relative"
+		>
+			<ShoppingCart size={16} />
+			{count > 0 && (
+				<span className="centerized absolute -top-0.5 -right-0.5 size-4 rounded-full bg-primary text-3xs font-semibold text-white">
+					{count}
+				</span>
+			)}
+		</Button>
 	);
 }

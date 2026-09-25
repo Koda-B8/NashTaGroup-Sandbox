@@ -1,5 +1,12 @@
 import { Image as ImageIcon, X } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+	type ReactNode,
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from "react";
 
 import Button from "../../../components/ui/button";
 import Checkbox from "../../../components/ui/checkbox";
@@ -57,6 +64,14 @@ interface ItemEdit {
 const IMAGE_TYPES = ["image/avif", "image/jpeg", "image/png", "image/webp"];
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const INITIAL_MANUAL_KEY = "m1";
+
+function FormSection({ children }: { children: ReactNode }) {
+	return (
+		<section className="flex flex-col gap-3 rounded-lg border border-base-border p-4">
+			{children}
+		</section>
+	);
+}
 
 export default function ProductFormModal({
 	open,
@@ -661,7 +676,7 @@ export default function ProductFormModal({
 					)}
 
 					<div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:items-start">
-						<section className="flex flex-col gap-3 rounded-lg border border-base-border p-4">
+						<FormSection>
 							<Eyebrow size="sm">Details</Eyebrow>
 							<div className="flex flex-col gap-1">
 								<label
@@ -789,10 +804,10 @@ export default function ProductFormModal({
 								<span className="text-xs font-medium">Active</span>
 								<span className="text-2xs text-text">— tampil di katalog</span>
 							</label>
-						</section>
+						</FormSection>
 
 						{isEdit ? (
-							<section className="flex flex-col gap-3 rounded-lg border border-base-border p-4">
+							<FormSection>
 								<ProductVariantList
 									items={product?.items ?? []}
 									onAdd={composer ? undefined : startAddingVariant}
@@ -897,10 +912,10 @@ export default function ProductFormModal({
 										{formatRupiah(inventoryValue)}
 									</span>
 								</div>
-							</section>
+							</FormSection>
 						) : (
 							<div className="flex flex-col gap-4">
-								<section className="flex flex-col gap-3 rounded-lg border border-base-border p-4">
+								<FormSection>
 									<div className="flex items-center justify-between gap-2">
 										<Eyebrow size="sm">Atribut</Eyebrow>
 										{category && (
@@ -940,9 +955,9 @@ export default function ProductFormModal({
 											})}
 										</div>
 									)}
-								</section>
+								</FormSection>
 
-								<section className="flex flex-col gap-3 rounded-lg border border-base-border p-4">
+								<FormSection>
 									<ProductVariantEditor
 										items={items}
 										errors={itemErrors}
@@ -964,7 +979,7 @@ export default function ProductFormModal({
 													: "Tambahkan minimal 1 item."
 										}
 									/>
-								</section>
+								</FormSection>
 							</div>
 						)}
 					</div>

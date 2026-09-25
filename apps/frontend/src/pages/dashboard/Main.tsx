@@ -4,8 +4,6 @@ import {
 	DollarSignIcon,
 	ShoppingCartIcon,
 	WalletIcon,
-	ArrowUpRightIcon,
-	ArrowDownRightIcon,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -16,42 +14,34 @@ import Button from "../../components/ui/button";
 import Card from "../../components/ui/card";
 import FilterPills from "../../components/ui/filter-pills";
 import Section from "../../components/ui/section";
+import StatCard from "../../components/ui/stat-card";
 
 const SUMMARY_CARDS = [
 	{
 		id: "revenue",
 		title: "Total Revenue",
 		value: "Rp 128,450,000",
-		change: "+12.5%",
 		period: "vs last month",
-		isUp: true,
-		badgeVariant: "valid" as const,
+		trend: { value: "+12.5%", good: true },
 		icon: DollarSignIcon,
-		accentClass: "border-l-primary",
 		iconBg: "bg-primary-light text-primary",
 	},
 	{
 		id: "transactions",
 		title: "Total Transactions",
 		value: "2,847",
-		change: "+8.2%",
 		period: "vs last month",
-		isUp: true,
-		badgeVariant: "valid" as const,
+		trend: { value: "+8.2%", good: true },
 		icon: ShoppingCartIcon,
-		accentClass: "border-l-primary",
 		iconBg: "bg-valid text-deep-valid",
 	},
 	{
 		id: "avg-order",
 		title: "Avg Order Value",
 		value: "Rp 45,120",
-		change: "+3.1%",
 		period: "vs last month",
-		isUp: true,
-		badgeVariant: "valid" as const,
+		trend: { value: "+3.1%", good: true },
 		icon: WalletIcon,
-		accentClass: "border-l-primary",
 		iconBg: "bg-warn text-deep-warn",
 	},
 ];
@@ -176,41 +166,16 @@ export default function MainDashboard() {
 					{SUMMARY_CARDS.map((card) => {
 						const Icon = card.icon;
 						return (
-							<Card
+							<StatCard
 								key={card.id}
-								padding="md"
-								className={`border-l-4 ${card.accentClass} flex flex-col justify-between transition-shadow hover:shadow-sm`}
-							>
-								<div className="flex items-center justify-between">
-									<span className="text-xs font-medium text-text">
-										{card.title}
-									</span>
-									<span
-										className={`flex size-8 items-center justify-center rounded-lg ${card.iconBg}`}
-									>
-										<Icon size={16} />
-									</span>
-								</div>
-								<div className="mt-3">
-									<p className="text-2xl font-bold tracking-tight text-text-h">
-										{card.value}
-									</p>
-									<div className="mt-2 flex items-center gap-2">
-										<Badge
-											variant={card.badgeVariant}
-											size="sm"
-										>
-											{card.isUp ? (
-												<ArrowUpRightIcon size={12} />
-											) : (
-												<ArrowDownRightIcon size={12} />
-											)}
-											{card.change}
-										</Badge>
-										<span className="text-2xs text-text">{card.period}</span>
-									</div>
-								</div>
-							</Card>
+								accent
+								label={card.title}
+								value={card.value}
+								note={card.period}
+								trend={card.trend}
+								icon={<Icon size={16} />}
+								iconClassName={card.iconBg}
+							/>
 						);
 					})}
 				</div>

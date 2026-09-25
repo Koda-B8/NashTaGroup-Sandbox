@@ -2,7 +2,7 @@ import { Check } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 
-import Button from "../components/ui/button";
+import OrderStatusBar from "../components/OrderStatusBar";
 import Card from "../components/ui/card";
 import { formatRupiah } from "../libs/formatRupiah";
 import type { CartItem } from "../store/slices/cart";
@@ -40,17 +40,7 @@ export default function StructStatus() {
 
 	return (
 		<form className="flex w-full flex-col gap-2 px-3">
-			<header className="flex items-center gap-2">
-				<div className="flex h-10 flex-1 items-center rounded-lg border border-base-border bg-surface pl-4 text-sm">
-					<p>Siap dibayar • Estimasi 30–45 menit</p>
-				</div>
-				<Button
-					variant="outline"
-					className="shrink-0"
-				>
-					Bantuan ?
-				</Button>
-			</header>
+			<OrderStatusBar />
 
 			<main className="flex flex-col gap-3">
 				<Card

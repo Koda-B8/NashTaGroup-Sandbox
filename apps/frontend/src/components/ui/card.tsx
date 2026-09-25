@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { tv, type VariantProps } from "tailwind-variants";
 
 const card = tv({
@@ -28,5 +28,25 @@ export default function Card({
 			className={card({ padding, accent, className })}
 			{...props}
 		/>
+	);
+}
+
+export function CardHeader({
+	title,
+	description,
+	children,
+}: {
+	title: string;
+	description: string;
+	children?: ReactNode;
+}) {
+	return (
+		<div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+			<div>
+				<h5 className="font-bold">{title}</h5>
+				<p className="text-xs text-text">{description}</p>
+			</div>
+			{children}
+		</div>
 	);
 }

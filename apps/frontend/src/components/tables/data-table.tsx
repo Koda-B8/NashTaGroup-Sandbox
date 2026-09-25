@@ -43,11 +43,12 @@ export interface DataTableProps<Row extends RowData> {
 	emptyLabel: string;
 	tableClassName?: string;
 	cardClassName?: string;
+	header?: ReactNode;
 
-	pageCount: number;
-	safePage: number;
-	onPageChange: (page: number) => void;
-	totalLabel: string;
+	pageCount?: number;
+	safePage?: number;
+	onPageChange?: (page: number) => void;
+	totalLabel?: string;
 	pageSize?: number;
 
 	activeId?: string | undefined;
@@ -74,8 +75,9 @@ export default function DataTable<Row extends RowData>({
 	emptyLabel,
 	tableClassName = "",
 	cardClassName = "",
-	pageCount,
-	safePage,
+	header,
+	pageCount = 1,
+	safePage = 0,
 	onPageChange,
 	totalLabel,
 	pageSize = 10,
@@ -102,7 +104,7 @@ export default function DataTable<Row extends RowData>({
 				typeof updater === "function"
 					? updater({ pageIndex: safePage, pageSize })
 					: updater;
-			onPageChange(next.pageIndex);
+			onPageChange?.(next.pageIndex);
 		},
 		meta: { activeId } satisfies TableMeta,
 	});
@@ -121,6 +123,7 @@ export default function DataTable<Row extends RowData>({
 			padding="none"
 			className={`overflow-hidden ${cardClassName}`.trim()}
 		>
+			{header && <div className="px-5 pt-5 pb-4">{header}</div>}
 			<div className="flex flex-1 flex-col overflow-x-auto">
 				<table
 					className={`w-full text-left text-sm ${tableClassName}`.trim()}
@@ -249,16 +252,18 @@ export default function DataTable<Row extends RowData>({
 					</tbody>
 				</table>
 			</div>
-			<PaginationControls
-				totalLabel={totalLabel}
-				pageCount={table.getPageCount()}
-				safePage={table.state.pagination.pageIndex}
-				canPreviousPage={table.getCanPreviousPage()}
-				canNextPage={table.getCanNextPage()}
-				onPrevious={() => table.previousPage()}
-				onNext={() => table.nextPage()}
-				onPageChange={(page) => table.setPageIndex(page)}
-			/>
+			{totalLabel && (
+				<PaginationControls
+					totalLabel={totalLabel}
+					pageCount={table.getPageCount()}
+					safePage={table.state.pagination.pageIndex}
+					canPreviousPage={table.getCanPreviousPage()}
+					canNextPage={table.getCanNextPage()}
+					onPrevious={() => table.previousPage()}
+					onNext={() => table.nextPage()}
+					onPageChange={(page) => table.setPageIndex(page)}
+				/>
+			)}
 		</Card>
 	);
 }

@@ -4,8 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Button from "../../components/ui/button";
 import ErrorBanner from "../../components/ui/error-banner";
 import FilterPills from "../../components/ui/filter-pills";
-import Input from "../../components/ui/input";
-import ListToolbar from "../../components/ui/list-toolbar";
+import ListToolbar, { ListSearch } from "../../components/ui/list-toolbar";
 import Section from "../../components/ui/section";
 import Toast from "../../components/ui/toast";
 import RegisterUserModal from "../../features/users/components/RegisterUserModal";
@@ -125,12 +124,10 @@ export default function UserManagementDashboard() {
 				<ListToolbar
 					filters={
 						<>
-							<Input
-								size="sm"
+							<ListSearch
 								placeholder="Search user..."
 								value={search}
 								onChange={(e) => setSearch(e.currentTarget.value)}
-								className="w-full sm:max-w-[240px]"
 								aria-label="Search user"
 							/>
 							<FilterPills

@@ -7,12 +7,19 @@ import {
 	readListCache,
 	writeListCache,
 } from "../lib/list-cache.js";
+import { parseSorting } from "../lib/sorting.js";
 import db from "../models/index.cjs";
 import { createHttpError } from "../utils/http-error.js";
 import { parseBoolean, parseSearch } from "../utils/query.js";
 import { isUuid, normalizeText } from "../utils/validation.js";
 
 const { Brands, Products } = db;
+const BRAND_SORTS = new Map([
+	["name_asc", [["name", "ASC"]]],
+	["name_desc", [["name", "DESC"]]],
+	["created_at_asc", [["createdAt", "ASC"]]],
+	["created_at_desc", [["createdAt", "DESC"]]],
+]);
 
 const validateName = (value, message) => {
 	const name = normalizeText(value);
@@ -35,6 +42,12 @@ export async function getBrands(req, res, next) {
 	try {
 		const search = parseSearch(req.query.search);
 		const isActive = parseBoolean(req.query.isActive);
+		const { sort, order } = parseSorting(req.query, {
+			defaultSort: "name_asc",
+			options: BRAND_SORTS,
+			message:
+				"sort must be name_asc, name_desc, created_at_asc, or created_at_desc",
+		});
 
 		if (req.query.isActive !== undefined && isActive === undefined) {
 			throw createHttpError(
@@ -42,7 +55,7 @@ export async function getBrands(req, res, next) {
 				"isActive must be true or false",
 			);
 		}
-		const cacheKey = await listCacheKey("brands", { search, isActive });
+		const cacheKey = await listCacheKey("brands", { search, isActive, sort });
 		const cached = await readListCache(cacheKey);
 		if (cached) return res.status(constants.HTTP_STATUS_OK).json(cached);
 
@@ -58,7 +71,7 @@ export async function getBrands(req, res, next) {
 
 		const brands = await Brands.findAll({
 			where,
-			order: [["name", "ASC"]],
+			order,
 		});
 
 		const body = {

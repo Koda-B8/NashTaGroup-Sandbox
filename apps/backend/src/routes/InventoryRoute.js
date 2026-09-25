@@ -60,6 +60,13 @@ router.use(authMiddleware, requireRole("admin"));
  *           type: string
  *           enum: [available, low, out_of_stock]
  *         description: Filter stock status. Low stock is between 1 and 9 units.
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: string
+ *           enum: [created_at_desc, created_at_asc, product_code_asc, product_code_desc]
+ *           default: created_at_desc
+ *         description: Sort the list using a supported field and direction.
  *     responses:
  *       200:
  *         description: Inventories retrieved successfully.

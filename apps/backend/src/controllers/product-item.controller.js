@@ -3,6 +3,7 @@ import { constants } from "node:http2";
 
 import { Op, UniqueConstraintError } from "sequelize";
 
+import { parseSorting } from "../lib/sorting.js";
 import db from "../models/index.cjs";
 import { createHttpError } from "../utils/http-error.js";
 import {
@@ -29,6 +30,14 @@ const {
 	Products,
 	sequelize,
 } = db;
+const PRODUCT_ITEM_SORTS = new Map([
+	["name_asc", [["name", "ASC"]]],
+	["name_desc", [["name", "DESC"]]],
+	["product_code_asc", [["productCode", "ASC"]]],
+	["product_code_desc", [["productCode", "DESC"]]],
+	["price_asc", [["price", "ASC"]]],
+	["price_desc", [["price", "DESC"]]],
+]);
 const EMPTY_IMAGE_URL = null;
 
 const attributeValueInclude = {
@@ -332,6 +341,12 @@ export async function getProductItems(req, res, next) {
 		const productId =
 			typeof req.query.productId === "string" ? req.query.productId.trim() : "";
 		const isActive = parseBoolean(req.query.isActive);
+		const { order } = parseSorting(req.query, {
+			defaultSort: "name_asc",
+			options: PRODUCT_ITEM_SORTS,
+			message:
+				"sort must be name_asc, name_desc, product_code_asc, product_code_desc, price_asc, or price_desc",
+		});
 
 		if (req.query.isActive !== undefined && isActive === undefined) {
 			throw createHttpError(
@@ -370,7 +385,7 @@ export async function getProductItems(req, res, next) {
 		const productItems = await ProductItems.findAll({
 			where,
 			include: productItemListIncludes,
-			order: [["name", "ASC"]],
+			order,
 		});
 
 		return res.status(constants.HTTP_STATUS_OK).json({
@@ -508,6 +523,7 @@ export async function createProductItem(req, res, next) {
 	} catch (error) {
 		if (error instanceof UniqueConstraintError) {
 			const isVariantConflict =
+				// @ts-ignore
 				error.parent?.constraint ===
 					"product_items_product_variant_signature_unique" ||
 				Object.hasOwn(error.fields ?? {}, "variant_signature");
@@ -668,6 +684,7 @@ export async function updateProductItem(req, res, next) {
 	} catch (error) {
 		if (error instanceof UniqueConstraintError) {
 			const isVariantConflict =
+				// @ts-ignore
 				error.parent?.constraint ===
 					"product_items_product_variant_signature_unique" ||
 				Object.hasOwn(error.fields ?? {}, "variant_signature");

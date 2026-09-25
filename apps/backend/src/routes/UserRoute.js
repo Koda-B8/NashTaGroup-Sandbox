@@ -53,6 +53,13 @@ router.use(authMiddleware, requireRole("admin"));
  *         name: is_active
  *         schema:
  *           type: boolean
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: string
+ *           enum: [fullname_asc, fullname_desc, username_asc, username_desc, created_at_asc, created_at_desc]
+ *           default: fullname_asc
+ *         description: Sort users by fullname, username, or creation time.
  *     responses:
  *       200:
  *         description: Users retrieved successfully

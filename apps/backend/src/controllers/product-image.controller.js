@@ -7,11 +7,24 @@ import {
 	deleteProductImage as deleteCloudinaryImage,
 	uploadProductImage as uploadCloudinaryImage,
 } from "../lib/cloudinary.js";
+import { parseSorting } from "../lib/sorting.js";
 import db from "../models/index.cjs";
 import { createHttpError } from "../utils/http-error.js";
 import { isUuid, normalizeText } from "../utils/validation.js";
 
 const { ProductImageCleanups, ProductImages, Products, sequelize } = db;
+const PRODUCT_IMAGE_SORTS = new Map([
+	[
+		"primary_first",
+		[
+			["isPrimary", "DESC"],
+			["sortOrder", "ASC"],
+		],
+	],
+	["sort_order_asc", [["sortOrder", "ASC"]]],
+	["sort_order_desc", [["sortOrder", "DESC"]]],
+	["created_at_desc", [["createdAt", "DESC"]]],
+]);
 
 const parseBooleanField = (value, field) => {
 	if (value === undefined) return;
@@ -213,6 +226,12 @@ export async function retryProductImageCleanups(_request, response, next) {
 export async function getProductImages(request, response, next) {
 	try {
 		const productId = request.query?.productId;
+		const { order } = parseSorting(request.query, {
+			defaultSort: "primary_first",
+			options: PRODUCT_IMAGE_SORTS,
+			message:
+				"sort must be primary_first, sort_order_asc, sort_order_desc, or created_at_desc",
+		});
 		if (request.query?.productItemId !== undefined) {
 			throw createHttpError(
 				constants.HTTP_STATUS_BAD_REQUEST,
@@ -224,10 +243,7 @@ export async function getProductImages(request, response, next) {
 
 		const images = await ProductImages.findAll({
 			where: { productId },
-			order: [
-				["isPrimary", "DESC"],
-				["sortOrder", "ASC"],
-			],
+			order,
 		});
 
 		return response.status(constants.HTTP_STATUS_OK).json({

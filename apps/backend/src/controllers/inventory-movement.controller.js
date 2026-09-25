@@ -3,11 +3,18 @@ import { constants } from "node:http2";
 import { Op } from "sequelize";
 
 import { paginate } from "../lib/pagination.js";
+import { parseSorting } from "../lib/sorting.js";
 import db from "../models/index.cjs";
 import { createHttpError } from "../utils/http-error.js";
 import { isUuid } from "../utils/validation.js";
 
 const { InventoryMovements, ProductItems, Products, Transactions, Users } = db;
+const INVENTORY_MOVEMENT_SORTS = new Map([
+	["created_at_desc", [["createdAt", "DESC"]]],
+	["created_at_asc", [["createdAt", "ASC"]]],
+	["quantity_asc", [["quantity", "ASC"]]],
+	["quantity_desc", [["quantity", "DESC"]]],
+]);
 const MOVEMENT_TYPES = new Set(["addition", "reduction", "correction"]);
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -74,6 +81,12 @@ const toInventoryMovementResponse = (record) => {
 export async function getInventoryMovements(request, response, next) {
 	try {
 		const { type, product_item_id: productItemId, from, to } = request.query;
+		const { order } = parseSorting(request.query, {
+			defaultSort: "created_at_desc",
+			options: INVENTORY_MOVEMENT_SORTS,
+			message:
+				"sort must be created_at_desc, created_at_asc, quantity_asc, or quantity_desc",
+		});
 
 		if (type !== undefined && !MOVEMENT_TYPES.has(type)) {
 			throw createHttpError(
@@ -165,7 +178,7 @@ export async function getInventoryMovements(request, response, next) {
 						required: false,
 					},
 				],
-				order: [["createdAt", "DESC"]],
+				order,
 				distinct: true,
 				subQuery: false,
 			},

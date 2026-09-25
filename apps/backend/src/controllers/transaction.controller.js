@@ -3,6 +3,7 @@ import { constants } from "node:http2";
 import { Op } from "sequelize";
 
 import { paginate } from "../lib/pagination.js";
+import { parseSorting } from "../lib/sorting.js";
 import db from "../models/index.cjs";
 import { createHttpError } from "../utils/http-error.js";
 import { isUuid } from "../utils/validation.js";
@@ -16,6 +17,12 @@ const {
 	Users,
 } = db;
 
+const TRANSACTION_SORTS = new Map([
+	["created_at_desc", [["createdAt", "DESC"]]],
+	["created_at_asc", [["createdAt", "ASC"]]],
+	["total_amount_asc", [["totalAmount", "ASC"]]],
+	["total_amount_desc", [["totalAmount", "DESC"]]],
+]);
 const TRANSACTION_STATUSES = new Set([
 	"pending",
 	"completed",
@@ -206,6 +213,12 @@ export async function getTransactions(request, response, next) {
 			status,
 			member_type: memberType,
 		} = request.query;
+		const { order } = parseSorting(request.query, {
+			defaultSort: "created_at_desc",
+			options: TRANSACTION_SORTS,
+			message:
+				"sort must be created_at_desc, created_at_asc, total_amount_asc, or total_amount_desc",
+		});
 
 		if (month !== undefined && typeof month !== "string") {
 			throw createHttpError(
@@ -291,7 +304,7 @@ export async function getTransactions(request, response, next) {
 				"createdAt",
 			],
 			include: transactionListIncludes(paymentMethodId),
-			order: [["createdAt", "DESC"]],
+			order,
 			distinct: true,
 		});
 

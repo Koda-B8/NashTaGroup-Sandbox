@@ -8,6 +8,7 @@ import {
 	writeListCache,
 } from "../lib/list-cache.js";
 import { paginate, parsePagination } from "../lib/pagination.js";
+import { parseSorting } from "../lib/sorting.js";
 import db from "../models/index.cjs";
 import { createHttpError } from "../utils/http-error.js";
 import { parseBoolean, parseSearch } from "../utils/query.js";
@@ -15,6 +16,50 @@ import { isUuid } from "../utils/validation.js";
 
 const { Roles, Users } = db;
 const ALLOWED_ROLES = new Set(["admin", "cashier"]);
+const USER_SORTS = new Map([
+	[
+		"fullname_asc",
+		[
+			["fullname", "ASC"],
+			["id", "ASC"],
+		],
+	],
+	[
+		"fullname_desc",
+		[
+			["fullname", "DESC"],
+			["id", "ASC"],
+		],
+	],
+	[
+		"username_asc",
+		[
+			["username", "ASC"],
+			["id", "ASC"],
+		],
+	],
+	[
+		"username_desc",
+		[
+			["username", "DESC"],
+			["id", "ASC"],
+		],
+	],
+	[
+		"created_at_asc",
+		[
+			["createdAt", "ASC"],
+			["id", "ASC"],
+		],
+	],
+	[
+		"created_at_desc",
+		[
+			["createdAt", "DESC"],
+			["id", "ASC"],
+		],
+	],
+]);
 const ALLOWED_FIELDS = new Set([
 	"fullname",
 	"username",
@@ -55,6 +100,12 @@ export async function getUsers(request, response, next) {
 			typeof request.query.role === "string"
 				? request.query.role.trim().toLowerCase()
 				: "";
+		const { sort, order } = parseSorting(request.query, {
+			defaultSort: "fullname_asc",
+			options: USER_SORTS,
+			message:
+				"sort must be fullname_asc, fullname_desc, username_asc, username_desc, created_at_asc, or created_at_desc",
+		});
 
 		if (request.query.is_active !== undefined && isActive === undefined) {
 			throw createHttpError(
@@ -73,6 +124,7 @@ export async function getUsers(request, response, next) {
 			search,
 			isActive,
 			role,
+			sort,
 			page,
 			limit,
 		});
@@ -92,7 +144,7 @@ export async function getUsers(request, response, next) {
 			where,
 			attributes: userAttributes,
 			include: userInclude(role),
-			order: [["fullname", "ASC"]],
+			order,
 			distinct: true,
 		});
 

@@ -6,6 +6,7 @@ import {
 	createPaginationMetadata,
 	parsePagination,
 } from "../lib/pagination.js";
+import { parseSorting } from "../lib/sorting.js";
 import db from "../models/index.cjs";
 import { createHttpError } from "../utils/http-error.js";
 import { parseBoolean, parseSearch } from "../utils/query.js";
@@ -25,11 +26,11 @@ const {
 
 // oxlint-disable-next-line unicorn/no-null -- The API represents a missing image explicitly as null.
 const EMPTY_IMAGE = null;
-const SORT_OPTIONS = new Set([
-	"name_asc",
-	"name_desc",
-	"price_asc",
-	"price_desc",
+const SORT_OPTIONS = new Map([
+	["name_asc", "name_asc"],
+	["name_desc", "name_desc"],
+	["price_asc", "price_asc"],
+	["price_desc", "price_desc"],
 ]);
 
 const parsePrice = (value, field) => {
@@ -249,7 +250,11 @@ export async function getCashierProducts(request, response, next) {
 		const inStock = parseBoolean(request.query.in_stock);
 		const minimumPrice = parsePrice(request.query.min_price, "min_price");
 		const maximumPrice = parsePrice(request.query.max_price, "max_price");
-		const sort = request.query.sort ?? "name_asc";
+		const { sort } = parseSorting(request.query, {
+			defaultSort: "name_asc",
+			options: SORT_OPTIONS,
+			message: "sort must be name_asc, name_desc, price_asc, or price_desc",
+		});
 
 		if (categoryId !== undefined && !isUuid(categoryId)) {
 			throw createHttpError(
@@ -277,12 +282,6 @@ export async function getCashierProducts(request, response, next) {
 			throw createHttpError(
 				constants.HTTP_STATUS_BAD_REQUEST,
 				"min_price must not be greater than max_price",
-			);
-		}
-		if (typeof sort !== "string" || !SORT_OPTIONS.has(sort)) {
-			throw createHttpError(
-				constants.HTTP_STATUS_BAD_REQUEST,
-				"sort must be name_asc, name_desc, price_asc, or price_desc",
 			);
 		}
 

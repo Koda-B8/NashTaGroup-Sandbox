@@ -4,6 +4,7 @@ import { Op } from "sequelize";
 
 import { emitInventoryUpdated } from "../lib/inventory-realtime.js";
 import { paginate } from "../lib/pagination.js";
+import { parseSorting } from "../lib/sorting.js";
 import db from "../models/index.cjs";
 import { createHttpError } from "../utils/http-error.js";
 import { isUuid } from "../utils/validation.js";
@@ -17,6 +18,12 @@ const {
 	Products,
 } = db;
 
+const INVENTORY_SORTS = new Map([
+	["created_at_desc", [["createdAt", "DESC"]]],
+	["created_at_asc", [["createdAt", "ASC"]]],
+	["product_code_asc", [["productCode", "ASC"]]],
+	["product_code_desc", [["productCode", "DESC"]]],
+]);
 const STOCK_STATUSES = new Set(["available", "low", "out_of_stock"]);
 const ADJUSTMENT_TYPES = new Set(["addition", "reduction", "correction"]);
 
@@ -53,6 +60,12 @@ export async function getInventories(request, response, next) {
 		const categoryId = request.query.category_id;
 		const brandId = request.query.brand_id;
 		const stockStatus = request.query.stock_status;
+		const { order } = parseSorting(request.query, {
+			defaultSort: "created_at_desc",
+			options: INVENTORY_SORTS,
+			message:
+				"sort must be created_at_desc, created_at_asc, product_code_asc, or product_code_desc",
+		});
 
 		if (categoryId && !isUuid(categoryId)) {
 			throw createHttpError(
@@ -146,7 +159,7 @@ export async function getInventories(request, response, next) {
 					],
 				},
 			],
-			order: [["createdAt", "DESC"]],
+			order,
 			distinct: true,
 			subQuery: false,
 		});

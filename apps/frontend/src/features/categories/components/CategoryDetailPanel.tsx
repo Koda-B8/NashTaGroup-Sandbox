@@ -1,6 +1,6 @@
 import Badge from "../../../components/ui/badge";
 import Button from "../../../components/ui/button";
-import Card from "../../../components/ui/card";
+import DetailPanel, { DetailLine } from "../../../components/ui/detail-panel";
 import { ActiveBadge } from "../../../components/ui/status-badge";
 import { dotColor, formatDate } from "../../../libs/format";
 import type { Category, CategoryAttribute } from "../api";
@@ -59,15 +59,6 @@ function AttributeRow({ attribute }: { attribute: CategoryAttribute }) {
 	);
 }
 
-function DetailLine({ label, value }: { label: string; value: string }) {
-	return (
-		<div className="flex items-baseline justify-between gap-2">
-			<span className="text-xs text-text">{label}</span>
-			<span className="text-xs font-medium text-text-h">{value}</span>
-		</div>
-	);
-}
-
 export default function CategoryDetailPanel({
 	category,
 	onEdit,
@@ -78,25 +69,13 @@ export default function CategoryDetailPanel({
 	onDelete: () => void;
 }) {
 	if (!category)
-		return (
-			<Card
-				padding="md"
-				className="flex h-fit flex-col gap-4 xl:sticky xl:top-4"
-			>
-				<p className="py-10 text-center text-sm text-text">
-					Pilih category untuk melihat detail.
-				</p>
-			</Card>
-		);
+		return <DetailPanel empty={"Pilih category untuk melihat detail."} />;
 
 	const dot = dotColor(category.name);
 	const attributes = category.attributes ?? [];
 
 	return (
-		<Card
-			padding="md"
-			className="flex h-fit flex-col gap-4 xl:sticky xl:top-4"
-		>
+		<DetailPanel>
 			<div className="flex flex-col gap-2">
 				<div className="flex flex-wrap items-center gap-2">
 					<span
@@ -172,6 +151,6 @@ export default function CategoryDetailPanel({
 					Delete
 				</Button>
 			</div>
-		</Card>
+		</DetailPanel>
 	);
 }

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import Card from "../../../components/ui/card";
+import DetailPanel from "../../../components/ui/detail-panel";
 import type { InventoryMovement } from "../api";
 import {
 	formatDateTime,
@@ -38,22 +38,10 @@ export default function MovementDetailPanel({
 	movement: InventoryMovement | undefined;
 }) {
 	if (!movement)
-		return (
-			<Card
-				padding="md"
-				className="flex h-fit flex-col gap-4 xl:sticky xl:top-4"
-			>
-				<p className="py-10 text-center text-sm text-text">
-					Pilih pergerakan untuk melihat detail.
-				</p>
-			</Card>
-		);
+		return <DetailPanel empty={"Pilih pergerakan untuk melihat detail."} />;
 
 	return (
-		<Card
-			padding="md"
-			className="flex h-fit flex-col gap-4 xl:sticky xl:top-4"
-		>
+		<DetailPanel>
 			<div className="flex flex-col gap-2">
 				<p className="font-bold text-base text-text-h">
 					{movement.productItem.productName}
@@ -127,6 +115,6 @@ export default function MovementDetailPanel({
 					</div>
 				</>
 			)}
-		</Card>
+		</DetailPanel>
 	);
 }

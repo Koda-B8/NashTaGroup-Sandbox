@@ -1,234 +1,46 @@
-import { Plus } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
-
-import Button from "../../components/ui/button";
-import { DetailLayout } from "../../components/ui/detail-panel";
-import ErrorBanner from "../../components/ui/error-banner";
-import FilterPills from "../../components/ui/filter-pills";
-import ListToolbar, {
-	ListSearch,
-	ListSort,
-} from "../../components/ui/list-toolbar";
-import { ConfirmModal } from "../../components/ui/modal";
-import Section from "../../components/ui/section";
-import Toast from "../../components/ui/toast";
-import {
-	type Brand,
-	deleteBrand as deleteBrandApi,
-} from "../../features/brands/api";
+import { type Brand, deleteBrand } from "../../features/brands/api";
 import BrandDetailPanel from "../../features/brands/components/BrandDetailPanel";
 import BrandFormModal from "../../features/brands/components/BrandFormModal";
 import BrandOverview from "../../features/brands/components/BrandOverview";
 import BrandTable from "../../features/brands/components/BrandTable";
 import {
-	SORT_OPTIONS,
-	STATUS_ITEMS,
-	type SortBy,
-	type StatusFilter,
-} from "../../features/brands/format";
-import { useBrandsList } from "../../features/brands/hooks/useBrandsList";
-import { useDebouncedValue } from "../../hooks/useDebouncedValue";
-import { useFlash } from "../../hooks/useFlash";
-import { useRowSelection, useSelectedItem } from "../../hooks/useRowSelection";
+	type BrandStats,
+	useBrandsList,
+} from "../../features/brands/hooks/useBrandsList";
+import CatalogDashboard, { type CatalogConfig } from "./CatalogManagement";
+
+type Config = CatalogConfig<Brand, BrandStats>;
+
+function useList(params: Parameters<typeof useBrandsList>[0]) {
+	const list = useBrandsList(params);
+	return { ...list, items: list.brands, refetch: list.fetchBrands };
+}
+
+const Detail: Config["Detail"] = ({ item, ...props }) => (
+	<BrandDetailPanel
+		brand={item}
+		{...props}
+	/>
+);
+
+const Form: Config["Form"] = ({ item, ...props }) => (
+	<BrandFormModal
+		brand={item}
+		{...props}
+	/>
+);
 
 export default function BrandsDashboard() {
-	const [search, setSearch] = useState("");
-	const debouncedSearch = useDebouncedValue(search.trim(), 350);
-	const [statusFilter, setStatusFilter] = useState<StatusFilter>("All");
-	const [sortBy, setSortBy] = useState<SortBy>("name_asc");
-	const [page, setPage] = useState(0);
-	const [showForm, setShowForm] = useState(false);
-	const [formBrand, setFormBrand] = useState<Brand | null>(null);
-	const [showDelete, setShowDelete] = useState(false);
-	const [deleting, setDeleting] = useState(false);
-	const pageSize = 8;
-
-	const { flash, show, clear } = useFlash();
-
-	const {
-		brands,
-		loading,
-		error: fetchError,
-		fetchBrands,
-		server,
-		isServerPaginated,
-		sorted,
-		paged,
-		pageCount,
-		safePage,
-		stats,
-	} = useBrandsList({
-		debouncedSearch,
-		statusFilter,
-		sortBy,
-		page,
-		pageSize,
-	});
-
-	const {
-		selectedId,
-		setSelectedId,
-		selectedIds,
-		allPageSelected,
-		somePageSelected,
-		toggleAllPage,
-		toggleOne,
-	} = useRowSelection(paged, brands.length);
-
-	const selected = useSelectedItem(sorted, selectedId, sorted[0]);
-
-	useEffect(() => {
-		queueMicrotask(() => setPage(0));
-	}, [debouncedSearch, statusFilter]);
-
-	const handleCreate = useCallback(() => {
-		setFormBrand(null);
-		setShowForm(true);
-	}, []);
-
-	const handleEdit = useCallback(
-		(brand: Brand) => {
-			setSelectedId(brand.id);
-			setFormBrand(brand);
-			setShowForm(true);
-		},
-		[setSelectedId],
-	);
-
-	const handleAskDelete = useCallback(
-		(brand: Brand) => {
-			setSelectedId(brand.id);
-			setShowDelete(true);
-		},
-		[setSelectedId],
-	);
-
-	const handleDelete = async () => {
-		if (!selected) return;
-		setDeleting(true);
-		try {
-			await deleteBrandApi(selected.id);
-			show("Brand berhasil dihapus");
-			setShowDelete(false);
-			await fetchBrands();
-		} catch (error) {
-			show(
-				error instanceof Error ? error.message : "Gagal menghapus brand",
-				"error",
-			);
-		} finally {
-			setDeleting(false);
-		}
-	};
-
 	return (
-		<div className="flex flex-col gap-6">
-			<Toast
-				message={flash?.message}
-				variant={flash?.variant}
-				onDismiss={clear}
-			/>
-			{fetchError && (
-				<ErrorBanner
-					message={fetchError}
-					onRetry={fetchBrands}
-				/>
-			)}
-
-			<BrandOverview
-				stats={stats}
-				loading={loading}
-			/>
-
-			<Section title="Brands">
-				<ListToolbar
-					filters={
-						<>
-							<ListSearch
-								placeholder="Search brands..."
-								value={search}
-								onChange={(e) => setSearch(e.currentTarget.value)}
-								aria-label="Search brands"
-							/>
-							<FilterPills
-								label="Filter status"
-								items={STATUS_ITEMS}
-								value={statusFilter}
-								onValueChange={(v) => setStatusFilter(v as StatusFilter)}
-							/>
-						</>
-					}
-					actions={
-						<>
-							<ListSort
-								label="Sort this page of brands"
-								value={sortBy}
-								onValueChange={(v) => setSortBy(v as SortBy)}
-								items={SORT_OPTIONS}
-							/>
-							<Button
-								size="sm"
-								onClick={handleCreate}
-							>
-								<Plus size={14} />
-								Add Brand
-							</Button>
-						</>
-					}
-				/>
-
-				<DetailLayout>
-					<BrandTable
-						loading={loading}
-						paged={paged}
-						selectedId={selected?.id}
-						selectedIds={selectedIds}
-						allPageSelected={allPageSelected}
-						somePageSelected={somePageSelected}
-						onSelect={setSelectedId}
-						onEdit={handleEdit}
-						onDelete={handleAskDelete}
-						onToggleAll={toggleAllPage}
-						onToggleOne={toggleOne}
-						pageCount={pageCount}
-						safePage={safePage}
-						onPageChange={setPage}
-						totalLabel={`Showing ${paged.length} of ${isServerPaginated ? server.totalItems : sorted.length} brands`}
-					/>
-					<BrandDetailPanel
-						brand={selected}
-						onEdit={() => {
-							setFormBrand(selected ?? null);
-							setShowForm(true);
-						}}
-						onDelete={() => setShowDelete(true)}
-					/>
-				</DetailLayout>
-			</Section>
-
-			<BrandFormModal
-				open={showForm}
-				onOpenChange={setShowForm}
-				brand={formBrand}
-				onSuccess={() => {
-					show("Brand berhasil disimpan");
-					fetchBrands();
-				}}
-			/>
-
-			<ConfirmModal
-				open={showDelete}
-				onOpenChange={setShowDelete}
-				title="Delete brand"
-				description={
-					selected
-						? `Hapus "${selected.name}"? Tindakan ini soft delete.`
-						: undefined
-				}
-				body="Brand akan dihapus (soft delete) dan tidak muncul di daftar."
-				loading={deleting}
-				onConfirm={handleDelete}
-			/>
-		</div>
+		<CatalogDashboard
+			noun="Brand"
+			title="Brands"
+			useList={useList}
+			remove={deleteBrand}
+			Overview={BrandOverview}
+			Table={BrandTable}
+			Detail={Detail}
+			Form={Form}
+		/>
 	);
 }

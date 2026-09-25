@@ -42,6 +42,8 @@ export default function Checkout() {
 	const dispatch = useDispatch<AppDispatch>();
 	const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>();
 	const [activeModal, setActiveModal] = useState<boolean>(false);
+	const [activeCashModal, setActiveCashModal] = useState<boolean>(false);
+	const [cashAmount, setCashAmount] = useState<string>("");
 	const [loading, setLoading] = useState<boolean>(false);
 	const navigate = useNavigate();
 
@@ -98,6 +100,21 @@ export default function Checkout() {
 		}
 	}
 
+	function takeCash(e) {
+		e.preventDefault();
+		try {
+			const data = new FormData(e.target);
+			const formated = Object.fromEntries(data.entries());
+			if (!formated.cash) {
+				throw new Error("No Cash");
+			}
+			setCashAmount(formated?.cash.toString());
+			setActiveCashModal(false);
+		} catch (error) {
+			console.log(error);
+		}
+	}
+
 	async function handleSubmit(e) {
 		e.preventDefault();
 		setLoading(true);
@@ -105,13 +122,13 @@ export default function Checkout() {
 			const data = new FormData(e.target);
 			const formated = Object.fromEntries(data.entries());
 
-			console.log(cart);
-
 			const res = {
 				payment_method_id: formated.Payment,
-				paid_amount: cart
-					.reduce((total, curr) => total + curr.price * curr.qty, 0)
-					.toString(),
+				paid_amount:
+					cashAmount ??
+					cart
+						.reduce((total, curr) => total + curr.price * curr.qty, 0)
+						.toString(),
 				items: cart.map((item) => {
 					return {
 						product_item_id: "c6f10de9-8005-4636-925b-6295537d0805",
@@ -138,6 +155,7 @@ export default function Checkout() {
 					navigate("/struct", {
 						state: {
 							paymentMethod: result.data.payment.method,
+
 							phone: formated.phone,
 							items: cart,
 						},
@@ -147,6 +165,7 @@ export default function Checkout() {
 			}
 		} catch (error) {
 			console.error(error);
+			setCashAmount("");
 		} finally {
 			setLoading(false);
 		}
@@ -154,6 +173,39 @@ export default function Checkout() {
 
 	return (
 		<>
+			<Modal
+				open={activeCashModal}
+				onOpenChange={setActiveCashModal}
+				size="md"
+				label="Silakan Masukan Uang"
+			>
+				<form
+					action=""
+					onSubmit={takeCash}
+					className="flex flex-col gap-3"
+				>
+					<label
+						htmlFor="cash"
+						className="mb-2 text-sm font-semibold"
+					>
+						Silahkan Masukan Uang
+					</label>
+					<input
+						type="number"
+						id="cash"
+						name="cash"
+						required
+						className="h-10 w-full rounded-xl border-base-border bg-base pl-4 outline-none"
+					/>
+					<Button
+						variant="primary"
+						className="mb-3 w-full"
+						type="submit"
+					>
+						<p>Lanjutkan</p>
+					</Button>
+				</form>
+			</Modal>
 			<Modal
 				open={activeModal}
 				onOpenChange={setActiveModal}
@@ -311,6 +363,11 @@ export default function Checkout() {
 								>
 									<input
 										className="peer sr-only"
+										onChange={() => {
+											if (item.name === "Cash") {
+												setActiveCashModal(true);
+											}
+										}}
 										name={"Payment"}
 										value={item.id}
 										id={item.id.toString()}

@@ -75,7 +75,7 @@ export default function ProductVariantList({
 										{item.name}
 									</span>
 								)}
-								<span className="truncate font-mono text-2xs text-text">
+								<span className="truncate text-2xs text-text">
 									{item.productCode ?? "—"} · {formatPrice(item.price)} · stok{" "}
 									{item.stock}
 								</span>

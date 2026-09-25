@@ -43,6 +43,7 @@ export interface DataTableProps<Row extends RowData> {
 	emptyLabel: string;
 	tableClassName?: string;
 	cardClassName?: string;
+	header?: ReactNode;
 
 	pageCount?: number;
 	safePage?: number;
@@ -74,6 +75,7 @@ export default function DataTable<Row extends RowData>({
 	emptyLabel,
 	tableClassName = "",
 	cardClassName = "",
+	header,
 	pageCount = 1,
 	safePage = 0,
 	onPageChange,
@@ -121,6 +123,7 @@ export default function DataTable<Row extends RowData>({
 			padding="none"
 			className={`overflow-hidden ${cardClassName}`.trim()}
 		>
+			{header && <div className="px-5 pt-5 pb-4">{header}</div>}
 			<div className="flex flex-1 flex-col overflow-x-auto">
 				<table
 					className={`w-full text-left text-sm ${tableClassName}`.trim()}

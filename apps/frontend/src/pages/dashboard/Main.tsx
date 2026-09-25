@@ -278,33 +278,30 @@ export default function MainDashboard() {
 
 			<Section title="Reporting">
 				<div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
-					<Card
-						padding="md"
-						className="flex flex-col gap-4 lg:col-span-3"
-					>
-						<CardHeader
-							title="Top Selling Products"
-							description="Best performers this period"
-						>
-							<Badge
-								variant="primary"
-								size="sm"
+					<DataTable
+						label="Top selling products"
+						columns={TOP_PRODUCT_COLUMNS}
+						rows={TOP_PRODUCTS}
+						rowId={(p) => String(p.rank)}
+						loading={false}
+						loadingLabel=""
+						emptyLabel="No products yet."
+						tableClassName="text-xs"
+						cardClassName="lg:col-span-3"
+						header={
+							<CardHeader
+								title="Top Selling Products"
+								description="Best performers this period"
 							>
-								5 items
-							</Badge>
-						</CardHeader>
-
-						<DataTable
-							label="Top selling products"
-							columns={TOP_PRODUCT_COLUMNS}
-							rows={TOP_PRODUCTS}
-							rowId={(p) => String(p.rank)}
-							loading={false}
-							loadingLabel=""
-							emptyLabel="No products yet."
-							tableClassName="text-xs"
-						/>
-					</Card>
+								<Badge
+									variant="primary"
+									size="sm"
+								>
+									5 items
+								</Badge>
+							</CardHeader>
+						}
+					/>
 
 					<Card
 						padding="md"

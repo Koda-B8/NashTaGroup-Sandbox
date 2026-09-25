@@ -2,6 +2,8 @@ import { Plus, Trash2 } from "lucide-react";
 
 import Button from "../../../components/ui/button";
 import Checkbox from "../../../components/ui/checkbox";
+import EmptyState from "../../../components/ui/empty-state";
+import Eyebrow from "../../../components/ui/eyebrow";
 import Input from "../../../components/ui/input";
 
 export interface OptionDraft {
@@ -77,9 +79,7 @@ export default function CategoryAttributeEditor({
 		<div className="flex flex-col gap-3">
 			<div className="flex items-start justify-between gap-2">
 				<div>
-					<p className="text-3xs font-semibold tracking-wider text-text uppercase">
-						Atribut
-					</p>
+					<Eyebrow size="sm">Atribut</Eyebrow>
 					<p className="text-2xs text-text">
 						Opsional — definisi varian &amp; spesifikasi category.
 					</p>
@@ -96,9 +96,7 @@ export default function CategoryAttributeEditor({
 			</div>
 
 			{attributes.length === 0 ? (
-				<p className="rounded-lg border border-dashed border-base-border px-3 py-4 text-center text-xs text-text">
-					Belum ada atribut.
-				</p>
+				<EmptyState>Belum ada atribut.</EmptyState>
 			) : (
 				<ul className="flex flex-col divide-y divide-base-border rounded-lg border border-base-border">
 					{attributes.map((attribute, index) => (
@@ -107,9 +105,7 @@ export default function CategoryAttributeEditor({
 							className="flex flex-col gap-3 p-3"
 						>
 							<div className="flex items-center justify-between gap-2">
-								<span className="text-3xs font-semibold tracking-wider text-text uppercase">
-									Atribut {index + 1}
-								</span>
+								<Eyebrow size="sm">Atribut {index + 1}</Eyebrow>
 								<Button
 									type="button"
 									aria-label={`Hapus atribut ${index + 1}`}
@@ -201,9 +197,7 @@ export default function CategoryAttributeEditor({
 							{attribute.isVariant && (
 								<div className="flex flex-col gap-2 border-t border-base-border pt-3">
 									<div className="flex items-center justify-between gap-2">
-										<span className="text-3xs font-semibold tracking-wider text-text uppercase">
-											Opsi
-										</span>
+										<Eyebrow size="sm">Opsi</Eyebrow>
 										<Button
 											type="button"
 											variant="ghost"

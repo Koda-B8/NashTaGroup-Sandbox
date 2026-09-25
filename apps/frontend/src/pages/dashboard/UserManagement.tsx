@@ -2,6 +2,7 @@ import { Plus } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import Button from "../../components/ui/button";
+import { DetailLayout } from "../../components/ui/detail-panel";
 import ErrorBanner from "../../components/ui/error-banner";
 import FilterPills from "../../components/ui/filter-pills";
 import ListToolbar, { ListSearch } from "../../components/ui/list-toolbar";
@@ -155,7 +156,7 @@ export default function UserManagementDashboard() {
 					}
 				/>
 
-				<div className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_280px]">
+				<DetailLayout>
 					<UserTable
 						loading={loading}
 						paged={paged}
@@ -172,7 +173,7 @@ export default function UserManagementDashboard() {
 						totalLabel={totalLabel}
 					/>
 					<UserDetailPanel user={selected} />
-				</div>
+				</DetailLayout>
 			</Section>
 
 			<RegisterUserModal

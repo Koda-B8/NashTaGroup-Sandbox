@@ -40,3 +40,20 @@ export function DetailLine({
 		</div>
 	);
 }
+
+export function DetailLayout({
+	wide = false,
+	children,
+}: Readonly<{ wide?: boolean; children: ReactNode }>) {
+	return (
+		<div
+			className={
+				wide
+					? "grid grid-cols-1 gap-4 @6xl:grid-cols-[1fr_320px]"
+					: "grid grid-cols-1 gap-4 xl:grid-cols-[1fr_280px]"
+			}
+		>
+			{children}
+		</div>
+	);
+}

@@ -1,5 +1,8 @@
 import DetailPanel from "../../../components/ui/detail-panel";
-import StatTile from "../../../components/ui/stat-tile";
+import StatTile, {
+	StatStrip,
+	StatStripItem,
+} from "../../../components/ui/stat-tile";
 import { dotColor } from "../../../libs/format";
 import type { InventoryItem } from "../api";
 import { STOCK_STATUS_LABEL, STOCK_STATUS_TEXT } from "../format";
@@ -56,19 +59,18 @@ export default function InventoryDetailPanel({
 
 			<div className="border-t border-base-border" />
 
-			<div className="flex items-center justify-between rounded-lg border border-base-border bg-base px-3 py-2.5">
-				<div className="flex flex-col">
-					<span className="text-2xs text-text">Stock on hand</span>
+			<StatStrip>
+				<StatStripItem label="Stock on hand">
 					<span
 						className={`text-lg font-bold ${STOCK_STATUS_TEXT[item.stockStatus]}`}
 					>
 						{item.stock}
 					</span>
-				</div>
+				</StatStripItem>
 				<span className="text-2xs font-medium text-text">
 					{STOCK_STATUS_LABEL[item.stockStatus]}
 				</span>
-			</div>
+			</StatStrip>
 		</DetailPanel>
 	);
 }

@@ -2,6 +2,8 @@ import { Plus } from "lucide-react";
 
 import ActionMenu from "../../../components/ui/action-menu";
 import Button from "../../../components/ui/button";
+import EmptyState from "../../../components/ui/empty-state";
+import Eyebrow from "../../../components/ui/eyebrow";
 import { formatRupiah } from "../../../libs/formatRupiah";
 import type { ProductItem } from "../api";
 
@@ -31,9 +33,7 @@ export default function ProductVariantList({
 		<div className="flex flex-col gap-3">
 			<div className="flex items-center justify-between gap-2">
 				<div className="flex items-baseline gap-2">
-					<p className="text-3xs font-bold tracking-wider text-text uppercase">
-						Varian
-					</p>
+					<Eyebrow size="sm">Varian</Eyebrow>
 					<span className="text-2xs text-text">{items.length} varian</span>
 				</div>
 				{onAdd && (
@@ -50,9 +50,7 @@ export default function ProductVariantList({
 			</div>
 
 			{items.length === 0 ? (
-				<p className="rounded-lg border border-dashed border-base-border px-3 py-4 text-center text-xs text-text">
-					Belum ada varian.
-				</p>
+				<EmptyState>Belum ada varian.</EmptyState>
 			) : (
 				<ul className="flex flex-col divide-y divide-base-border rounded-lg border border-base-border">
 					{items.map((item) => {

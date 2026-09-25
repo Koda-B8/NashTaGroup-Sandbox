@@ -18,11 +18,6 @@ export const SORT_OPTIONS: { label: string; value: SortBy }[] = [
 	{ label: "Last Updated", value: "updated_desc" },
 ];
 
-export const STATUS_DOT = {
-	Active: "#15803d",
-	Inactive: "#94959f",
-} as const;
-
 export const STOCK_TONE = {
 	out: { label: "Out of stock", className: "text-deep-danger" },
 	low: { label: "Low stock", className: "text-deep-warn" },

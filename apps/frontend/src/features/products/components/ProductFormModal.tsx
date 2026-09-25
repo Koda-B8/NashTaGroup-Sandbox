@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import Button from "../../../components/ui/button";
 import Checkbox from "../../../components/ui/checkbox";
+import ErrorBanner from "../../../components/ui/error-banner";
 import Input from "../../../components/ui/input";
 import Modal, { ModalBody, ModalFooter } from "../../../components/ui/modal";
 import Select from "../../../components/ui/select";
@@ -652,12 +653,10 @@ export default function ProductFormModal({
 			>
 				<ModalBody className="gap-3">
 					{serverError && (
-						<div
-							className="rounded-lg border border-danger bg-danger px-3 py-2 text-xs text-deep-danger"
-							role="alert"
-						>
-							{serverError}
-						</div>
+						<ErrorBanner
+							size="sm"
+							message={serverError}
+						/>
 					)}
 
 					<div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:items-start">

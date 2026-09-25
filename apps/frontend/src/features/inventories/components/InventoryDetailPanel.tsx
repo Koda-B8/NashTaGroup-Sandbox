@@ -1,4 +1,4 @@
-import Card from "../../../components/ui/card";
+import DetailPanel from "../../../components/ui/detail-panel";
 import StatTile from "../../../components/ui/stat-tile";
 import { dotColor } from "../../../libs/format";
 import type { InventoryItem } from "../api";
@@ -11,22 +11,10 @@ export default function InventoryDetailPanel({
 	item: InventoryItem | undefined;
 }) {
 	if (!item)
-		return (
-			<Card
-				padding="md"
-				className="flex h-fit flex-col gap-4 xl:sticky xl:top-4"
-			>
-				<p className="py-10 text-center text-sm text-text">
-					Pilih item inventory untuk melihat detail.
-				</p>
-			</Card>
-		);
+		return <DetailPanel empty={"Pilih item inventory untuk melihat detail."} />;
 
 	return (
-		<Card
-			padding="md"
-			className="flex h-fit flex-col gap-4 xl:sticky xl:top-4"
-		>
+		<DetailPanel>
 			<div className="flex flex-col gap-2">
 				<div className="flex items-center gap-2">
 					<span
@@ -81,6 +69,6 @@ export default function InventoryDetailPanel({
 					{STOCK_STATUS_LABEL[item.stockStatus]}
 				</span>
 			</div>
-		</Card>
+		</DetailPanel>
 	);
 }

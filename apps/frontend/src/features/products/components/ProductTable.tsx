@@ -4,10 +4,10 @@ import DataTable, {
 } from "../../../components/tables/data-table";
 import ActionMenu from "../../../components/ui/action-menu";
 import Avatar from "../../../components/ui/avatar";
+import { ActiveBadge } from "../../../components/ui/status-badge";
 import { dotColor } from "../../../libs/format";
 import type { Product } from "../api";
 import { priceLabel, stockTone, toNumber } from "../format";
-import StatusBadge from "./StatusBadge";
 
 function VariantPill({ count }: { count: number }) {
 	return (
@@ -121,7 +121,7 @@ const COLUMNS = helper.columns([
 	}),
 	helper.accessor("isActive", {
 		header: "Status",
-		cell: ({ row }) => <StatusBadge isActive={row.original.isActive} />,
+		cell: ({ row }) => <ActiveBadge isActive={row.original.isActive} />,
 	}),
 ]);
 

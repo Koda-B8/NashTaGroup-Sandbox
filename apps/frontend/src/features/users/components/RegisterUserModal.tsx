@@ -1,10 +1,12 @@
 import { useCallback, useState } from "react";
 
-import Button from "../../../components/ui/button";
 import Checkbox from "../../../components/ui/checkbox";
 import ErrorBanner from "../../../components/ui/error-banner";
 import Input from "../../../components/ui/input";
-import Modal, { ModalBody, ModalFooter } from "../../../components/ui/modal";
+import Modal, {
+	FormModalFooter,
+	ModalBody,
+} from "../../../components/ui/modal";
 import Select from "../../../components/ui/select";
 import { createUser, type CreateUserPayload } from "../api";
 
@@ -235,24 +237,12 @@ export default function RegisterUserModal({
 						<span className="text-2xs text-text">— isActive</span>
 					</label>
 				</ModalBody>
-				<ModalFooter>
-					<Button
-						type="button"
-						variant="outline"
-						size="sm"
-						onClick={() => handleOpenChange(false)}
-						disabled={submitting}
-					>
-						Cancel
-					</Button>
-					<Button
-						type="submit"
-						size="sm"
-						disabled={submitting}
-					>
-						{submitting ? "Creating..." : "Create User"}
-					</Button>
-				</ModalFooter>
+				<FormModalFooter
+					submitting={submitting}
+					submitLabel="Create User"
+					submittingLabel="Creating..."
+					onCancel={() => handleOpenChange(false)}
+				/>
 			</form>
 		</Modal>
 	);

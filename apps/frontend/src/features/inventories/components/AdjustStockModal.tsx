@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 
-import Button from "../../../components/ui/button";
 import ErrorBanner from "../../../components/ui/error-banner";
 import Input from "../../../components/ui/input";
-import Modal, { ModalBody, ModalFooter } from "../../../components/ui/modal";
+import Modal, {
+	FormModalFooter,
+	ModalBody,
+} from "../../../components/ui/modal";
 import Select from "../../../components/ui/select";
 import { type AdjustmentType, adjustStock, type StockAdjustment } from "../api";
 
@@ -211,24 +213,11 @@ export default function AdjustStockModal({
 						</div>
 					</div>
 				</ModalBody>
-				<ModalFooter>
-					<Button
-						type="button"
-						variant="outline"
-						size="sm"
-						onClick={() => handleOpen(false)}
-						disabled={submitting}
-					>
-						Cancel
-					</Button>
-					<Button
-						type="submit"
-						size="sm"
-						disabled={submitting}
-					>
-						{submitting ? "Saving..." : "Adjust"}
-					</Button>
-				</ModalFooter>
+				<FormModalFooter
+					submitting={submitting}
+					submitLabel="Adjust"
+					onCancel={() => handleOpen(false)}
+				/>
 			</form>
 		</Modal>
 	);

@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 
-import Button from "../../../components/ui/button";
 import Checkbox from "../../../components/ui/checkbox";
 import ErrorBanner from "../../../components/ui/error-banner";
 import Input from "../../../components/ui/input";
-import Modal, { ModalBody, ModalFooter } from "../../../components/ui/modal";
+import Modal, {
+	FormModalFooter,
+	ModalBody,
+} from "../../../components/ui/modal";
 import {
 	type Category,
 	type CategoryAttributeInput,
@@ -240,24 +242,11 @@ export default function CategoryFormModal({
 						</span>
 					)}
 				</ModalBody>
-				<ModalFooter>
-					<Button
-						type="button"
-						variant="outline"
-						size="sm"
-						onClick={() => handleOpen(false)}
-						disabled={submitting}
-					>
-						Cancel
-					</Button>
-					<Button
-						type="submit"
-						size="sm"
-						disabled={submitting}
-					>
-						{submitting ? "Saving..." : isEdit ? "Save" : "Create"}
-					</Button>
-				</ModalFooter>
+				<FormModalFooter
+					submitting={submitting}
+					submitLabel={isEdit ? "Save" : "Create"}
+					onCancel={() => handleOpen(false)}
+				/>
 			</form>
 		</Modal>
 	);

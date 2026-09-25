@@ -5,7 +5,10 @@ import Button from "../../../components/ui/button";
 import Checkbox from "../../../components/ui/checkbox";
 import ErrorBanner from "../../../components/ui/error-banner";
 import Input from "../../../components/ui/input";
-import Modal, { ModalBody, ModalFooter } from "../../../components/ui/modal";
+import Modal, {
+	FormModalFooter,
+	ModalBody,
+} from "../../../components/ui/modal";
 import Select from "../../../components/ui/select";
 import { formatRupiah } from "../../../libs/formatRupiah";
 import { type Brand, listBrands } from "../../brands/api";
@@ -974,37 +977,24 @@ export default function ProductFormModal({
 
 					{error && <span className="text-2xs text-deep-danger">{error}</span>}
 				</ModalBody>
-				<ModalFooter className={isEdit ? "justify-between" : undefined}>
-					{isEdit && (
-						<Button
-							type="button"
-							variant="outline"
-							size="sm"
-							onClick={onDeleteProduct}
-							disabled={submitting}
-						>
-							Delete
-						</Button>
-					)}
-					<div className="flex items-center gap-2">
-						<Button
-							type="button"
-							variant="outline"
-							size="sm"
-							onClick={() => handleOpen(false)}
-							disabled={submitting}
-						>
-							Cancel
-						</Button>
-						<Button
-							type="submit"
-							size="sm"
-							disabled={submitting}
-						>
-							{submitting ? "Saving..." : isEdit ? "Save" : "Create"}
-						</Button>
-					</div>
-				</ModalFooter>
+				<FormModalFooter
+					submitting={submitting}
+					submitLabel={isEdit ? "Save" : "Create"}
+					onCancel={() => handleOpen(false)}
+					start={
+						isEdit && (
+							<Button
+								type="button"
+								variant="outline"
+								size="sm"
+								onClick={onDeleteProduct}
+								disabled={submitting}
+							>
+								Delete
+							</Button>
+						)
+					}
+				/>
 			</form>
 		</Modal>
 	);

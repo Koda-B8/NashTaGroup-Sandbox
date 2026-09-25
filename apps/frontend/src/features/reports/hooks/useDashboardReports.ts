@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
 	type CashierReport,
@@ -45,8 +45,10 @@ export function useDashboardReports(range: TimeRange) {
 		[range, now],
 	);
 	const period = periodForTimeRange(range);
+	const latestRequest = useRef(0);
 
 	const load = useCallback(async () => {
+		const request = ++latestRequest.current;
 		setLoading(true);
 		setError(null);
 		const results = await Promise.allSettled([
@@ -56,6 +58,7 @@ export function useDashboardReports(range: TimeRange) {
 			getCashierReport({ from, to, limit: 5 }),
 			getCustomerReport({ from, to, limit: 1 }),
 		]);
+		if (request !== latestRequest.current) return;
 		const [sales, products, paymentMethods, cashiers, customers] = results;
 		setData({
 			sales: sales.status === "fulfilled" ? sales.value.data : null,

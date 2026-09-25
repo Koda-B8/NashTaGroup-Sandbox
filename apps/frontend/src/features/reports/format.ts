@@ -1,5 +1,5 @@
 import { formatRupiah } from "../../libs/formatRupiah";
-import type { SalesPeriod } from "./api";
+import type { SalesPeriod, SalesReportRow } from "./api";
 
 export type TimeRange = "1M" | "3M" | "6M" | "1Y";
 
@@ -63,4 +63,32 @@ export function rangeForTimeRange(
 
 export function periodForTimeRange(range: TimeRange): SalesPeriod {
 	return range === "1M" ? "day" : "month";
+}
+
+export function fillSalesPeriods(
+	rows: SalesReportRow[],
+	period: SalesPeriod,
+	from: string,
+	to: string,
+): { periodStart: string; value: number }[] {
+	const sales = new Map(
+		rows.map((row) => [row.period_start, toNumber(row.total_sales)]),
+	);
+	if (period !== "day" && period !== "month") {
+		return rows.toReversed().map((row) => ({
+			periodStart: row.period_start,
+			value: toNumber(row.total_sales),
+		}));
+	}
+	const points: { periodStart: string; value: number }[] = [];
+	const cursor = new Date(`${from}T00:00:00`);
+	if (period === "month") cursor.setDate(1);
+	const end = new Date(`${to}T00:00:00`);
+	while (cursor <= end) {
+		const periodStart = toDateValue(cursor);
+		points.push({ periodStart, value: sales.get(periodStart) ?? 0 });
+		if (period === "month") cursor.setMonth(cursor.getMonth() + 1);
+		else cursor.setDate(cursor.getDate() + 1);
+	}
+	return points;
 }

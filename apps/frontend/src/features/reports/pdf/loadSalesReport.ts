@@ -9,7 +9,7 @@ import {
 	type SalesPeriod,
 	type SalesReport,
 } from "../api";
-import { toNumber, type TimeRange } from "../format";
+import { fillSalesPeriods, toNumber, type TimeRange } from "../format";
 import type {
 	PdfCashierRow,
 	PdfCategoryRow,
@@ -44,20 +44,6 @@ function toDateValue(date: Date): string {
 
 function parseDateValue(value: string): Date {
 	return new Date(`${value}T00:00:00`);
-}
-
-function rangeForTimeRange(
-	range: TimeRange,
-	now: Date,
-): { from: string; to: string } {
-	const monthsBack = { "1M": 0, "3M": 2, "6M": 5, "1Y": 11 }[range];
-	const from = new Date(now.getFullYear(), now.getMonth() - monthsBack, 1);
-	const to = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-	return { from: toDateValue(from), to: toDateValue(to) };
-}
-
-function periodForTimeRange(range: TimeRange): SalesPeriod {
-	return range === "1M" ? "day" : "month";
 }
 
 function previousRange(from: string, to: string): { from: string; to: string } {
@@ -141,12 +127,14 @@ async function loadCategoryMap(): Promise<Map<string, string>> {
 
 export async function loadSalesReportPdfData(opts: {
 	range: TimeRange;
+	from: string;
+	to: string;
+	period: SalesPeriod;
 	generatedBy: string;
 	now?: Date;
 }): Promise<SalesReportPdfData> {
 	const now = opts.now ?? new Date();
-	const { from, to } = rangeForTimeRange(opts.range, now);
-	const period = periodForTimeRange(opts.range);
+	const { from, to, period } = opts;
 	const previous = previousRange(from, to);
 
 	const [
@@ -178,9 +166,16 @@ export async function loadSalesReportPdfData(opts: {
 	const avgOrder = toNumber(sales.summary.average_transaction);
 	const unitsSold = toNumber(products.summary.units_sold);
 
-	const trend: PdfTrendPoint[] = (sales.rows ?? []).toReversed().map((row) => ({
-		label: trendLabel(row.period_start, sales.period),
-		value: toNumber(row.total_sales),
+	const grossSales = toNumber(products.summary.gross_sales);
+
+	const trend: PdfTrendPoint[] = fillSalesPeriods(
+		sales.rows ?? [],
+		sales.period,
+		from,
+		to,
+	).map((point) => ({
+		label: trendLabel(point.periodStart, sales.period),
+		value: point.value,
 	}));
 
 	const topProducts: PdfProductRow[] = (products.items ?? [])
@@ -191,7 +186,8 @@ export async function loadSalesReportPdfData(opts: {
 			code: item.product_code,
 			qty: toNumber(item.units_sold),
 			revenue: toNumber(item.gross_sales),
-			share: revenue > 0 ? (toNumber(item.gross_sales) / revenue) * 100 : 0,
+			share:
+				grossSales > 0 ? (toNumber(item.gross_sales) / grossSales) * 100 : 0,
 		}));
 
 	const categoryTotals = new Map<string, number>();
@@ -206,7 +202,7 @@ export async function loadSalesReportPdfData(opts: {
 		.map(([name, value]) => ({
 			name,
 			revenue: value,
-			share: revenue > 0 ? (value / revenue) * 100 : 0,
+			share: grossSales > 0 ? (value / grossSales) * 100 : 0,
 		}))
 		.toSorted((a, b) => b.revenue - a.revenue)
 		.slice(0, 5);

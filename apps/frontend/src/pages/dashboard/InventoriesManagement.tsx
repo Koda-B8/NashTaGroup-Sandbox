@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import Button from "../../components/ui/button";
 import DatePicker from "../../components/ui/date-picker";
+import { DetailLayout } from "../../components/ui/detail-panel";
 import ErrorBanner from "../../components/ui/error-banner";
 import Eyebrow from "../../components/ui/eyebrow";
 import FilterPills from "../../components/ui/filter-pills";
@@ -236,7 +237,7 @@ export default function InventoriesManagementDashboard() {
 					</div>
 				</div>
 
-				<div className="grid grid-cols-1 gap-4 @6xl:grid-cols-[1fr_320px]">
+				<DetailLayout wide>
 					<InventoryMovementsTable
 						loading={loading}
 						paged={paged}
@@ -253,7 +254,7 @@ export default function InventoriesManagementDashboard() {
 						totalLabel={totalLabel}
 					/>
 					<MovementDetailPanel movement={selected ?? undefined} />
-				</div>
+				</DetailLayout>
 			</Section>
 		</div>
 	);

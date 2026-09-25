@@ -2,6 +2,7 @@ import { Plus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 import Button from "../../components/ui/button";
+import { DetailLayout } from "../../components/ui/detail-panel";
 import ErrorBanner from "../../components/ui/error-banner";
 import FilterPills from "../../components/ui/filter-pills";
 import Input from "../../components/ui/input";
@@ -179,7 +180,7 @@ export default function CategoriesDashboard() {
 					}
 				/>
 
-				<div className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_280px]">
+				<DetailLayout>
 					<CategoryTable
 						loading={loading}
 						paged={paged}
@@ -205,7 +206,7 @@ export default function CategoriesDashboard() {
 						}}
 						onDelete={() => setShowDelete(true)}
 					/>
-				</div>
+				</DetailLayout>
 			</Section>
 
 			<CategoryFormModal

@@ -14,7 +14,7 @@ import DataTable, {
 } from "../../components/tables/data-table";
 import Badge from "../../components/ui/badge";
 import Button from "../../components/ui/button";
-import Card from "../../components/ui/card";
+import Card, { CardHeader } from "../../components/ui/card";
 import FilterPills from "../../components/ui/filter-pills";
 import Section from "../../components/ui/section";
 import StatCard from "../../components/ui/stat-card";
@@ -250,11 +250,10 @@ export default function MainDashboard() {
 					padding="lg"
 					className="flex flex-col gap-4"
 				>
-					<div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-						<div>
-							<h5 className="font-bold">Sales Trend</h5>
-							<p className="text-xs text-text">Monthly revenue · 2025</p>
-						</div>
+					<CardHeader
+						title="Sales Trend"
+						description="Monthly revenue · 2025"
+					>
 						<div className="flex items-center gap-4 text-xs">
 							<div className="flex items-center gap-1.5">
 								<span className="size-2.5 rounded-full bg-primary" />
@@ -264,7 +263,7 @@ export default function MainDashboard() {
 								Total: Rp 128.45M
 							</span>
 						</div>
-					</div>
+					</CardHeader>
 
 					<div className="mt-2">
 						<BarChart
@@ -283,18 +282,17 @@ export default function MainDashboard() {
 						padding="md"
 						className="flex flex-col gap-4 lg:col-span-3"
 					>
-						<div className="flex items-center justify-between">
-							<div>
-								<h5 className="font-bold">Top Selling Products</h5>
-								<p className="text-xs text-text">Best performers this period</p>
-							</div>
+						<CardHeader
+							title="Top Selling Products"
+							description="Best performers this period"
+						>
 							<Badge
 								variant="primary"
 								size="sm"
 							>
 								5 items
 							</Badge>
-						</div>
+						</CardHeader>
 
 						<DataTable
 							label="Top selling products"
@@ -312,10 +310,10 @@ export default function MainDashboard() {
 						padding="md"
 						className="flex flex-col gap-4 lg:col-span-2"
 					>
-						<div>
-							<h5 className="font-bol">Payment Methods</h5>
-							<p className="text-xs text-text">Transaction distribution</p>
-						</div>
+						<CardHeader
+							title="Payment Methods"
+							description="Transaction distribution"
+						/>
 
 						<div className="flex flex-col gap-4">
 							<div className="relative">

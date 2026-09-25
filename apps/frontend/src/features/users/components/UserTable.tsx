@@ -116,7 +116,7 @@ export default function UserTable({
 			selectAllLabel="Select all users on this page"
 			rowSelectLabel={(row) => `Select ${row.fullname}`}
 			actions={(row) => {
-				const status = row.is_active ? "Active" : "Inactive";
+				const status = row.isActive ? "Active" : "Inactive";
 				return (
 					<ActionMenu
 						label={`Actions for ${row.fullname}`}

@@ -3,7 +3,8 @@ import { useMemo } from "react";
 import Avatar from "../../../components/ui/avatar";
 import Badge from "../../../components/ui/badge";
 import Button from "../../../components/ui/button";
-import Card from "../../../components/ui/card";
+import DetailPanel from "../../../components/ui/detail-panel";
+import ErrorBanner from "../../../components/ui/error-banner";
 import { formatRupiah } from "../../../libs/formatRupiah";
 import type { Transaction } from "../api";
 import {
@@ -67,16 +68,7 @@ export default function TransactionDetailPanel({
 	);
 
 	if (!transaction)
-		return (
-			<Card
-				padding="md"
-				className="flex h-fit flex-col gap-4 xl:sticky xl:top-4"
-			>
-				<p className="py-10 text-center text-sm text-text">
-					Pilih transaksi untuk melihat detail.
-				</p>
-			</Card>
-		);
+		return <DetailPanel empty={"Pilih transaksi untuk melihat detail."} />;
 
 	const items = detail?.items ?? [];
 	const paymentMethod =
@@ -85,10 +77,7 @@ export default function TransactionDetailPanel({
 		asString(detail?.payment?.status) ?? transaction.payment.status;
 
 	return (
-		<Card
-			padding="md"
-			className="flex h-fit flex-col gap-4 xl:sticky xl:top-4"
-		>
+		<DetailPanel>
 			<div className="flex flex-col gap-1">
 				<p
 					className="truncate text-sm font-bold text-text-h"
@@ -152,16 +141,11 @@ export default function TransactionDetailPanel({
 				{loading ? (
 					<p className="py-6 text-center text-xs text-text">Memuat detail...</p>
 				) : error ? (
-					<div className="flex flex-col gap-2 rounded-lg border border-danger bg-danger px-3 py-2 text-xs text-deep-danger">
-						<span>{error}</span>
-						<button
-							type="button"
-							onClick={fetchDetail}
-							className="self-start font-semibold underline"
-						>
-							Coba lagi
-						</button>
-					</div>
+					<ErrorBanner
+						size="sm"
+						message={error}
+						onRetry={fetchDetail}
+					/>
 				) : items.length === 0 ? (
 					<p className="py-6 text-center text-xs text-text">
 						Tidak ada item pada transaksi ini.
@@ -283,6 +267,6 @@ export default function TransactionDetailPanel({
 					Refresh
 				</Button>
 			</div>
-		</Card>
+		</DetailPanel>
 	);
 }

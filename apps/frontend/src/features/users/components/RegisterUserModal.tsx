@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 
 import Button from "../../../components/ui/button";
 import Checkbox from "../../../components/ui/checkbox";
+import ErrorBanner from "../../../components/ui/error-banner";
 import Input from "../../../components/ui/input";
 import Modal, { ModalBody, ModalFooter } from "../../../components/ui/modal";
 import Select from "../../../components/ui/select";
@@ -119,12 +120,10 @@ export default function RegisterUserModal({
 			>
 				<ModalBody>
 					{serverError && (
-						<div
-							className="rounded-lg border border-danger bg-danger px-3 py-2 text-xs text-deep-danger"
-							role="alert"
-						>
-							{serverError}
-						</div>
+						<ErrorBanner
+							size="sm"
+							message={serverError}
+						/>
 					)}
 					{serverSuccess && (
 						<div

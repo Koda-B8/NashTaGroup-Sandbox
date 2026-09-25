@@ -3,9 +3,11 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import Button from "../../components/ui/button";
 import DatePicker from "../../components/ui/date-picker";
+import { DetailLayout } from "../../components/ui/detail-panel";
 import ErrorBanner from "../../components/ui/error-banner";
+import Eyebrow from "../../components/ui/eyebrow";
 import FilterPills from "../../components/ui/filter-pills";
-import Input from "../../components/ui/input";
+import { ListSearch } from "../../components/ui/list-toolbar";
 import Section from "../../components/ui/section";
 import Select from "../../components/ui/select";
 import StatCard, { StatGrid } from "../../components/ui/stat-card";
@@ -31,9 +33,7 @@ function FilterField({
 }) {
 	return (
 		<div className="flex flex-col gap-1">
-			<span className="text-[11px] font-semibold tracking-wider text-text uppercase">
-				{label}
-			</span>
+			<Eyebrow>{label}</Eyebrow>
 			{children}
 		</div>
 	);
@@ -159,12 +159,11 @@ export default function InventoriesManagementDashboard() {
 			>
 				<div className="flex flex-col gap-3">
 					<div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
-						<Input
-							size="sm"
+						<ListSearch
+							wide
 							placeholder="Search product, variant, or code..."
 							value={search}
 							onChange={(event) => setSearch(event.currentTarget.value)}
-							className="w-full shrink-0 sm:max-w-[248px]"
 							aria-label="Search inventory movements"
 						/>
 						<FilterPills
@@ -179,12 +178,12 @@ export default function InventoriesManagementDashboard() {
 						/>
 						<div className="flex shrink-0 items-center gap-2 sm:ml-auto">
 							<Select
-								label="Sort movements"
+								label="Sort this page of movements"
 								value={sortBy}
 								onValueChange={(value) => setSortBy(value as MovementSortBy)}
 								items={MOVEMENT_SORT_OPTIONS}
 								className="h-8 w-40 min-w-0 text-xs"
-								placeholder="Sort"
+								placeholder="Sort page"
 							/>
 							<Button
 								variant="outline"
@@ -237,7 +236,7 @@ export default function InventoriesManagementDashboard() {
 					</div>
 				</div>
 
-				<div className="grid grid-cols-1 gap-4 @6xl:grid-cols-[1fr_320px]">
+				<DetailLayout wide>
 					<InventoryMovementsTable
 						loading={loading}
 						paged={paged}
@@ -254,7 +253,7 @@ export default function InventoriesManagementDashboard() {
 						totalLabel={totalLabel}
 					/>
 					<MovementDetailPanel movement={selected ?? undefined} />
-				</div>
+				</DetailLayout>
 			</Section>
 		</div>
 	);

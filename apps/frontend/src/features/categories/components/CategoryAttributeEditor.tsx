@@ -2,6 +2,8 @@ import { Plus, Trash2 } from "lucide-react";
 
 import Button from "../../../components/ui/button";
 import Checkbox from "../../../components/ui/checkbox";
+import EmptyState from "../../../components/ui/empty-state";
+import Eyebrow from "../../../components/ui/eyebrow";
 import Input from "../../../components/ui/input";
 
 export interface OptionDraft {
@@ -77,10 +79,8 @@ export default function CategoryAttributeEditor({
 		<div className="flex flex-col gap-3">
 			<div className="flex items-start justify-between gap-2">
 				<div>
-					<p className="text-[10px] font-semibold tracking-wider text-text uppercase">
-						Atribut
-					</p>
-					<p className="text-[11px] text-text">
+					<Eyebrow size="sm">Atribut</Eyebrow>
+					<p className="text-2xs text-text">
 						Opsional — definisi varian &amp; spesifikasi category.
 					</p>
 				</div>
@@ -96,9 +96,7 @@ export default function CategoryAttributeEditor({
 			</div>
 
 			{attributes.length === 0 ? (
-				<p className="rounded-lg border border-dashed border-base-border px-3 py-4 text-center text-xs text-text">
-					Belum ada atribut.
-				</p>
+				<EmptyState>Belum ada atribut.</EmptyState>
 			) : (
 				<ul className="flex flex-col divide-y divide-base-border rounded-lg border border-base-border">
 					{attributes.map((attribute, index) => (
@@ -107,26 +105,26 @@ export default function CategoryAttributeEditor({
 							className="flex flex-col gap-3 p-3"
 						>
 							<div className="flex items-center justify-between gap-2">
-								<span className="text-[10px] font-semibold tracking-wider text-text uppercase">
-									Atribut {index + 1}
-								</span>
-								<button
+								<Eyebrow size="sm">Atribut {index + 1}</Eyebrow>
+								<Button
 									type="button"
 									aria-label={`Hapus atribut ${index + 1}`}
 									onClick={() =>
 										onChange(attributes.filter((a) => a.key !== attribute.key))
 									}
-									className="inline-flex size-6 items-center justify-center rounded-md text-text hover:bg-danger hover:text-deep-danger"
+									variant="ghostDanger"
+									size="icon"
+									className="size-6"
 								>
 									<Trash2 size={13} />
-								</button>
+								</Button>
 							</div>
 
 							<div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
 								<div className="flex flex-col gap-1">
 									<label
 										htmlFor={`attr-name-${attribute.key}`}
-										className="text-[11px] font-medium text-text-h"
+										className="text-2xs font-medium text-text-h"
 									>
 										Nama atribut <span className="text-deep-danger">*</span>
 									</label>
@@ -144,10 +142,10 @@ export default function CategoryAttributeEditor({
 								<div className="flex flex-col gap-1">
 									<label
 										htmlFor={`attr-value-${attribute.key}`}
-										className="text-[11px] font-medium text-text-h"
+										className="text-2xs font-medium text-text-h"
 									>
 										Nilai{" "}
-										<span className="text-[10px] font-normal text-text">
+										<span className="text-3xs font-normal text-text">
 											(opsional)
 										</span>
 									</label>
@@ -176,8 +174,8 @@ export default function CategoryAttributeEditor({
 										}
 										aria-label={`Atribut ${index + 1} bikin varian`}
 									/>
-									<span className="text-[11px] font-medium">Bikin varian</span>
-									<span className="text-[10px] text-text">— isVariant</span>
+									<span className="text-2xs font-medium">Bikin varian</span>
+									<span className="text-3xs text-text">— isVariant</span>
 								</label>
 								<label
 									htmlFor={`attr-required-${attribute.key}`}
@@ -191,17 +189,15 @@ export default function CategoryAttributeEditor({
 										}
 										aria-label={`Atribut ${index + 1} wajib diisi`}
 									/>
-									<span className="text-[11px] font-medium">Wajib diisi</span>
-									<span className="text-[10px] text-text">— isRequired</span>
+									<span className="text-2xs font-medium">Wajib diisi</span>
+									<span className="text-3xs text-text">— isRequired</span>
 								</label>
 							</div>
 
 							{attribute.isVariant && (
 								<div className="flex flex-col gap-2 border-t border-base-border pt-3">
 									<div className="flex items-center justify-between gap-2">
-										<span className="text-[10px] font-semibold tracking-wider text-text uppercase">
-											Opsi
-										</span>
+										<Eyebrow size="sm">Opsi</Eyebrow>
 										<Button
 											type="button"
 											variant="ghost"
@@ -217,7 +213,7 @@ export default function CategoryAttributeEditor({
 										</Button>
 									</div>
 									{attribute.options.length === 0 ? (
-										<p className="text-[11px] text-text">Belum ada opsi.</p>
+										<p className="text-2xs text-text">Belum ada opsi.</p>
 									) : (
 										<ul className="flex flex-col gap-2">
 											{attribute.options.map((option, optionIndex) => (
@@ -226,7 +222,7 @@ export default function CategoryAttributeEditor({
 													className="flex items-center gap-2"
 												>
 													<span
-														className="size-8 shrink-0 rounded-md border border-base-border"
+														className="size-8 shrink-0 rounded-lg border border-base-border"
 														style={{
 															backgroundColor: HEX_PATTERN.test(
 																option.hex.trim(),
@@ -262,7 +258,7 @@ export default function CategoryAttributeEditor({
 														aria-label={`Nama opsi ${optionIndex + 1}`}
 														autoComplete="off"
 													/>
-													<button
+													<Button
 														type="button"
 														aria-label={`Hapus opsi ${optionIndex + 1}`}
 														onClick={() =>
@@ -272,10 +268,12 @@ export default function CategoryAttributeEditor({
 																),
 															})
 														}
-														className="inline-flex size-7 shrink-0 items-center justify-center rounded-md text-text hover:bg-danger hover:text-deep-danger"
+														variant="ghostDanger"
+														size="icon"
+														className="size-7 shrink-0"
 													>
 														<Trash2 size={13} />
-													</button>
+													</Button>
 												</li>
 											))}
 										</ul>

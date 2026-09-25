@@ -10,7 +10,7 @@ const overlay = tv({
 });
 
 const popup = tv({
-	base: "fixed top-1/2 left-1/2 w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-base-border bg-white shadow-xl outline-none max-h-[calc(100dvh-2rem)] overflow-hidden flex flex-col data-open:animate-in data-closed:animate-out",
+	base: "fixed top-1/2 left-1/2 w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 rounded-lg border border-base-border bg-surface shadow-xl outline-none max-h-[calc(100dvh-2rem)] overflow-hidden flex flex-col data-open:animate-in data-closed:animate-out",
 	variants: {
 		size: {
 			"sm": "max-w-sm",
@@ -32,6 +32,8 @@ export interface ModalProps {
 	title?: string;
 	description?: string;
 	size?: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl";
+	/** accessible name for dialogs that render their own header instead of `title` */
+	label?: string;
 	children: ReactNode;
 	/** show close button in header, defaults true when title is set */
 	showClose?: boolean;
@@ -43,6 +45,7 @@ export default function Modal({
 	title,
 	description,
 	size = "md",
+	label,
 	children,
 	showClose = true,
 }: ModalProps) {
@@ -53,7 +56,10 @@ export default function Modal({
 		>
 			<Dialog.Portal>
 				<Dialog.Backdrop className={overlay()} />
-				<Dialog.Popup className={popup({ size })}>
+				<Dialog.Popup
+					aria-label={title ? undefined : label}
+					className={popup({ size })}
+				>
 					{(title || description) && (
 						<div className="flex items-start justify-between gap-4 border-b border-base-border px-5 py-4">
 							<div className="flex-1">
@@ -93,11 +99,51 @@ export function ModalFooter({
 	return (
 		<div
 			className={cn(
-				"-mx-5 -mb-4 mt-4 flex items-center justify-end gap-2 border-t border-base-border bg-base/50 px-5 py-3",
+				"-mx-5 mt-4 -mb-4 flex items-center justify-end gap-2 border-t border-base-border bg-base/50 px-5 py-3",
 				className,
 			)}
 			{...props}
 		/>
+	);
+}
+
+export interface FormModalFooterProps {
+	submitting: boolean;
+	submitLabel: string;
+	submittingLabel?: string;
+	onCancel: () => void;
+	start?: ReactNode;
+}
+
+export function FormModalFooter({
+	submitting,
+	submitLabel,
+	submittingLabel = "Saving...",
+	onCancel,
+	start,
+}: FormModalFooterProps) {
+	return (
+		<ModalFooter className={start ? "justify-between" : undefined}>
+			{start}
+			<div className="flex items-center gap-2">
+				<Button
+					type="button"
+					variant="outline"
+					size="sm"
+					onClick={onCancel}
+					disabled={submitting}
+				>
+					Cancel
+				</Button>
+				<Button
+					type="submit"
+					size="sm"
+					disabled={submitting}
+				>
+					{submitting ? submittingLabel : submitLabel}
+				</Button>
+			</div>
+		</ModalFooter>
 	);
 }
 

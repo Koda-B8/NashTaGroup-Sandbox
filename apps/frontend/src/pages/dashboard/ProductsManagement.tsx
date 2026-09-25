@@ -4,11 +4,12 @@ import { useCallback, useEffect, useState } from "react";
 import Button from "../../components/ui/button";
 import ErrorBanner from "../../components/ui/error-banner";
 import FilterPills from "../../components/ui/filter-pills";
-import Input from "../../components/ui/input";
-import ListToolbar from "../../components/ui/list-toolbar";
+import ListToolbar, {
+	ListSearch,
+	ListSort,
+} from "../../components/ui/list-toolbar";
 import { ConfirmModal } from "../../components/ui/modal";
 import Section from "../../components/ui/section";
-import Select from "../../components/ui/select";
 import Toast from "../../components/ui/toast";
 import AdjustStockModal from "../../features/inventories/components/AdjustStockModal";
 import {
@@ -202,12 +203,10 @@ export default function ProductsManagementDashboard() {
 				<ListToolbar
 					filters={
 						<>
-							<Input
-								size="sm"
+							<ListSearch
 								placeholder="Search products..."
 								value={search}
 								onChange={(e) => setSearch(e.currentTarget.value)}
-								className="w-full sm:max-w-[228px]"
 								aria-label="Search products"
 							/>
 							<FilterPills
@@ -229,13 +228,11 @@ export default function ProductsManagementDashboard() {
 					}
 					actions={
 						<>
-							<Select
-								label="Sort products"
+							<ListSort
+								label="Sort this page of products"
 								value={sortBy}
 								onValueChange={(v) => setSortBy(v as SortBy)}
 								items={SORT_OPTIONS}
-								className="size-9 text-xs"
-								placeholder="Sort"
 							/>
 							<Button
 								size="sm"

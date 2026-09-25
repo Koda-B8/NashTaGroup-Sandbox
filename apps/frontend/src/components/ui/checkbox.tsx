@@ -3,7 +3,7 @@ import { CheckIcon, MinusIcon } from "lucide-react";
 import { tv } from "tailwind-variants";
 
 const checkbox = tv({
-	base: "flex size-4 shrink-0 items-center justify-center rounded border border-base-border bg-white text-white data-checked:border-primary data-checked:bg-primary data-indeterminate:border-primary data-indeterminate:bg-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary data-disabled:opacity-50",
+	base: "flex size-4 shrink-0 items-center justify-center rounded border border-base-border bg-surface text-white data-checked:border-primary data-checked:bg-primary data-indeterminate:border-primary data-indeterminate:bg-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary data-disabled:opacity-50",
 });
 
 export type CheckboxProps = Omit<BaseCheckbox.Root.Props, "className"> & {

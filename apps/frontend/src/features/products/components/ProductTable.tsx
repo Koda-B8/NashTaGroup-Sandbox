@@ -1,16 +1,17 @@
-import PaginationControls from "../../../components/PaginationControls";
+import DataTable, {
+	createTableColumnHelper,
+	type TableMeta,
+} from "../../../components/tables/data-table";
 import ActionMenu from "../../../components/ui/action-menu";
 import Avatar from "../../../components/ui/avatar";
-import Card from "../../../components/ui/card";
-import Checkbox from "../../../components/ui/checkbox";
+import { ActiveBadge } from "../../../components/ui/status-badge";
 import { dotColor } from "../../../libs/format";
 import type { Product } from "../api";
-import { priceLabel, rowClassName, stockTone, toNumber } from "../format";
-import StatusBadge from "./StatusBadge";
+import { priceLabel, stockTone, toNumber } from "../format";
 
 function VariantPill({ count }: { count: number }) {
 	return (
-		<span className="inline-flex h-5 min-w-11 items-center justify-center rounded-full border border-base-border bg-base px-2 text-[11px] font-medium text-text">
+		<span className="inline-flex h-5 min-w-11 items-center justify-center rounded-full border border-base-border bg-base px-2 text-2xs font-medium text-text">
 			{count} varian
 		</span>
 	);
@@ -34,6 +35,96 @@ interface Props {
 	onPageChange: (page: number) => void;
 }
 
+const helper = createTableColumnHelper<Product>();
+
+const COLUMNS = helper.columns([
+	helper.accessor("name", {
+		header: "Product",
+		cell: ({ row, table }) => {
+			const active =
+				(table.options.meta as TableMeta | undefined)?.activeId ===
+				row.original.id;
+			return (
+				<div className="flex items-center gap-2.5">
+					<Avatar
+						size="sm"
+						shape="square"
+						src={row.original.image?.url ?? undefined}
+						alt={row.original.image?.alt ?? row.original.name}
+						name={row.original.name}
+					/>
+					<div className="min-w-0">
+						<span
+							className={`block truncate text-sm font-medium ${active ? "text-primary" : "text-text-h"}`}
+						>
+							{row.original.name}
+						</span>
+						<span
+							className="block truncate text-2xs text-text"
+							title={row.original.id}
+						>
+							{row.original.description ?? row.original.id}
+						</span>
+					</div>
+				</div>
+			);
+		},
+	}),
+	helper.display({
+		id: "category",
+		header: "Category",
+		cell: ({ row }) => (
+			<span className="inline-flex items-center gap-1.5 text-xs text-text">
+				<span
+					className="size-2 shrink-0 rounded-full"
+					style={{
+						backgroundColor: dotColor(row.original.category?.name ?? "—"),
+					}}
+					aria-hidden
+				/>
+				{row.original.category?.name ?? "—"}
+			</span>
+		),
+	}),
+	helper.display({
+		id: "brand",
+		header: "Brand",
+		cell: ({ row }) => row.original.brand?.name ?? "—",
+		meta: { cellClassName: "text-xs text-text" },
+	}),
+	helper.display({
+		id: "variant",
+		header: "Variant",
+		cell: ({ row }) => (
+			<VariantPill count={(row.original.items ?? []).length} />
+		),
+	}),
+	helper.accessor("stock", {
+		header: "Stock",
+		cell: ({ row }) => {
+			const stock = toNumber(row.original.stock);
+			return (
+				<span className={`text-sm font-semibold ${stockTone(stock).className}`}>
+					{stock}
+				</span>
+			);
+		},
+	}),
+	helper.display({
+		id: "price",
+		header: "Price",
+		cell: ({ row }) => priceLabel(row.original.items ?? []),
+		meta: {
+			headClassName: "text-right",
+			cellClassName: "text-right text-sm font-semibold text-text-h",
+		},
+	}),
+	helper.accessor("isActive", {
+		header: "Status",
+		cell: ({ row }) => <ActiveBadge isActive={row.original.isActive} />,
+	}),
+]);
+
 export default function ProductTable({
 	loading,
 	paged,
@@ -52,213 +143,36 @@ export default function ProductTable({
 	onPageChange,
 }: Props) {
 	return (
-		<Card
-			padding="none"
-			className="overflow-hidden"
-		>
-			<div className="overflow-x-auto">
-				<table
-					className="w-full text-left text-sm"
-					aria-label="Products"
-				>
-					<thead className="border-b border-base-border bg-base">
-						<tr>
-							<th
-								scope="col"
-								className="w-10 px-3 py-3"
-							>
-								<Checkbox
-									checked={allPageSelected}
-									indeterminate={somePageSelected}
-									onCheckedChange={(c) => onToggleAll(c === true)}
-									aria-label="Select all products on this page"
-								/>
-							</th>
-							<th
-								scope="col"
-								className="px-3 py-3 text-[11px] font-semibold tracking-wide text-text uppercase"
-							>
-								Product
-							</th>
-							<th
-								scope="col"
-								className="px-3 py-3 text-[11px] font-semibold tracking-wide text-text uppercase"
-							>
-								Category
-							</th>
-							<th
-								scope="col"
-								className="px-3 py-3 text-[11px] font-semibold tracking-wide text-text uppercase"
-							>
-								Brand
-							</th>
-							<th
-								scope="col"
-								className="px-3 py-3 text-[11px] font-semibold tracking-wide text-text uppercase"
-							>
-								Variant
-							</th>
-							<th
-								scope="col"
-								className="px-3 py-3 text-[11px] font-semibold tracking-wide text-text uppercase"
-							>
-								Stock
-							</th>
-							<th
-								scope="col"
-								className="px-3 py-3 text-right text-[11px] font-semibold tracking-wide text-text uppercase"
-							>
-								Price
-							</th>
-							<th
-								scope="col"
-								className="px-3 py-3 text-[11px] font-semibold tracking-wide text-text uppercase"
-							>
-								Status
-							</th>
-							<th
-								scope="col"
-								className="w-12 px-3 py-3"
-								aria-label="Actions"
-							/>
-						</tr>
-					</thead>
-					<tbody className="divide-y divide-base-border">
-						{loading ? (
-							<tr>
-								<td
-									colSpan={9}
-									className="px-4 py-10 text-center text-sm text-text"
-								>
-									Memuat products...
-								</td>
-							</tr>
-						) : paged.length === 0 ? (
-							<tr>
-								<td
-									colSpan={9}
-									className="px-4 py-10 text-center text-sm text-text"
-								>
-									No products found.
-								</td>
-							</tr>
-						) : (
-							paged.map((row, index) => {
-								const isActiveRow = row.id === selectedId;
-								const stock = toNumber(row.stock);
-								const tone = stockTone(stock);
-								return (
-									<tr
-										key={row.id}
-										onClick={() => onOpenDetail(row)}
-										onKeyDown={(e) => {
-											if (e.key === "Enter" || e.key === " ") {
-												e.preventDefault();
-												onOpenDetail(row);
-											}
-										}}
-										tabIndex={0}
-										className={`cursor-pointer border-l-2 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary ${rowClassName(isActiveRow, index)}`}
-									>
-										<td
-											className="px-3 py-3"
-											onClick={(e) => e.stopPropagation()}
-										>
-											<Checkbox
-												checked={selectedIds.has(row.id)}
-												onCheckedChange={(c) => onToggleOne(row.id, c === true)}
-												aria-label={`Select ${row.name}`}
-											/>
-										</td>
-										<td className="px-3 py-3">
-											<div className="flex items-center gap-2.5">
-												<Avatar
-													size="sm"
-													shape="square"
-													src={row.image?.url ?? undefined}
-													alt={row.image?.alt ?? row.name}
-													name={row.name}
-												/>
-												<div className="min-w-0">
-													<span
-														className={`block truncate text-sm font-medium ${isActiveRow ? "text-primary" : "text-text-h"}`}
-													>
-														{row.name}
-													</span>
-													<span
-														className="block truncate text-[11px] text-text"
-														title={row.id}
-													>
-														{row.description ?? row.id}
-													</span>
-												</div>
-											</div>
-										</td>
-										<td className="px-3 py-3">
-											<span className="inline-flex items-center gap-1.5 text-xs text-text">
-												<span
-													className="size-2 shrink-0 rounded-full"
-													style={{
-														backgroundColor: dotColor(
-															row.category?.name ?? "—",
-														),
-													}}
-													aria-hidden
-												/>
-												{row.category?.name ?? "—"}
-											</span>
-										</td>
-										<td className="px-3 py-3 text-xs text-text">
-											{row.brand?.name ?? "—"}
-										</td>
-										<td className="px-3 py-3">
-											<VariantPill count={(row.items ?? []).length} />
-										</td>
-										<td className="px-3 py-3">
-											<span
-												className={`text-sm font-semibold ${tone.className}`}
-											>
-												{stock}
-											</span>
-										</td>
-										<td className="px-3 py-3 text-right text-sm font-semibold text-text-h">
-											{priceLabel(row.items ?? [])}
-										</td>
-										<td className="px-3 py-3">
-											<StatusBadge isActive={row.isActive} />
-										</td>
-										<td
-											className="px-3 py-3"
-											onClick={(e) => e.stopPropagation()}
-										>
-											<ActionMenu
-												label={`Actions for ${row.name}`}
-												items={[
-													{
-														label: "Edit",
-														onSelect: () => onEdit(row),
-													},
-													{
-														label: "Delete",
-														onSelect: () => onDelete(row),
-														danger: true,
-													},
-												]}
-											/>
-										</td>
-									</tr>
-								);
-							})
-						)}
-					</tbody>
-				</table>
-			</div>
-			<PaginationControls
-				totalLabel={totalLabel}
-				pageCount={pageCount}
-				safePage={safePage}
-				onPageChange={onPageChange}
-			/>
-		</Card>
+		<DataTable
+			label="Products"
+			columns={COLUMNS}
+			rows={paged}
+			rowId={(row) => row.id}
+			loading={loading}
+			loadingLabel="Memuat products..."
+			emptyLabel="No products found."
+			activeId={selectedId}
+			onRowClick={onOpenDetail}
+			selectedIds={selectedIds}
+			allPageSelected={allPageSelected}
+			somePageSelected={somePageSelected}
+			onToggleAll={onToggleAll}
+			onToggleOne={onToggleOne}
+			selectAllLabel="Select all products on this page"
+			rowSelectLabel={(row) => `Select ${row.name}`}
+			actions={(row) => (
+				<ActionMenu
+					label={`Actions for ${row.name}`}
+					items={[
+						{ label: "Edit", onSelect: () => onEdit(row) },
+						{ label: "Delete", onSelect: () => onDelete(row), danger: true },
+					]}
+				/>
+			)}
+			pageCount={pageCount}
+			safePage={safePage}
+			onPageChange={onPageChange}
+			totalLabel={totalLabel}
+		/>
 	);
 }

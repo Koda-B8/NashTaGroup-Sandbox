@@ -2,6 +2,8 @@ import { Plus, Trash2 } from "lucide-react";
 
 import Button from "../../../components/ui/button";
 import Checkbox from "../../../components/ui/checkbox";
+import EmptyState from "../../../components/ui/empty-state";
+import Eyebrow from "../../../components/ui/eyebrow";
 import Input from "../../../components/ui/input";
 import type { ProductItemDraft, ProductItemDraftErrors } from "../format";
 
@@ -33,10 +35,8 @@ export default function ProductVariantEditor({
 		<div className="flex flex-col gap-3">
 			<div className="flex items-center justify-between gap-2">
 				<div className="flex items-baseline gap-2">
-					<p className="text-[10px] font-bold tracking-wider text-text uppercase">
-						Varian
-					</p>
-					{note && <span className="text-[11px] text-text">{note}</span>}
+					<Eyebrow size="sm">Varian</Eyebrow>
+					{note && <span className="text-2xs text-text">{note}</span>}
 				</div>
 				{onAdd && (
 					<Button
@@ -52,9 +52,7 @@ export default function ProductVariantEditor({
 			</div>
 
 			{items.length === 0 ? (
-				<p className="rounded-lg border border-dashed border-base-border px-3 py-4 text-center text-xs text-text">
-					{emptyHint}
-				</p>
+				<EmptyState>{emptyHint}</EmptyState>
 			) : (
 				<ul className="flex flex-col gap-2">
 					{items.map((item, index) => {
@@ -78,21 +76,23 @@ export default function ProductVariantEditor({
 										</span>
 									</div>
 									{onRemove && (
-										<button
+										<Button
 											type="button"
 											aria-label={`Hapus item ${index + 1}`}
 											onClick={() => onRemove(item.key)}
-											className="inline-flex size-6 shrink-0 items-center justify-center rounded-md text-text hover:bg-danger hover:text-deep-danger"
+											variant="ghostDanger"
+											size="icon"
+											className="size-6 shrink-0"
 										>
 											<Trash2 size={13} />
-										</button>
+										</Button>
 									)}
 								</div>
 								<div className="grid grid-cols-2 gap-2 sm:grid-cols-[1.4fr_1fr_0.7fr]">
 									<div className="col-span-2 flex flex-col gap-1 sm:col-span-1">
 										<label
 											htmlFor={`item-code-${item.key}`}
-											className="text-[11px] font-medium text-text-h"
+											className="text-2xs font-medium text-text-h"
 										>
 											Product Code
 										</label>
@@ -110,7 +110,7 @@ export default function ProductVariantEditor({
 											autoComplete="off"
 										/>
 										{itemError.productCode && (
-											<span className="text-[10px] text-deep-danger">
+											<span className="text-3xs text-deep-danger">
 												{itemError.productCode}
 											</span>
 										)}
@@ -118,7 +118,7 @@ export default function ProductVariantEditor({
 									<div className="flex flex-col gap-1">
 										<label
 											htmlFor={`item-price-${item.key}`}
-											className="text-[11px] font-medium text-text-h"
+											className="text-2xs font-medium text-text-h"
 										>
 											Harga
 										</label>
@@ -140,7 +140,7 @@ export default function ProductVariantEditor({
 											autoComplete="off"
 										/>
 										{itemError.price && (
-											<span className="text-[10px] text-deep-danger">
+											<span className="text-3xs text-deep-danger">
 												{itemError.price}
 											</span>
 										)}
@@ -148,7 +148,7 @@ export default function ProductVariantEditor({
 									<div className="flex flex-col gap-1">
 										<label
 											htmlFor={`item-stock-${item.key}`}
-											className="text-[11px] font-medium text-text-h"
+											className="text-2xs font-medium text-text-h"
 										>
 											Stock
 										</label>
@@ -167,7 +167,7 @@ export default function ProductVariantEditor({
 											autoComplete="off"
 										/>
 										{itemError.stock && (
-											<span className="text-[10px] text-deep-danger">
+											<span className="text-3xs text-deep-danger">
 												{itemError.stock}
 											</span>
 										)}
@@ -185,10 +185,8 @@ export default function ProductVariantEditor({
 										}
 										aria-label={`Item ${index + 1} active`}
 									/>
-									<span className="text-[11px] font-medium">Active</span>
-									<span className="text-[10px] text-text">
-										— dijual di kasir
-									</span>
+									<span className="text-2xs font-medium">Active</span>
+									<span className="text-3xs text-text">— dijual di kasir</span>
 								</label>
 							</li>
 						);

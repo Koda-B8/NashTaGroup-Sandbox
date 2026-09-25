@@ -1,76 +1,132 @@
 import {
-	createPaginatedRowModel,
+	type PaginationState,
+	type RowData,
+	createColumnHelper,
 	rowPaginationFeature,
-	rowSelectionFeature,
 	tableFeatures,
 	useTable,
 } from "@tanstack/react-table";
-import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
-import {
-	type KeyboardEvent,
-	type MouseEvent,
-	type ReactNode,
-	useCallback,
-} from "react";
+import type { KeyboardEvent, MouseEvent, ReactNode } from "react";
 
+import PaginationControls from "../PaginationControls";
+import Card from "../ui/card";
 import Checkbox from "../ui/checkbox";
 
-// callers must build their column helper with these same features
-export const dataTableFeatures = tableFeatures({
-	rowSelectionFeature,
-	rowPaginationFeature,
-	paginatedRowModel: createPaginatedRowModel(),
-});
+// manual pagination: the server already paginated, so no paginatedRowModel.
+// page state stays in usePaginatedList and is passed in controlled.
+export const tableFeatures_ = tableFeatures({ rowPaginationFeature });
 
-export interface DataTableProps<Row extends object> {
-	columns: Parameters<
-		typeof useTable<typeof dataTableFeatures, Row>
-	>[0]["columns"];
-	data: Row[];
-	label: string;
-	selectable?: boolean;
-	pageSize?: number;
-	unit?: string;
-	activeRowId?: string;
-	onRowClick?: (row: Row, id: string) => void;
+export type TableFeatures = typeof tableFeatures_;
+
+export function createTableColumnHelper<Row extends RowData>() {
+	return createColumnHelper<TableFeatures, Row>();
 }
 
-export default function DataTable<Row extends object>({
-	columns,
-	data,
-	label,
-	selectable = false,
-	pageSize = 10,
-	unit = "rows",
-	activeRowId,
-	onRowClick,
-}: DataTableProps<Row>) {
-	const table = useTable(
-		{
-			features: dataTableFeatures,
-			columns,
-			data,
-			initialState: { pagination: { pageIndex: 0, pageSize } },
-		},
-		(state) => ({
-			rowSelection: state.rowSelection,
-			pagination: state.pagination,
-		}),
-	);
+export interface TableMeta {
+	activeId?: string | undefined;
+}
 
-	const rows = table.getRowModel().rows;
-	const pageCount = table.getPageCount();
-	const { pageIndex } = table.state.pagination;
-	const goToPage = useCallback(
-		(page: number) => table.setPageIndex(page),
-		[table],
-	);
+const HEAD_CELL =
+	"px-3 py-3 text-2xs font-semibold tracking-wide text-text uppercase";
+
+type Columns<Row extends RowData> = Parameters<
+	typeof useTable<TableFeatures, Row>
+>[0]["columns"];
+
+export interface DataTableProps<Row extends RowData> {
+	label: string;
+	columns: Columns<Row>;
+	rows: Row[];
+	rowId: (row: Row) => string;
+	loading: boolean;
+	loadingLabel: string;
+	emptyLabel: string;
+	tableClassName?: string;
+	cardClassName?: string;
+	header?: ReactNode;
+
+	pageCount?: number;
+	safePage?: number;
+	onPageChange?: (page: number) => void;
+	totalLabel?: string;
+	pageSize?: number;
+
+	activeId?: string | undefined;
+	onRowClick?: (row: Row) => void;
+
+	selectedIds?: Set<string>;
+	allPageSelected?: boolean;
+	somePageSelected?: boolean;
+	onToggleAll?: (checked: boolean) => void;
+	onToggleOne?: (id: string, checked: boolean) => void;
+	selectAllLabel?: string;
+	rowSelectLabel?: (row: Row) => string;
+
+	actions?: (row: Row) => ReactNode;
+}
+
+export default function DataTable<Row extends RowData>({
+	label,
+	columns,
+	rows,
+	rowId,
+	loading,
+	loadingLabel,
+	emptyLabel,
+	tableClassName = "",
+	cardClassName = "",
+	header,
+	pageCount = 1,
+	safePage = 0,
+	onPageChange,
+	totalLabel,
+	pageSize = 10,
+	activeId,
+	onRowClick,
+	selectedIds,
+	allPageSelected = false,
+	somePageSelected = false,
+	onToggleAll,
+	onToggleOne,
+	selectAllLabel,
+	rowSelectLabel,
+	actions,
+}: DataTableProps<Row>) {
+	const table = useTable({
+		features: tableFeatures_,
+		columns,
+		data: rows,
+		manualPagination: true,
+		pageCount,
+		state: { pagination: { pageIndex: safePage, pageSize } },
+		onPaginationChange: (updater) => {
+			const next: PaginationState =
+				typeof updater === "function"
+					? updater({ pageIndex: safePage, pageSize })
+					: updater;
+			onPageChange?.(next.pageIndex);
+		},
+		meta: { activeId } satisfies TableMeta,
+	});
+
+	const selectable = Boolean(onToggleOne && selectedIds);
+	const modelRows = table.getRowModel().rows;
+	const colSpan =
+		table.getAllLeafColumns().length + (selectable ? 1 : 0) + (actions ? 1 : 0);
+
+	// the checkbox and the action menu sit inside the row, so using them must not
+	// also open the row's detail panel
+	const stop = (event: MouseEvent) => event.stopPropagation();
 
 	return (
-		<div className="overflow-hidden rounded-xl border border-base-border bg-white">
-			<div className="overflow-x-auto">
+		<Card
+			padding="none"
+			className={`overflow-hidden ${cardClassName}`.trim()}
+		>
+			{header && <div className="px-5 pt-5 pb-4">{header}</div>}
+			<div className="flex flex-1 flex-col overflow-x-auto">
 				<table
-					className="w-full text-sm"
+					className={`w-full text-left text-sm ${tableClassName}`.trim()}
 					aria-label={label}
 				>
 					<thead className="border-b border-base-border bg-base">
@@ -79,13 +135,13 @@ export default function DataTable<Row extends object>({
 								{selectable && (
 									<th
 										scope="col"
-										className="w-12 px-4 py-3"
+										className="w-10 px-3 py-3"
 									>
 										<Checkbox
-											checked={table.getIsAllPageRowsSelected()}
-											indeterminate={table.getIsSomePageRowsSelected()}
-											onCheckedChange={table.getToggleAllPageRowsSelectedHandler()}
-											aria-label={`Select all ${unit} on this page`}
+											checked={allPageSelected}
+											indeterminate={somePageSelected}
+											onCheckedChange={(c) => onToggleAll?.(c === true)}
+											aria-label={selectAllLabel ?? "Select all on this page"}
 										/>
 									</th>
 								)}
@@ -93,176 +149,121 @@ export default function DataTable<Row extends object>({
 									<th
 										key={header.id}
 										scope="col"
-										className="px-4 py-3 text-left font-medium text-text"
+										className={`${HEAD_CELL} ${
+											(
+												header.column.columnDef.meta as
+													| { headClassName?: string }
+													| undefined
+											)?.headClassName ?? ""
+										}`.trim()}
 									>
 										{header.isPlaceholder ? undefined : (
 											<table.FlexRender header={header} />
 										)}
 									</th>
 								))}
+								{actions && (
+									<th
+										scope="col"
+										className="w-10 px-3 py-3"
+										aria-label="Actions"
+									/>
+								)}
 							</tr>
 						))}
 					</thead>
+					<tbody className="divide-y divide-base-border">
+						{loading || modelRows.length === 0 ? (
+							<tr>
+								<td
+									colSpan={colSpan}
+									className="px-4 py-10 text-center text-sm text-text"
+								>
+									{loading ? loadingLabel : emptyLabel}
+								</td>
+							</tr>
+						) : (
+							modelRows.map((row) => {
+								const id = rowId(row.original);
+								const active = id === activeId;
 
-					<tbody>
-						{rows.map((row) => (
-							<TableRow
-								key={row.id}
-								row={row}
-								table={table}
-								selectable={selectable}
-								active={activeRowId === row.id}
-								onRowClick={onRowClick}
-							/>
-						))}
+								return (
+									<tr
+										key={row.id}
+										onClick={
+											onRowClick ? () => onRowClick(row.original) : undefined
+										}
+										onKeyDown={
+											onRowClick
+												? (event: KeyboardEvent<HTMLTableRowElement>) => {
+														if (event.key !== "Enter" && event.key !== " ")
+															return;
+														if (event.target !== event.currentTarget) return;
+														event.preventDefault();
+														onRowClick(row.original);
+													}
+												: undefined
+										}
+										tabIndex={onRowClick ? 0 : undefined}
+										className={`focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary ${
+											onRowClick ? "cursor-pointer" : ""
+										} ${active ? "bg-primary-light/50" : "hover:bg-base/60"}`}
+									>
+										{selectable && (
+											<td
+												className="px-3 py-3"
+												onClick={stop}
+											>
+												<Checkbox
+													checked={selectedIds?.has(id)}
+													onCheckedChange={(c) => onToggleOne?.(id, c === true)}
+													aria-label={
+														rowSelectLabel?.(row.original) ?? "Select row"
+													}
+												/>
+											</td>
+										)}
+										{row.getAllCells().map((cell) => (
+											<td
+												key={cell.id}
+												className={`px-3 py-3 ${
+													(
+														cell.column.columnDef.meta as
+															| { cellClassName?: string }
+															| undefined
+													)?.cellClassName ?? ""
+												}`.trim()}
+											>
+												<table.FlexRender cell={cell} />
+											</td>
+										))}
+										{actions && (
+											<td
+												className="px-3 py-3"
+												onClick={stop}
+											>
+												{actions(row.original)}
+											</td>
+										)}
+									</tr>
+								);
+							})
+						)}
 					</tbody>
 				</table>
 			</div>
-
-			<div className="flex items-center justify-between border-t border-base-border px-4 py-3 text-sm text-text">
-				<span>
-					Showing {rows.length} of {data.length} {unit}
-				</span>
-
-				<div className="flex items-center gap-1">
-					<PageButton
-						label="Previous page"
-						page={pageIndex - 1}
-						disabled={!table.getCanPreviousPage()}
-						onSelect={goToPage}
-					>
-						<ChevronLeftIcon size={14} />
-					</PageButton>
-
-					{Array.from({ length: pageCount }, (_, page) => (
-						<PageButton
-							key={page}
-							label={`Page ${page + 1}`}
-							page={page}
-							active={page === pageIndex}
-							onSelect={goToPage}
-						>
-							{page + 1}
-						</PageButton>
-					))}
-
-					<PageButton
-						label="Next page"
-						page={pageIndex + 1}
-						disabled={!table.getCanNextPage()}
-						onSelect={goToPage}
-					>
-						<ChevronRightIcon size={14} />
-					</PageButton>
-				</div>
-			</div>
-		</div>
-	);
-}
-
-type TableInstance<Row extends object> = ReturnType<
-	typeof useTable<typeof dataTableFeatures, Row>
->;
-
-type TableRowModel<Row extends object> = ReturnType<
-	TableInstance<Row>["getRowModel"]
->["rows"][number];
-
-function TableRow<Row extends object>({
-	row,
-	table,
-	selectable,
-	active,
-	onRowClick,
-}: {
-	row: TableRowModel<Row>;
-	table: TableInstance<Row>;
-	selectable: boolean;
-	active: boolean;
-	onRowClick?: (row: Row, id: string) => void;
-}) {
-	const handleClick = useCallback(
-		() => onRowClick?.(row.original, row.id),
-		[onRowClick, row],
-	);
-	// the checkbox sits inside the row, so selecting must not also open it
-	const stopPropagation = useCallback((event: MouseEvent) => {
-		event.stopPropagation();
-	}, []);
-	const handleKeyDown = useCallback(
-		(event: KeyboardEvent<HTMLTableRowElement>) => {
-			if (event.key !== "Enter" && event.key !== " ") return;
-			if (event.target !== event.currentTarget) return;
-			event.preventDefault();
-			onRowClick?.(row.original, row.id);
-		},
-		[onRowClick, row],
-	);
-
-	return (
-		<tr
-			onClick={onRowClick ? handleClick : undefined}
-			onKeyDown={onRowClick ? handleKeyDown : undefined}
-			tabIndex={onRowClick ? 0 : undefined}
-			className={`border-b border-base-border last:border-b-0 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary ${
-				active ? "bg-primary-light/50" : "hover:bg-base"
-			} ${onRowClick ? "cursor-pointer" : ""}`}
-		>
-			{selectable && (
-				<td
-					className="px-4 py-4"
-					onClick={stopPropagation}
-				>
-					<Checkbox
-						checked={row.getIsSelected()}
-						onCheckedChange={row.getToggleSelectedHandler()}
-						aria-label={`Select row ${row.id}`}
-					/>
-				</td>
+			{totalLabel && (
+				<PaginationControls
+					totalLabel={totalLabel}
+					pageCount={table.getPageCount()}
+					safePage={table.state.pagination.pageIndex}
+					canPreviousPage={table.getCanPreviousPage()}
+					canNextPage={table.getCanNextPage()}
+					onPrevious={() => table.previousPage()}
+					onNext={() => table.nextPage()}
+					onPageChange={(page) => table.setPageIndex(page)}
+				/>
 			)}
-			{row.getAllCells().map((cell) => (
-				<td
-					key={cell.id}
-					className="px-4 py-4 text-text-h"
-				>
-					<table.FlexRender cell={cell} />
-				</td>
-			))}
-		</tr>
-	);
-}
-
-function PageButton({
-	children,
-	label,
-	page,
-	active,
-	disabled,
-	onSelect,
-}: {
-	children: ReactNode;
-	label: string;
-	page: number;
-	active?: boolean;
-	disabled?: boolean;
-	onSelect: (page: number) => void;
-}) {
-	const handleClick = useCallback(() => onSelect(page), [onSelect, page]);
-
-	return (
-		<button
-			type="button"
-			aria-label={label}
-			aria-current={active ? "page" : undefined}
-			disabled={disabled}
-			onClick={handleClick}
-			className={`flex size-8 items-center justify-center rounded-lg border text-xs ${
-				active
-					? "border-primary bg-primary text-white"
-					: "border-base-border bg-white text-text-h hover:bg-base"
-			} disabled:opacity-40`}
-		>
-			{children}
-		</button>
+		</Card>
 	);
 }

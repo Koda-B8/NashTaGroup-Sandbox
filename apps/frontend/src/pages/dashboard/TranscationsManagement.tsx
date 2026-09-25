@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { DetailLayout } from "../../components/ui/detail-panel";
 import ErrorBanner from "../../components/ui/error-banner";
 import Section from "../../components/ui/section";
 import Toast from "../../components/ui/toast";
@@ -204,7 +205,7 @@ export default function OrdersManagementDashboard() {
 					refreshing={loading}
 				/>
 
-				<div className="grid grid-cols-1 gap-4 @6xl:grid-cols-[1fr_320px]">
+				<DetailLayout wide>
 					<TransactionTable
 						loading={loading}
 						paged={paged}
@@ -226,7 +227,7 @@ export default function OrdersManagementDashboard() {
 						transaction={selected}
 						onCopyNumber={handleCopyNumber}
 					/>
-				</div>
+				</DetailLayout>
 			</Section>
 		</div>
 	);

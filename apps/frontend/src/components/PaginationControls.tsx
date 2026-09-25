@@ -1,50 +1,73 @@
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
+import Button from "./ui/button";
+
+interface PaginationControlsProps {
+	totalLabel: string;
+	pageCount: number;
+	safePage: number;
+	onPageChange: (page: number) => void;
+	canPreviousPage?: boolean;
+	canNextPage?: boolean;
+	onPrevious?: () => void;
+	onNext?: () => void;
+}
+
 export default function PaginationControls({
 	totalLabel,
 	pageCount,
 	safePage,
 	onPageChange,
-}: {
-	totalLabel: string;
-	pageCount: number;
-	safePage: number;
-	onPageChange: (page: number) => void;
-}) {
+	canPreviousPage,
+	canNextPage,
+	onPrevious,
+	onNext,
+}: Readonly<PaginationControlsProps>) {
+	const canPrev = canPreviousPage ?? safePage > 0;
+	const canNext = canNextPage ?? safePage < pageCount - 1;
+
 	return (
 		<div className="flex items-center justify-between border-t border-base-border px-4 py-3">
 			<span className="text-xs text-text">{totalLabel}</span>
 			<div className="flex items-center gap-1">
-				<button
-					type="button"
+				<Button
+					variant="outline"
+					size="icon"
+					className="size-7"
 					aria-label="Previous page"
-					disabled={safePage === 0}
-					onClick={() => onPageChange(Math.max(0, safePage - 1))}
-					className="flex size-7 items-center justify-center rounded-lg border border-base-border bg-white text-text-h hover:bg-base disabled:opacity-40"
+					disabled={!canPrev}
+					onClick={
+						onPrevious ?? (() => onPageChange(Math.max(0, safePage - 1)))
+					}
 				>
 					<ChevronLeftIcon size={14} />
-				</button>
+				</Button>
 				{Array.from({ length: pageCount }, (_, i) => (
-					<button
+					<Button
 						key={i}
-						type="button"
+						variant={safePage === i ? "primary" : "outline"}
+						size="icon"
+						className="size-7 text-xs"
 						aria-label={`Page ${i + 1}`}
 						aria-current={safePage === i ? "page" : undefined}
 						onClick={() => onPageChange(i)}
-						className={`flex size-7 items-center justify-center rounded-lg border text-xs ${safePage === i ? "border-primary bg-primary text-white" : "border-base-border bg-white text-text-h hover:bg-base"}`}
 					>
 						{i + 1}
-					</button>
+					</Button>
 				))}
-				<button
-					type="button"
+				<Button
+					variant="outline"
+					size="icon"
+					className="size-7"
 					aria-label="Next page"
-					disabled={safePage >= pageCount - 1}
-					onClick={() => onPageChange(Math.min(pageCount - 1, safePage + 1))}
-					className="flex size-7 items-center justify-center rounded-lg border border-base-border bg-white text-text-h hover:bg-base disabled:opacity-40"
+					disabled={!canNext}
+					onClick={
+						onNext ??
+						(() => onPageChange(Math.min(pageCount - 1, safePage + 1)))
+					}
 				>
 					<ChevronRightIcon size={14} />
-				</button>
+				</Button>
 			</div>
 		</div>
 	);

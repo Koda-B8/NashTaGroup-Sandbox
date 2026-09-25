@@ -1,6 +1,19 @@
-import { Link } from "react-router";
+import { ShoppingCart } from "lucide-react";
+import { useState } from "react";
+import { useDispatch } from "react-redux";
+import { Link, useNavigate } from "react-router";
 
-import Breadcrumb from "./ui/breadcrumb";
+import { logout } from "../features/auth/api";
+import { useCrumbs } from "../hooks/useCrumbs";
+import { clearCsrfCache } from "../libs/api";
+import { APP_NAME } from "../libs/app";
+import type { AppDispatch } from "../store";
+import { clearCredentials } from "../store/slices/auth";
+import { clearCart } from "../store/slices/cart";
+import AppHeader from "./AppHeader";
+import LogoutButton from "./LogoutButton";
+import Button from "./ui/button";
+import Input from "./ui/input";
 
 interface SearchBoxProps {
 	onSearch?: (value: string) => void;
@@ -11,24 +24,27 @@ interface CartActionProps {
 }
 
 export default function Navbar() {
+	const crumbs = useCrumbs();
+
 	return (
-		<nav className="w-full bg-white h-17 shadow-sm flex items-center px-7 justify-between">
-			<section className="flex text-xs gap-xp lg:text-lg lg:items-center lg:gap-10 flex-col-reverse lg:flex-row">
-				<Link to={"/"}>
-					<p>NashTa Group</p>
+		<AppHeader
+			leading={
+				<Link
+					to={"/"}
+					className="font-semibold text-text-h"
+				>
+					{APP_NAME}
 				</Link>
-				<Breadcrumb
-					items={[
-						{ label: "Products", to: "/" },
-						{ label: "Browse", to: "/" },
-					]}
-				/>
-			</section>
-			<section className="flex items-center gap-3">
-				<SearchBox />
-				<CartAction count={4} />
-			</section>
-		</nav>
+			}
+			items={crumbs}
+			actions={
+				<>
+					<SearchBox />
+					<CartAction count={4} />
+					<LogoutAction />
+				</>
+			}
+		/>
 	);
 }
 
@@ -38,26 +54,52 @@ function SearchBox({ onSearch }: SearchBoxProps) {
 	}
 
 	return (
-		<form className="w-60 border hidden lg:flex border-base-border h-9 bg-base rounded-md">
-			<input
-				onChange={handleSearchProduct}
-				className="w-full h-full outline-none text-sm pl-3"
-				placeholder="Search Product.."
-				type="text"
-			/>
-		</form>
+		<Input
+			size="sm"
+			type="search"
+			placeholder="Search Product.."
+			className="hidden w-52 lg:block"
+			onChange={handleSearchProduct}
+		/>
+	);
+}
+
+function LogoutAction() {
+	const dispatch = useDispatch<AppDispatch>();
+	const navigate = useNavigate();
+	const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+	async function handleLogout(): Promise<void> {
+		setIsLoggingOut(true);
+		await logout();
+		dispatch(clearCredentials());
+		dispatch(clearCart());
+		clearCsrfCache();
+		navigate("/login", { replace: true });
+	}
+
+	return (
+		<LogoutButton
+			loading={isLoggingOut}
+			onClick={handleLogout}
+		/>
 	);
 }
 
 function CartAction({ count }: Readonly<CartActionProps>) {
 	return (
-		<div className="h-9 w-9 cursor-pointer rounded-full bg-base border border-primary relative">
-			<div
-				className="absolute text-white bg-primary rounded-full text-xs -top-2 
-			-right-1 w-5 h-5 centerized"
-			>
-				{count}
-			</div>
-		</div>
+		<Button
+			variant="ghost"
+			size="icon"
+			aria-label={`Keranjang, ${count} item`}
+			className="relative"
+		>
+			<ShoppingCart size={16} />
+			{count > 0 && (
+				<span className="centerized absolute -top-0.5 -right-0.5 size-4 rounded-full bg-primary text-3xs font-semibold text-white">
+					{count}
+				</span>
+			)}
+		</Button>
 	);
 }

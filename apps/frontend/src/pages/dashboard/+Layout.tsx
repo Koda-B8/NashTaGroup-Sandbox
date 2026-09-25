@@ -12,22 +12,22 @@ import {
 	FileDownIcon,
 	ChevronDownIcon,
 	ChevronsLeftIcon,
-	Loader2,
-	LogOutIcon,
 } from "lucide-react";
 import { useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Outlet, Link, useLocation, useNavigate } from "react-router";
 
+import AppHeader from "../../components/AppHeader";
+import LogoutButton from "../../components/LogoutButton";
 import Shell from "../../components/Shell";
 import Avatar from "../../components/ui/avatar";
 import Badge from "../../components/ui/badge";
-import Breadcrumb from "../../components/ui/breadcrumb";
-import Button from "../../components/ui/button";
 import Input from "../../components/ui/input";
 import { logout } from "../../features/auth/api";
+import { useCrumbs } from "../../hooks/useCrumbs";
 import { clearCsrfCache } from "../../libs/api";
-import type { AppDispatch } from "../../store";
+import { APP_NAME } from "../../libs/app";
+import type { AppDispatch, RootState } from "../../store";
 import { clearCredentials } from "../../store/slices/auth";
 
 interface SidebarNavItem {
@@ -86,6 +86,7 @@ const SIDEBAR_NAV_GROUPS: SidebarNavGroup[] = [
 				children: [
 					{ label: "All Products", path: "/dashboard/products" },
 					{ label: "Categories", path: "/dashboard/products/categories" },
+					{ label: "Brands", path: "/dashboard/products/brands" },
 					{ label: "Inventory", path: "/dashboard/products/inventory" },
 				],
 			},
@@ -145,14 +146,14 @@ function WorkspaceSwitcher() {
 			type="button"
 			className="flex w-full items-center gap-3 rounded-lg px-1 py-1 text-left hover:bg-base"
 		>
-			<span className="flex size-7.5 items-center justify-center rounded-md bg-primary text-xs font-bold text-white">
+			<span className="flex size-7.5 items-center justify-center rounded-lg bg-primary text-xs font-bold text-white">
 				N
 			</span>
 			<span className="flex-1">
-				<span className="block text-[13px] font-medium text-text-h">
-					Nashta Group
+				<span className="block text-sm font-medium text-text-h">
+					{APP_NAME}
 				</span>
-				<span className="block text-[10px] text-text">Dashboard</span>
+				<span className="block text-3xs text-text">Dashboard</span>
 			</span>
 			<ChevronDownIcon
 				size={14}
@@ -176,7 +177,7 @@ function SidebarNavNode({ item, depth = 0 }: SidebarNavNodeProps) {
 			(hasChildren && location.pathname.startsWith(item.path))
 		: false;
 
-	const rowClass = `flex h-8 w-full items-center gap-2 rounded-md px-2.5 text-[13px] select-none ${
+	const rowClass = `flex h-8 w-full items-center gap-2 rounded-lg px-2.5 text-sm select-none ${
 		isActive
 			? "bg-primary-light font-medium text-primary"
 			: "text-text hover:bg-base hover:text-text-h"
@@ -237,7 +238,7 @@ function SidebarNavNode({ item, depth = 0 }: SidebarNavNodeProps) {
 					</Badge>
 				)}
 				{item.shortcut && (
-					<span className="text-[10px] text-text">{item.shortcut}</span>
+					<span className="text-3xs text-text">{item.shortcut}</span>
 				)}
 			</Link>
 		</div>
@@ -247,6 +248,7 @@ function SidebarNavNode({ item, depth = 0 }: SidebarNavNodeProps) {
 function Sidebar() {
 	const dispatch = useDispatch<AppDispatch>();
 	const navigate = useNavigate();
+	const user = useSelector((state: RootState) => state.auth.user);
 	const [isLoggingOut, setIsLoggingOut] = useState(false);
 
 	const handleLogout = async () => {
@@ -258,7 +260,7 @@ function Sidebar() {
 	};
 
 	return (
-		<aside className="flex h-full w-64 shrink-0 flex-col border-r border-base-border bg-[#fcfcfd]">
+		<aside className="flex h-full w-64 shrink-0 flex-col border-r border-base-border bg-surface">
 			<div className="flex-1 overflow-y-auto p-3">
 				<WorkspaceSwitcher />
 				<div className="my-3 border-t border-base-border" />
@@ -269,7 +271,7 @@ function Sidebar() {
 							className="flex flex-col gap-0.5"
 						>
 							{group.heading && (
-								<p className="mt-3 px-2.5 pb-1 text-[9px] font-semibold tracking-wider text-text">
+								<p className="mt-3 px-2.5 pb-1 text-4xs font-semibold tracking-wider text-text">
 									{group.heading}
 								</p>
 							)}
@@ -286,70 +288,78 @@ function Sidebar() {
 			<div className="flex items-center gap-3 border-t border-base-border px-4 py-3">
 				<Avatar
 					size="sm"
-					name="Admin"
+					name={user?.fullname ?? "Admin"}
 				/>
 				<div>
-					<p className="text-xs font-medium text-text-h">Admin User</p>
-					<p className="text-[10px] text-text">Administrator</p>
+					<p className="text-xs font-medium text-text-h">
+						{user?.fullname ?? "Admin"}
+					</p>
+					<p className="text-3xs text-text capitalize">{user?.role}</p>
 				</div>
-				<Button
-					variant="ghost"
-					size="icon"
-					className="ml-auto"
-					aria-label="Log out"
-					disabled={isLoggingOut}
+				<LogoutButton
+					loading={isLoggingOut}
 					onClick={handleLogout}
-				>
-					{isLoggingOut ? (
-						<Loader2
-							size={16}
-							className="animate-spin"
-						/>
-					) : (
-						<LogOutIcon size={16} />
-					)}
-				</Button>
+					className="ml-auto"
+				/>
 			</div>
 		</aside>
 	);
 }
 
-function Header() {
+interface HeaderProps {
+	isSidebarOpen: boolean;
+	onToggleSidebar: () => void;
+}
+
+function Header({ isSidebarOpen, onToggleSidebar }: Readonly<HeaderProps>) {
+	const user = useSelector((state: RootState) => state.auth.user);
+	const crumbs = useCrumbs();
+
 	return (
-		<header className="flex h-14 shrink-0 items-center gap-4 border-b border-base-border bg-white px-4">
-			<button
-				type="button"
-				aria-label="Toggle sidebar"
-				className="flex size-8 items-center justify-center rounded-lg text-text hover:bg-base hover:text-text-h"
-			>
-				<ChevronsLeftIcon size={16} />
-			</button>
-			<Breadcrumb
-				items={[
-					{ label: "Nashta Group", to: "/dashboard" },
-					{ label: "Transactions" },
-				]}
-			/>
-			<div className="ml-auto flex items-center gap-3">
-				<Input
-					size="sm"
-					placeholder="Search..."
-					className="w-52"
-				/>
-				<Avatar
-					size="sm"
-					name="Admin"
-				/>
-			</div>
-		</header>
+		<AppHeader
+			leading={
+				<button
+					type="button"
+					aria-label={isSidebarOpen ? "Hide sidebar" : "Show sidebar"}
+					onClick={onToggleSidebar}
+					className="flex size-8 items-center justify-center rounded-lg text-text hover:bg-base hover:text-text-h"
+				>
+					<ChevronsLeftIcon
+						size={16}
+						className={isSidebarOpen ? "" : "rotate-180"}
+					/>
+				</button>
+			}
+			items={crumbs}
+			actions={
+				<>
+					<Input
+						size="sm"
+						placeholder="Search..."
+						className="w-52"
+					/>
+					<Avatar
+						size="sm"
+						name={user?.fullname ?? "Admin"}
+					/>
+				</>
+			}
+		/>
 	);
 }
 
 export default function DashboardLayout() {
+	const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
 	return (
 		<Shell
-			header={<Header />}
-			left={<Sidebar />}
+			header={
+				<Header
+					isSidebarOpen={isSidebarOpen}
+					onToggleSidebar={() => setIsSidebarOpen((open) => !open)}
+				/>
+			}
+			left={isSidebarOpen && <Sidebar />}
 			spanLeft
 		>
 			<div className="p-4">

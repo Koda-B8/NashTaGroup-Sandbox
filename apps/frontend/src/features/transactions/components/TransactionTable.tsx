@@ -140,6 +140,7 @@ export default function TransactionTable({
 			loadingLabel="Memuat transaksi..."
 			emptyLabel="No transactions found."
 			tableClassName="min-w-[800px]"
+			cardClassName="flex min-h-[560px] flex-col"
 			activeId={selectedId}
 			onRowClick={(row) => onSelect(row.id)}
 			selectedIds={selectedIds}

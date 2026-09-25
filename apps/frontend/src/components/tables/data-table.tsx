@@ -42,6 +42,7 @@ export interface DataTableProps<Row extends RowData> {
 	loadingLabel: string;
 	emptyLabel: string;
 	tableClassName?: string;
+	cardClassName?: string;
 
 	pageCount: number;
 	safePage: number;
@@ -72,6 +73,7 @@ export default function DataTable<Row extends RowData>({
 	loadingLabel,
 	emptyLabel,
 	tableClassName = "",
+	cardClassName = "",
 	pageCount,
 	safePage,
 	onPageChange,
@@ -117,9 +119,9 @@ export default function DataTable<Row extends RowData>({
 	return (
 		<Card
 			padding="none"
-			className="overflow-hidden"
+			className={`overflow-hidden ${cardClassName}`.trim()}
 		>
-			<div className="overflow-x-auto">
+			<div className="flex flex-1 flex-col overflow-x-auto">
 				<table
 					className={`w-full text-left text-sm ${tableClassName}`.trim()}
 					aria-label={label}

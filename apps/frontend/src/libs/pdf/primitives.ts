@@ -56,10 +56,10 @@ export function fitText(doc: jsPDF, text: string, maxWidth: number): string {
  */
 export function safePdfText(value: string): string {
 	return value
-		.replaceAll('→', "->")
-		.replaceAll('←', "<-")
+		.replaceAll("→", "->")
+		.replaceAll("←", "<-")
 		.replaceAll(/[–—]/g, "-")
-		.replaceAll('•', "·")
+		.replaceAll("•", "·")
 		.replaceAll(/[’‘]/g, "'")
 		.replaceAll(/[“”]/g, '"')
 		.replaceAll(/[^\u0020-\u00FF]/g, "?");

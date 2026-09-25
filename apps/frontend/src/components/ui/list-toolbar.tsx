@@ -20,11 +20,16 @@ export default function ListToolbar({
 	);
 }
 
-export function ListSearch(props: Omit<InputProps, "size" | "className">) {
+export function ListSearch({
+	wide = false,
+	...props
+}: Omit<InputProps, "size" | "className"> & { wide?: boolean }) {
 	return (
 		<Input
 			size="sm"
-			className="w-full sm:max-w-[228px]"
+			className={
+				wide ? "w-full shrink-0 sm:max-w-[248px]" : "w-full sm:max-w-[228px]"
+			}
 			{...props}
 		/>
 	);

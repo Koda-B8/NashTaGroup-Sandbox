@@ -9,9 +9,12 @@ import { useState } from "react";
 
 import BarChart from "../../components/charts/bar-chart";
 import DonutChart from "../../components/charts/donut-chart";
+import DataTable, {
+	createTableColumnHelper,
+} from "../../components/tables/data-table";
 import Badge from "../../components/ui/badge";
 import Button from "../../components/ui/button";
-import Card from "../../components/ui/card";
+import Card, { CardHeader } from "../../components/ui/card";
 import FilterPills from "../../components/ui/filter-pills";
 import Section from "../../components/ui/section";
 import StatCard from "../../components/ui/stat-card";
@@ -114,6 +117,67 @@ const TOP_PRODUCTS = [
 	},
 ];
 
+const topProduct = createTableColumnHelper<(typeof TOP_PRODUCTS)[number]>();
+
+const TOP_PRODUCT_COLUMNS = topProduct.columns([
+	topProduct.accessor("rank", {
+		header: "#",
+		cell: ({ row }) => (
+			<span
+				className={`inline-flex size-6 items-center justify-center rounded-lg text-2xs font-bold ${row.original.badgeColor}`}
+			>
+				{row.original.rank}
+			</span>
+		),
+		meta: { headClassName: "w-10" },
+	}),
+	topProduct.accessor("name", {
+		header: "Product",
+		cell: ({ row }) => (
+			<>
+				<p className="font-semibold text-text-h">{row.original.name}</p>
+				<p className="text-2xs text-text">{row.original.category}</p>
+			</>
+		),
+	}),
+	topProduct.accessor("qty", {
+		header: "Sold",
+		cell: ({ row }) => row.original.qty,
+		meta: {
+			headClassName: "text-right",
+			cellClassName: "text-right font-medium text-text-h",
+		},
+	}),
+	topProduct.accessor("revenue", {
+		header: "Revenue",
+		cell: ({ row }) => row.original.revenue,
+		meta: {
+			headClassName: "text-right",
+			cellClassName: "text-right font-bold text-text-h",
+		},
+	}),
+	topProduct.accessor("change", {
+		header: "Trend",
+		cell: ({ row }) => (
+			<span
+				className={`inline-flex items-center gap-0.5 rounded-lg px-1.5 py-0.5 text-3xs font-semibold ${
+					row.original.isUp
+						? "bg-valid text-deep-valid"
+						: "bg-danger text-deep-danger"
+				}`}
+			>
+				{row.original.isUp ? (
+					<TrendingUpIcon size={10} />
+				) : (
+					<TrendingDownIcon size={10} />
+				)}
+				{row.original.change}
+			</span>
+		),
+		meta: { headClassName: "text-center", cellClassName: "text-center" },
+	}),
+]);
+
 const PAYMENT_METHODS = [
 	{ name: "Cash", pct: 45, count: "1,281", color: "#3b82f6" },
 	{ name: "Transfer", pct: 30, count: "854", color: "#10b981" },
@@ -186,11 +250,10 @@ export default function MainDashboard() {
 					padding="lg"
 					className="flex flex-col gap-4"
 				>
-					<div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-						<div>
-							<h5 className="font-bold">Sales Trend</h5>
-							<p className="text-xs text-text">Monthly revenue · 2025</p>
-						</div>
+					<CardHeader
+						title="Sales Trend"
+						description="Monthly revenue · 2025"
+					>
 						<div className="flex items-center gap-4 text-xs">
 							<div className="flex items-center gap-1.5">
 								<span className="size-2.5 rounded-full bg-primary" />
@@ -200,7 +263,7 @@ export default function MainDashboard() {
 								Total: Rp 128.45M
 							</span>
 						</div>
-					</div>
+					</CardHeader>
 
 					<div className="mt-2">
 						<BarChart
@@ -215,88 +278,39 @@ export default function MainDashboard() {
 
 			<Section title="Reporting">
 				<div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
-					<Card
-						padding="md"
-						className="flex flex-col gap-4 lg:col-span-3"
-					>
-						<div className="flex items-center justify-between">
-							<div>
-								<h5 className="font-bold">Top Selling Products</h5>
-								<p className="text-xs text-text">Best performers this period</p>
-							</div>
-							<Badge
-								variant="primary"
-								size="sm"
+					<DataTable
+						label="Top selling products"
+						columns={TOP_PRODUCT_COLUMNS}
+						rows={TOP_PRODUCTS}
+						rowId={(p) => String(p.rank)}
+						loading={false}
+						loadingLabel=""
+						emptyLabel="No products yet."
+						tableClassName="text-xs"
+						cardClassName="lg:col-span-3"
+						header={
+							<CardHeader
+								title="Top Selling Products"
+								description="Best performers this period"
 							>
-								5 items
-							</Badge>
-						</div>
-
-						<div className="overflow-x-auto">
-							<table className="w-full text-left text-xs">
-								<thead>
-									<tr className="border-b border-base-border bg-base text-2xs font-semibold tracking-wider text-text uppercase">
-										<th className="w-10 px-3 py-2.5">#</th>
-										<th className="px-3 py-2.5">Product</th>
-										<th className="px-3 py-2.5 text-right">Sold</th>
-										<th className="px-3 py-2.5 text-right">Revenue</th>
-										<th className="px-3 py-2.5 text-center">Trend</th>
-									</tr>
-								</thead>
-								<tbody className="divide-y divide-base-border">
-									{TOP_PRODUCTS.map((p) => (
-										<tr
-											key={p.rank}
-											className="transition-colors hover:bg-base/50"
-										>
-											<td className="px-3 py-3 font-medium">
-												<span
-													className={`inline-flex size-6 items-center justify-center rounded-lg text-2xs font-bold ${p.badgeColor}`}
-												>
-													{p.rank}
-												</span>
-											</td>
-											<td className="px-3 py-3">
-												<p className="font-semibold text-text-h">{p.name}</p>
-												<p className="text-2xs text-text">{p.category}</p>
-											</td>
-											<td className="px-3 py-3 text-right font-medium text-text-h">
-												{p.qty}
-											</td>
-											<td className="px-3 py-3 text-right font-bold text-text-h">
-												{p.revenue}
-											</td>
-											<td className="px-3 py-3 text-center">
-												<span
-													className={`inline-flex items-center gap-0.5 rounded-lg px-1.5 py-0.5 text-3xs font-semibold ${
-														p.isUp
-															? "bg-valid text-deep-valid"
-															: "bg-danger text-deep-danger"
-													}`}
-												>
-													{p.isUp ? (
-														<TrendingUpIcon size={10} />
-													) : (
-														<TrendingDownIcon size={10} />
-													)}
-													{p.change}
-												</span>
-											</td>
-										</tr>
-									))}
-								</tbody>
-							</table>
-						</div>
-					</Card>
+								<Badge
+									variant="primary"
+									size="sm"
+								>
+									5 items
+								</Badge>
+							</CardHeader>
+						}
+					/>
 
 					<Card
 						padding="md"
 						className="flex flex-col gap-4 lg:col-span-2"
 					>
-						<div>
-							<h5 className="font-bol">Payment Methods</h5>
-							<p className="text-xs text-text">Transaction distribution</p>
-						</div>
+						<CardHeader
+							title="Payment Methods"
+							description="Transaction distribution"
+						/>
 
 						<div className="flex flex-col gap-4">
 							<div className="relative">

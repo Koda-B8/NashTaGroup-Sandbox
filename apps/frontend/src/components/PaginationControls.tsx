@@ -2,17 +2,30 @@ import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
 import Button from "./ui/button";
 
+interface PaginationControlsProps {
+	totalLabel: string;
+	pageCount: number;
+	safePage: number;
+	onPageChange: (page: number) => void;
+	canPreviousPage?: boolean;
+	canNextPage?: boolean;
+	onPrevious?: () => void;
+	onNext?: () => void;
+}
+
 export default function PaginationControls({
 	totalLabel,
 	pageCount,
 	safePage,
 	onPageChange,
-}: {
-	totalLabel: string;
-	pageCount: number;
-	safePage: number;
-	onPageChange: (page: number) => void;
-}) {
+	canPreviousPage,
+	canNextPage,
+	onPrevious,
+	onNext,
+}: Readonly<PaginationControlsProps>) {
+	const canPrev = canPreviousPage ?? safePage > 0;
+	const canNext = canNextPage ?? safePage < pageCount - 1;
+
 	return (
 		<div className="flex items-center justify-between border-t border-base-border px-4 py-3">
 			<span className="text-xs text-text">{totalLabel}</span>
@@ -22,8 +35,10 @@ export default function PaginationControls({
 					size="icon"
 					className="size-7"
 					aria-label="Previous page"
-					disabled={safePage === 0}
-					onClick={() => onPageChange(Math.max(0, safePage - 1))}
+					disabled={!canPrev}
+					onClick={
+						onPrevious ?? (() => onPageChange(Math.max(0, safePage - 1)))
+					}
 				>
 					<ChevronLeftIcon size={14} />
 				</Button>
@@ -45,8 +60,11 @@ export default function PaginationControls({
 					size="icon"
 					className="size-7"
 					aria-label="Next page"
-					disabled={safePage >= pageCount - 1}
-					onClick={() => onPageChange(Math.min(pageCount - 1, safePage + 1))}
+					disabled={!canNext}
+					onClick={
+						onNext ??
+						(() => onPageChange(Math.min(pageCount - 1, safePage + 1)))
+					}
 				>
 					<ChevronRightIcon size={14} />
 				</Button>

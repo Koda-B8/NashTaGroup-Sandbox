@@ -161,12 +161,12 @@ export default function BrandsDashboard() {
 					actions={
 						<>
 							<Select
-								label="Sort brands"
+								label="Sort this page of brands"
 								value={sortBy}
 								onValueChange={(v) => setSortBy(v as SortBy)}
 								items={SORT_OPTIONS}
 								className="size-9 text-xs"
-								placeholder="Sort"
+								placeholder="Sort page"
 							/>
 							<Button
 								size="sm"

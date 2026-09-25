@@ -179,12 +179,12 @@ export default function InventoriesManagementDashboard() {
 						/>
 						<div className="flex shrink-0 items-center gap-2 sm:ml-auto">
 							<Select
-								label="Sort movements"
+								label="Sort this page of movements"
 								value={sortBy}
 								onValueChange={(value) => setSortBy(value as MovementSortBy)}
 								items={MOVEMENT_SORT_OPTIONS}
 								className="h-8 w-40 min-w-0 text-xs"
-								placeholder="Sort"
+								placeholder="Sort page"
 							/>
 							<Button
 								variant="outline"

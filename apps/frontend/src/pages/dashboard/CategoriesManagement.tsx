@@ -161,12 +161,12 @@ export default function CategoriesDashboard() {
 					actions={
 						<>
 							<Select
-								label="Sort categories"
+								label="Sort this page of categories"
 								value={sortBy}
 								onValueChange={(v) => setSortBy(v as SortBy)}
 								items={SORT_OPTIONS}
 								className="size-9 text-xs"
-								placeholder="Sort"
+								placeholder="Sort page"
 							/>
 							<Button
 								size="sm"

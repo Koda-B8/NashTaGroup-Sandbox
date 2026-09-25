@@ -115,12 +115,12 @@ export default function TransactionFiltersBar({
 				/>
 				<div className="flex shrink-0 items-center gap-2 sm:ml-auto">
 					<Select
-						label="Sort transactions"
+						label="Sort this page of transactions"
 						value={sortBy}
 						onValueChange={onSortChange}
 						items={SORT_OPTIONS}
 						className="h-8 w-40 min-w-0 text-xs"
-						placeholder="Sort"
+						placeholder="Sort page"
 					/>
 					<Button
 						variant="outline"

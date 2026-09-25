@@ -1,6 +1,8 @@
 import { type ReactNode, useId } from "react";
 import { cn } from "tailwind-variants";
 
+import { eyebrow } from "./eyebrow";
+
 interface SectionProps {
 	title: ReactNode;
 	children: ReactNode;
@@ -24,7 +26,7 @@ export default function Section({
 			<div className="flex flex-col gap-0.5">
 				<h2
 					id={headingId}
-					className="text-2xs font-semibold tracking-wider text-text uppercase"
+					className={eyebrow()}
 				>
 					{title}
 				</h2>

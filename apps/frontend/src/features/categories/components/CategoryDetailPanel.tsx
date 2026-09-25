@@ -1,6 +1,8 @@
 import Badge from "../../../components/ui/badge";
 import Button from "../../../components/ui/button";
 import DetailPanel, { DetailLine } from "../../../components/ui/detail-panel";
+import EmptyState from "../../../components/ui/empty-state";
+import Eyebrow from "../../../components/ui/eyebrow";
 import { ActiveBadge } from "../../../components/ui/status-badge";
 import { dotColor, formatDate } from "../../../libs/format";
 import type { Category, CategoryAttribute } from "../api";
@@ -98,9 +100,7 @@ export default function CategoryDetailPanel({
 
 			<div className="flex flex-col gap-1">
 				<div className="flex items-baseline justify-between gap-2">
-					<p className="text-3xs font-semibold tracking-wider text-text uppercase">
-						Atribut
-					</p>
+					<Eyebrow size="sm">Atribut</Eyebrow>
 					{attributes.length > 0 && (
 						<span className="text-2xs text-text">
 							{attributes.length} atribut
@@ -108,9 +108,7 @@ export default function CategoryDetailPanel({
 					)}
 				</div>
 				{attributes.length === 0 ? (
-					<p className="rounded-lg border border-dashed border-base-border px-3 py-4 text-center text-xs text-text">
-						Belum ada atribut.
-					</p>
+					<EmptyState>Belum ada atribut.</EmptyState>
 				) : (
 					<div className="flex flex-col divide-y divide-base-border">
 						{attributes.map((attribute, index) => (

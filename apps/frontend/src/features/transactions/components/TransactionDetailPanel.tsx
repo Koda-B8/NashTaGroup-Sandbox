@@ -5,6 +5,7 @@ import Badge from "../../../components/ui/badge";
 import Button from "../../../components/ui/button";
 import DetailPanel from "../../../components/ui/detail-panel";
 import ErrorBanner from "../../../components/ui/error-banner";
+import Eyebrow from "../../../components/ui/eyebrow";
 import { formatRupiah } from "../../../libs/formatRupiah";
 import type { Transaction } from "../api";
 import {
@@ -95,9 +96,7 @@ export default function TransactionDetailPanel({
 			<div className="border-t border-base-border" />
 
 			<div className="flex flex-col gap-2">
-				<p className="text-2xs font-semibold tracking-wider text-text uppercase">
-					Customer
-				</p>
+				<Eyebrow>Customer</Eyebrow>
 				<div className="flex items-center gap-2.5">
 					<Avatar
 						name={transaction.customer?.name ?? "Non-member"}
@@ -115,9 +114,7 @@ export default function TransactionDetailPanel({
 			</div>
 
 			<div className="flex flex-col gap-2">
-				<p className="text-2xs font-semibold tracking-wider text-text uppercase">
-					Cashier
-				</p>
+				<Eyebrow>Cashier</Eyebrow>
 				<div className="flex items-center gap-2.5">
 					<Avatar
 						name={transaction.cashier?.fullname ?? "Cashier"}
@@ -135,9 +132,7 @@ export default function TransactionDetailPanel({
 			<div className="border-t border-base-border" />
 
 			<div className="flex flex-col gap-1">
-				<p className="text-2xs font-semibold tracking-wider text-text uppercase">
-					Items Ordered
-				</p>
+				<Eyebrow>Items Ordered</Eyebrow>
 				{loading ? (
 					<p className="py-6 text-center text-xs text-text">Memuat detail...</p>
 				) : error ? (
@@ -179,9 +174,7 @@ export default function TransactionDetailPanel({
 				<>
 					<div className="border-t border-base-border" />
 					<div className="flex flex-col gap-1.5">
-						<p className="text-2xs font-semibold tracking-wider text-text uppercase">
-							Summary
-						</p>
+						<Eyebrow>Summary</Eyebrow>
 						{summaryRows.map(([key, value]) => {
 							const isTotal = key.toLowerCase() === "total";
 							return (
@@ -217,9 +210,7 @@ export default function TransactionDetailPanel({
 			<div className="border-t border-base-border" />
 
 			<div className="flex flex-col gap-2">
-				<p className="text-2xs font-semibold tracking-wider text-text uppercase">
-					Payment
-				</p>
+				<Eyebrow>Payment</Eyebrow>
 				<div className="flex flex-wrap items-center gap-2">
 					<Badge
 						variant="neutral"

@@ -2,6 +2,8 @@ import { Plus, Trash2 } from "lucide-react";
 
 import Button from "../../../components/ui/button";
 import Checkbox from "../../../components/ui/checkbox";
+import EmptyState from "../../../components/ui/empty-state";
+import Eyebrow from "../../../components/ui/eyebrow";
 import Input from "../../../components/ui/input";
 import type { ProductItemDraft, ProductItemDraftErrors } from "../format";
 
@@ -33,9 +35,7 @@ export default function ProductVariantEditor({
 		<div className="flex flex-col gap-3">
 			<div className="flex items-center justify-between gap-2">
 				<div className="flex items-baseline gap-2">
-					<p className="text-3xs font-bold tracking-wider text-text uppercase">
-						Varian
-					</p>
+					<Eyebrow size="sm">Varian</Eyebrow>
 					{note && <span className="text-2xs text-text">{note}</span>}
 				</div>
 				{onAdd && (
@@ -52,9 +52,7 @@ export default function ProductVariantEditor({
 			</div>
 
 			{items.length === 0 ? (
-				<p className="rounded-lg border border-dashed border-base-border px-3 py-4 text-center text-xs text-text">
-					{emptyHint}
-				</p>
+				<EmptyState>{emptyHint}</EmptyState>
 			) : (
 				<ul className="flex flex-col gap-2">
 					{items.map((item, index) => {

@@ -7,6 +7,7 @@ import Modal, {
 	ModalBody,
 } from "../../../components/ui/modal";
 import Select from "../../../components/ui/select";
+import { StatStrip, StatStripItem } from "../../../components/ui/stat-tile";
 import { type AdjustmentType, adjustStock, type StockAdjustment } from "../api";
 
 const TYPE_OPTIONS: { label: string; value: AdjustmentType }[] = [
@@ -188,21 +189,22 @@ export default function AdjustStockModal({
 
 					{error && <span className="text-2xs text-deep-danger">{error}</span>}
 
-					<div className="flex items-center justify-between rounded-lg border border-base-border bg-base px-3 py-2.5">
-						<div className="flex flex-col">
-							<span className="text-2xs text-text">Current stock</span>
+					<StatStrip>
+						<StatStripItem label="Current stock">
 							<span className="text-sm font-semibold text-text-h">
 								{currentStock}
 							</span>
-						</div>
+						</StatStripItem>
 						<span
 							className="text-text"
 							aria-hidden
 						>
 							→
 						</span>
-						<div className="flex flex-col items-end">
-							<span className="text-2xs text-text">After</span>
+						<StatStripItem
+							label="After"
+							end
+						>
 							<span
 								className={`text-sm font-bold ${
 									previewStock < 0 ? "text-deep-danger" : "text-text-h"
@@ -210,8 +212,8 @@ export default function AdjustStockModal({
 							>
 								{previewStock}
 							</span>
-						</div>
-					</div>
+						</StatStripItem>
+					</StatStrip>
 				</ModalBody>
 				<FormModalFooter
 					submitting={submitting}

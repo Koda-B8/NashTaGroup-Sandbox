@@ -8,7 +8,12 @@ import {
 	deleteProductImage as deleteCloudinaryImage,
 	uploadProductImage as uploadCloudinaryImage,
 } from "../lib/cloudinary.js";
-import { paginate } from "../lib/pagination.js";
+import { paginate, parsePagination } from "../lib/pagination.js";
+import {
+	productListCacheKey,
+	readProductListCache,
+	writeProductListCache,
+} from "../lib/product-list-cache.js";
 import db from "../models/index.cjs";
 import { createHttpError } from "../utils/http-error.js";
 import {
@@ -455,6 +460,17 @@ export async function getProducts(req, res, next) {
 				"brandId must be a valid UUID",
 			);
 		}
+		const { page, limit } = parsePagination(req.query);
+		const cacheKey = await productListCacheKey({
+			search,
+			categoryId,
+			brandId,
+			isActive,
+			page,
+			limit,
+		});
+		const cached = await readProductListCache(cacheKey);
+		if (cached) return res.status(constants.HTTP_STATUS_OK).json(cached);
 
 		const where = {};
 
@@ -475,12 +491,14 @@ export async function getProducts(req, res, next) {
 			distinct: true,
 		});
 
-		return res.status(constants.HTTP_STATUS_OK).json({
+		const body = {
 			success: true,
 			message: "Products retrieved successfully",
 			data: rows.map((row) => toProductResponse(row)),
 			meta: { pagination },
-		});
+		};
+		await writeProductListCache(cacheKey, body);
+		return res.status(constants.HTTP_STATUS_OK).json(body);
 	} catch (error) {
 		return next(error);
 	}

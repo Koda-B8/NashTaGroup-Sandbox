@@ -352,7 +352,7 @@ export default function MainDashboard() {
 			<Section title="Overview">
 				<StatGrid>
 					{statCards.map((card) => {
-						const Icon = card.icon;
+						// const Icon = card.icon;
 						return (
 							<StatCard
 								key={card.id}
@@ -361,7 +361,7 @@ export default function MainDashboard() {
 								label={card.label}
 								value={card.value}
 								note={card.note}
-								icon={<Icon size={16} />}
+								// icon={<Icon size={16} />}
 								iconClassName={card.iconClassName}
 							/>
 						);

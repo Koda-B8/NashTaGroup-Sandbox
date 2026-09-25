@@ -28,6 +28,7 @@ import Toast from "../../components/ui/toast";
 import {
 	formatCompactCurrency,
 	formatCurrency,
+	fillSalesPeriods,
 	formatPeriodLabel,
 	TIME_RANGE_ITEMS,
 	toNumber,
@@ -177,11 +178,13 @@ export default function MainDashboard() {
 
 	const chartData = useMemo(() => {
 		if (!sales) return [];
-		return sales.rows.toReversed().map((row) => ({
-			label: formatPeriodLabel(row.period_start, sales.period),
-			value: toNumber(row.total_sales),
-		}));
-	}, [sales]);
+		return fillSalesPeriods(sales.rows, sales.period, range.from, range.to).map(
+			(point) => ({
+				label: formatPeriodLabel(point.periodStart, sales.period),
+				value: point.value,
+			}),
+		);
+	}, [sales, range.from, range.to]);
 
 	const topProducts = useMemo<TopProductRow[]>(() => {
 		return (products?.items ?? []).slice(0, 5).map((item, index) => ({
@@ -243,6 +246,9 @@ export default function MainDashboard() {
 		try {
 			const data = await loadSalesReportPdfData({
 				range: timeRange,
+				from: range.from,
+				to: range.to,
+				period: range.period,
 				generatedBy: user?.fullname ?? "Admin",
 			});
 			await downloadSalesReportPdf(data, data.fileName);

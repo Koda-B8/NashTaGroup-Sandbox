@@ -1,5 +1,8 @@
 import type { ReactNode } from "react";
 
+import Input, { type InputProps } from "./input";
+import Select, { type SelectProps } from "./select";
+
 export default function ListToolbar({
 	filters,
 	actions,
@@ -14,5 +17,27 @@ export default function ListToolbar({
 			</div>
 			{actions && <div className="flex items-center gap-2">{actions}</div>}
 		</div>
+	);
+}
+
+export function ListSearch(props: Omit<InputProps, "size" | "className">) {
+	return (
+		<Input
+			size="sm"
+			className="w-full sm:max-w-[228px]"
+			{...props}
+		/>
+	);
+}
+
+export function ListSort<Value extends string>(
+	props: Omit<SelectProps<Value>, "className" | "placeholder">,
+) {
+	return (
+		<Select
+			className="size-9 text-xs"
+			placeholder="Sort page"
+			{...props}
+		/>
 	);
 }

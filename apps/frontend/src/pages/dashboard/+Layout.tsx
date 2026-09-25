@@ -12,18 +12,16 @@ import {
 	FileDownIcon,
 	ChevronDownIcon,
 	ChevronsLeftIcon,
-	Loader2,
-	LogOutIcon,
 } from "lucide-react";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Outlet, Link, useLocation, useNavigate } from "react-router";
 
 import AppHeader from "../../components/AppHeader";
+import LogoutButton from "../../components/LogoutButton";
 import Shell from "../../components/Shell";
 import Avatar from "../../components/ui/avatar";
 import Badge from "../../components/ui/badge";
-import Button from "../../components/ui/button";
 import Input from "../../components/ui/input";
 import { logout } from "../../features/auth/api";
 import { clearCsrfCache } from "../../libs/api";
@@ -296,23 +294,11 @@ function Sidebar() {
 					</p>
 					<p className="text-3xs text-text capitalize">{user?.role}</p>
 				</div>
-				<Button
-					variant="ghost"
-					size="icon"
-					className="ml-auto"
-					aria-label="Log out"
-					disabled={isLoggingOut}
+				<LogoutButton
+					loading={isLoggingOut}
 					onClick={handleLogout}
-				>
-					{isLoggingOut ? (
-						<Loader2
-							size={16}
-							className="animate-spin"
-						/>
-					) : (
-						<LogOutIcon size={16} />
-					)}
-				</Button>
+					className="ml-auto"
+				/>
 			</div>
 		</aside>
 	);

@@ -4,7 +4,7 @@ import Breadcrumb, { type Crumb } from "./ui/breadcrumb";
 
 interface AppHeaderProps {
 	leading?: ReactNode;
-	items: Crumb[];
+	items?: Crumb[];
 	actions?: ReactNode;
 }
 
@@ -16,7 +16,7 @@ export default function AppHeader({
 	return (
 		<header className="flex h-14 w-full shrink-0 items-center gap-4 border-b border-base-border bg-surface px-4">
 			{leading}
-			<Breadcrumb items={items} />
+			{items && <Breadcrumb items={items} />}
 			<div className="ml-auto flex items-center gap-3">{actions}</div>
 		</header>
 	);

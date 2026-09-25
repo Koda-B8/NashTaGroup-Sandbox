@@ -3,10 +3,11 @@ import { Outlet, useMatches } from "react-router";
 
 import NavSkeleton from "../components/NavSkeleton";
 import Shell from "../components/Shell";
+import type { CrumbHandle } from "../hooks/useCrumbs";
 
 const Navbar = lazy(() => import("../components/Navbar"));
 
-export interface PanelHandle {
+export interface PanelHandle extends CrumbHandle {
 	left?: ComponentType;
 	right?: ComponentType;
 }

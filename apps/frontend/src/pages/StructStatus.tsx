@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from "react-router";
 
 import OrderStatusBar from "../components/OrderStatusBar";
 import Card from "../components/ui/card";
+import { APP_NAME } from "../libs/app";
 import { formatRupiah } from "../libs/formatRupiah";
 import type { CartItem } from "../store/slices/cart";
 
@@ -72,7 +73,7 @@ export default function StructStatus() {
 
 				<Card padding="md">
 					<header className="flex h-15 flex-col items-center justify-center border-b border-base-border py-2">
-						<h6 className="text-sm font-semibold text-text-h">NashTa Group</h6>
+						<h6 className="text-sm font-semibold text-text-h">{APP_NAME}</h6>
 						<p>Jl. Melati No.12, Malang • 0812-3456-7890</p>
 					</header>
 

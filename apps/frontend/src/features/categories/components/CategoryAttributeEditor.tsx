@@ -2,6 +2,7 @@ import { Plus, Trash2 } from "lucide-react";
 
 import Button from "../../../components/ui/button";
 import Checkbox from "../../../components/ui/checkbox";
+import EmptyState from "../../../components/ui/empty-state";
 import Eyebrow from "../../../components/ui/eyebrow";
 import Input from "../../../components/ui/input";
 
@@ -95,9 +96,7 @@ export default function CategoryAttributeEditor({
 			</div>
 
 			{attributes.length === 0 ? (
-				<p className="rounded-lg border border-dashed border-base-border px-3 py-4 text-center text-xs text-text">
-					Belum ada atribut.
-				</p>
+				<EmptyState>Belum ada atribut.</EmptyState>
 			) : (
 				<ul className="flex flex-col divide-y divide-base-border rounded-lg border border-base-border">
 					{attributes.map((attribute, index) => (

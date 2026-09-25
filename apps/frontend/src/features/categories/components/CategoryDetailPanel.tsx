@@ -1,6 +1,7 @@
 import Badge from "../../../components/ui/badge";
 import Button from "../../../components/ui/button";
 import DetailPanel, { DetailLine } from "../../../components/ui/detail-panel";
+import EmptyState from "../../../components/ui/empty-state";
 import Eyebrow from "../../../components/ui/eyebrow";
 import { ActiveBadge } from "../../../components/ui/status-badge";
 import { dotColor, formatDate } from "../../../libs/format";
@@ -107,9 +108,7 @@ export default function CategoryDetailPanel({
 					)}
 				</div>
 				{attributes.length === 0 ? (
-					<p className="rounded-lg border border-dashed border-base-border px-3 py-4 text-center text-xs text-text">
-						Belum ada atribut.
-					</p>
+					<EmptyState>Belum ada atribut.</EmptyState>
 				) : (
 					<div className="flex flex-col divide-y divide-base-border">
 						{attributes.map((attribute, index) => (

@@ -156,7 +156,7 @@ export default function InventoryMovementsTable({
 			loading={loading}
 			loadingLabel="Memuat riwayat inventory..."
 			emptyLabel="No inventory movements found."
-			tableClassName="min-w-[880px]"
+			tableClassName="min-w-220"
 			activeId={selectedId}
 			onRowClick={(row) => onSelect(row.id)}
 			selectedIds={selectedIds}

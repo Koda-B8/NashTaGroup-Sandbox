@@ -14,7 +14,7 @@ export default function PaginationControls({
 	onPageChange: (page: number) => void;
 }) {
 	return (
-		<div className="flex items-center justify-between border-t border-base-border px-4 py-3">
+		<div className="mt-6 flex items-center justify-between border-t border-base-border px-4 py-3">
 			<span className="text-xs text-text">{totalLabel}</span>
 			<div className="flex items-center gap-1">
 				<Button

@@ -37,8 +37,7 @@ export default function Navbar() {
 			]}
 			actions={
 				<>
-					<SearchBox />
-					<CartAction count={4} />
+					<CartAction />
 					<LogoutAction />
 				</>
 			}
@@ -96,12 +95,10 @@ function LogoutAction() {
 	);
 }
 
-function CartAction({ count }: Readonly<CartActionProps>) {
+function CartAction() {
 	return (
-		<div className="relative size-9 cursor-pointer rounded-full border border-primary bg-base">
-			<div className="centerized absolute -top-2 -right-1 size-5 rounded-full bg-primary text-xs text-white">
-				{count}
-			</div>
+		<div className="centerized relative size-9 cursor-pointer rounded-full border border-primary bg-base">
+			<h6>C</h6>
 		</div>
 	);
 }

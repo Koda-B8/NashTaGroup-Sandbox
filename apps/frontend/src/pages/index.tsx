@@ -20,18 +20,6 @@ interface Page {
 	page: number;
 }
 
-const pages: Page[] = [
-	{
-		page: 1,
-	},
-	{
-		page: 2,
-	},
-	{
-		page: 3,
-	},
-];
-
 interface Category {
 	id: string;
 	name: string;
@@ -74,27 +62,6 @@ interface Specs {
 	stock: number;
 }
 
-const specs: Specs[] = [
-	{
-		id: "1",
-		name: "128GB",
-		price: 0,
-		stock: 2,
-	},
-	{
-		id: "2",
-		name: "256GB",
-		price: 1_500_000,
-		stock: 12,
-	},
-	{
-		id: "3",
-		name: "512GB",
-		price: 2_000_000,
-		stock: 7,
-	},
-];
-
 const optional: Specs[] = [
 	{
 		id: "1",
@@ -116,6 +83,11 @@ const optional: Specs[] = [
 	},
 ];
 
+interface Attributes {
+	id: string;
+	attributes: [];
+}
+
 export default function Home() {
 	const dispatch = useDispatch<AppDispatch>();
 	const [prodQty, setProdQty] = useState<number>(1);
@@ -123,6 +95,7 @@ export default function Home() {
 	const [pageCount, setPageCount] = useState<string>("1");
 	const [products, setProducts] = useState<Product[]>([]);
 	const [loading, setLoading] = useState<boolean>(true);
+	const [attributes, setAttributes] = useState<Attributes[]>([]);
 	const [searchParams, _] = useSearchParams();
 	const [dataSubmit, setDataSubmit] = useState({
 		id: "",
@@ -130,6 +103,7 @@ export default function Home() {
 		image: null,
 		alt: "",
 		category: "",
+		idSpecs: "",
 		specs: "",
 		qty: 1,
 		color: "",
@@ -155,6 +129,7 @@ export default function Home() {
 					datas.push(form[obj]);
 				}
 			}
+
 			const formData: CartItem = { ...dataSubmit, options: datas };
 			dispatch(addToCart(formData));
 			handleModal();
@@ -218,6 +193,14 @@ export default function Home() {
 				const res = await data.json();
 				setProducts(res.data);
 				setPagination(res.meta.pagination);
+
+				const att = res.data.map((item) => {
+					return {
+						id: item.id,
+						attributes: item.category.attributes,
+					};
+				});
+				setAttributes(att);
 			} catch (error) {
 				console.error(error);
 			} finally {
@@ -274,56 +257,39 @@ export default function Home() {
 								<p className="text-primary">Wajib dipilih</p>
 							</header>
 							<main className="mt-2 flex flex-wrap gap-3">
-								<div>
-									<label
-										htmlFor="color-blue"
-										className="flex h-fit w-fit flex-col items-center gap-2"
-									>
-										<input
-											type="radio"
-											id="color-blue"
-											value={"Blue"}
-											onChange={() =>
-												setDataSubmit({ ...dataSubmit, color: "Blue" })
-											}
-											name="color"
-											className="peer hidden"
-										/>
-										<div
-											className="centerized size-13.5 rounded-full border border-white 
+								{attributes
+									.find((item) => item.id === dataSubmit.id)
+									?.attributes.find((item) => item.name === "Colors")
+									?.options?.map((item) => (
+										<div key={item.id}>
+											<label
+												htmlFor={`color-${item.id}`}
+												className="flex h-fit w-fit flex-col items-center gap-2"
+											>
+												<input
+													type="radio"
+													id={`color-${item.id}`}
+													value={item.id}
+													onChange={() =>
+														setDataSubmit({ ...dataSubmit, color: item.name })
+													}
+													name="color"
+													className="peer hidden"
+												/>
+												<div
+													className="centerized size-13.5 rounded-full border border-white 
 												peer-checked:border-primary"
-										>
-											<div className="size-10 rounded-full bg-primary px-4"></div>
+												>
+													<div
+														className={`size-10 rounded-full bg-[${item?.hex}] px-4`}
+													></div>
+												</div>
+												<p className="text-xs font-semibold peer-checked:text-primary">
+													{item.name}
+												</p>
+											</label>
 										</div>
-										<p className="text-xs font-semibold peer-checked:text-primary">
-											Biru
-										</p>
-									</label>
-								</div>
-
-								<div>
-									<label
-										htmlFor="color-gray"
-										className="flex h-fit w-fit flex-col items-center gap-2"
-									>
-										<input
-											type="radio"
-											value={"Gray"}
-											name="color"
-											onChange={() =>
-												setDataSubmit({ ...dataSubmit, color: "Gray" })
-											}
-											id="color-gray"
-											className="peer hidden"
-										/>
-										<div className="centerized size-13.5 rounded-full border border-white peer-checked:border-primary">
-											<div className="size-10 rounded-full bg-gray-400 px-4"></div>
-										</div>
-										<p className="text-xs font-semibold peer-checked:text-primary">
-											Gray
-										</p>
-									</label>
-								</div>
+									))}
 							</main>
 						</section>
 
@@ -337,53 +303,68 @@ export default function Home() {
 							</header>
 
 							<main className="mt-2 flex flex-wrap gap-3">
-								{specs.map((item) => (
-									<label
-										key={item.id}
-										htmlFor={item.id.toString()}
-										className="group flex h-22 w-37 cursor-pointer flex-col text-white"
-									>
-										<input
-											className="peer sr-only"
-											name="specs"
-											onChange={(e) => {
-												if (e) {
-													setDataSubmit((prev) => {
-														return {
-															...prev,
-															specs: item.name,
-															total: prev.total + item.price,
-														};
-													});
-												} else {
-													setDataSubmit((prev) => {
-														return {
-															...prev,
-															total: prev.total - item.price,
-														};
-													});
-												}
-											}}
-											value={item.name}
-											id={item.id.toString()}
-											type="radio"
-										/>
-										<p className="hidden">.</p>
-										<div className="centerized h-full w-full overflow-hidden rounded-lg border border-base-border peer-checked:border-primary peer-checked:bg-primary/10">
-											<div className="centerized flex-col gap-1 text-center text-text-h group-[:has(input:checked)]:text-primary">
-												<p className="font-semibold group-[:has(input:checked)]:text-primary">
-													{item.name}
-												</p>
-												<p className="text-sm text-primary">
-													+{formatRupiah(item.price)}
-												</p>
-												<p className="text-xs text-text group-[:has(input:checked)]:text-deep-danger/80">
-													Stok {item.stock}
-												</p>
+								{attributes
+									.find((item) => item.id === dataSubmit.id)
+									?.attributes.find((items) => items.name === "Spesifikasi")
+									?.options?.map((item) => (
+										<label
+											key={item.id}
+											htmlFor={item.id.toString()}
+											className="group flex h-22 w-37 cursor-pointer flex-col text-white"
+										>
+											<input
+												className="peer sr-only"
+												name="specs"
+												onChange={(e) => {
+													if (e) {
+														if (dataSubmit.idSpecs === item.id) {
+															setDataSubmit((prev) => {
+																return {
+																	...prev,
+																	idSpecs: item.id,
+																	specs: item.name,
+																	total: prev.total - 1_000_000 + 1_000_000,
+																};
+															});
+														} else {
+															setDataSubmit((prev) => {
+																return {
+																	...prev,
+																	idSpecs: dataSubmit.idSpecs,
+																	specs: item.name,
+																	total: prev.total + 1_000_000,
+																};
+															});
+														}
+													} else {
+														setDataSubmit((prev) => {
+															return {
+																...prev,
+																total: prev.total - 1_000_000,
+															};
+														});
+													}
+												}}
+												value={item.name}
+												id={item.id.toString()}
+												type="radio"
+											/>
+											<p className="hidden">.</p>
+											<div className="centerized h-full w-full overflow-hidden rounded-lg border border-base-border peer-checked:border-primary peer-checked:bg-primary/10">
+												<div className="centerized flex-col gap-1 text-center text-text-h group-[:has(input:checked)]:text-primary">
+													<p className="font-semibold group-[:has(input:checked)]:text-primary">
+														{item.name}
+													</p>
+													<p className="text-sm text-primary">
+														+{formatRupiah(1_000_000)}
+													</p>
+													<p className="text-xs text-text group-[:has(input:checked)]:text-deep-danger/80">
+														Stok {item.stock}
+													</p>
+												</div>
 											</div>
-										</div>
-									</label>
-								))}
+										</label>
+									))}
 							</main>
 						</section>
 
@@ -535,7 +516,7 @@ export default function Home() {
 					</main>
 				</form>
 			</Modal>
-			<div className="flex w-full flex-col px-3">
+			<div className="flex w-full flex-col px-3 ">
 				<ParamsSection params={params} />
 				{loading ? (
 					<CardSkel count={3} />
@@ -596,7 +577,7 @@ function ParamsSection({ params }) {
 	}
 
 	return (
-		<div className="flex w-full items-center justify-between py-3">
+		<div className="mb-4 flex w-full items-center justify-between py-3">
 			<form
 				action=""
 				className="flex w-full justify-between"
@@ -624,7 +605,7 @@ function Pagination({ products, pagination, setPageCount }) {
 	return (
 		<PaginationControls
 			totalLabel={`Showing ${products?.length} of ${pagination.total_items} products`}
-			pageCount={pages.length}
+			pageCount={Math.ceil(pagination.total_items / pagination.limit)}
 			safePage={(pagination?.page ?? 1) - 1}
 			onPageChange={(page) => setPageCount(String(page + 1))}
 		/>

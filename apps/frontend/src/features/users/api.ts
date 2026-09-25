@@ -11,10 +11,16 @@ export interface User {
 	username: string;
 	role?: string | { id: string; name: string };
 	role_id?: string;
-	is_active: boolean;
+	isActive: boolean;
 	createdAt: string;
 	updatedAt?: string;
 }
+
+// the API returns is_active; every consumer reads isActive, as on Brand and Category
+type RawUser = Omit<User, "isActive"> & {
+	is_active?: boolean;
+	isActive?: boolean;
+};
 
 export interface CreateUserPayload {
 	fullname: string;
@@ -44,7 +50,7 @@ export async function listUsers(
 	if (params.search) qs.set("search", params.search);
 	if (params.role) qs.set("role", params.role);
 	if (params.isActive !== undefined)
-		qs.set("isActive", String(params.isActive));
+		qs.set("is_active", String(params.isActive));
 	if (params.page) qs.set("page", String(params.page));
 	if (params.limit) qs.set("limit", String(params.limit));
 	const suffix = qs.toString() ? `?${qs}` : "";
@@ -57,11 +63,15 @@ export async function listUsers(
 			(json as { message?: string })?.message ??
 				`Gagal memuat users (${res.status})`,
 		);
-	const data: User[] = Array.isArray(json?.data)
-		? (json.data as User[])
+	const raw: RawUser[] = Array.isArray(json?.data)
+		? (json.data as RawUser[])
 		: Array.isArray(json)
-			? (json as unknown as User[])
+			? (json as unknown as RawUser[])
 			: [];
+	const data: User[] = raw.map(({ is_active, ...user }) => ({
+		...user,
+		isActive: is_active ?? user.isActive ?? false,
+	}));
 	const meta: ApiMeta =
 		json?.meta ??
 		getPaginationMeta(data.length, params.limit ?? 20, params.page ?? 1);

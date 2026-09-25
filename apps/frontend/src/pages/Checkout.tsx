@@ -125,7 +125,7 @@ export default function Checkout() {
 			const res = {
 				payment_method_id: formated.Payment,
 				paid_amount:
-					cashAmount ??
+					cashAmount ||
 					cart
 						.reduce((total, curr) => total + curr.price * curr.qty, 0)
 						.toString(),
@@ -364,6 +364,11 @@ export default function Checkout() {
 									<input
 										className="peer sr-only"
 										onChange={() => {
+											if (item.name !== "Cash") {
+												setCashAmount("");
+											}
+										}}
+										onClick={() => {
 											if (item.name === "Cash") {
 												setActiveCashModal(true);
 											}

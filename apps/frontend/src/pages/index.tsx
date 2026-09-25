@@ -105,6 +105,7 @@ export default function Home() {
 		category: "",
 		idSpecs: "",
 		specs: "",
+		specPrice: 0,
 		qty: 1,
 		color: "",
 		price: 0,
@@ -152,6 +153,7 @@ export default function Home() {
 				category: data?.category?.name,
 				price: Number.parseInt(data.items[0].price),
 				total: Number.parseInt(data.items[0].price),
+				specPrice: 0,
 			});
 			handleModal();
 		} catch (error) {
@@ -281,7 +283,8 @@ export default function Home() {
 												peer-checked:border-primary"
 												>
 													<div
-														className={`size-10 rounded-full bg-[${item?.hex}] px-4`}
+														className="size-10 rounded-full px-4"
+														style={{ backgroundColor: item.hex }}
 													></div>
 												</div>
 												<p className="text-xs font-semibold peer-checked:text-primary">
@@ -315,36 +318,16 @@ export default function Home() {
 											<input
 												className="peer sr-only"
 												name="specs"
-												onChange={(e) => {
-													if (e) {
-														if (dataSubmit.idSpecs === item.id) {
-															setDataSubmit((prev) => {
-																return {
-																	...prev,
-																	idSpecs: item.id,
-																	specs: item.name,
-																	total: prev.total - 1_000_000 + 1_000_000,
-																};
-															});
-														} else {
-															setDataSubmit((prev) => {
-																return {
-																	...prev,
-																	idSpecs: dataSubmit.idSpecs,
-																	specs: item.name,
-																	total: prev.total + 1_000_000,
-																};
-															});
-														}
-													} else {
-														setDataSubmit((prev) => {
-															return {
-																...prev,
-																total: prev.total - 1_000_000,
-															};
-														});
-													}
-												}}
+												onChange={() =>
+													setDataSubmit((prev) => ({
+														...prev,
+														idSpecs: item.id,
+														specs: item.name,
+														specPrice: Number(item.price),
+														total:
+															prev.total - prev.specPrice + Number(item.price),
+													}))
+												}
 												value={item.name}
 												id={item.id.toString()}
 												type="radio"
@@ -356,7 +339,7 @@ export default function Home() {
 														{item.name}
 													</p>
 													<p className="text-sm text-primary">
-														+{formatRupiah(1_000_000)}
+														+{formatRupiah(Number(item.price))}
 													</p>
 													<p className="text-xs text-text group-[:has(input:checked)]:text-deep-danger/80">
 														Stok {item.stock}

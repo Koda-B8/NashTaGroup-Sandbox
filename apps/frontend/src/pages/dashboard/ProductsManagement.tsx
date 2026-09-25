@@ -230,12 +230,12 @@ export default function ProductsManagementDashboard() {
 					actions={
 						<>
 							<Select
-								label="Sort products"
+								label="Sort this page of products"
 								value={sortBy}
 								onValueChange={(v) => setSortBy(v as SortBy)}
 								items={SORT_OPTIONS}
 								className="size-9 text-xs"
-								placeholder="Sort"
+								placeholder="Sort page"
 							/>
 							<Button
 								size="sm"

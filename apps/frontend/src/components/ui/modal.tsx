@@ -107,6 +107,46 @@ export function ModalFooter({
 	);
 }
 
+export interface FormModalFooterProps {
+	submitting: boolean;
+	submitLabel: string;
+	submittingLabel?: string;
+	onCancel: () => void;
+	start?: ReactNode;
+}
+
+export function FormModalFooter({
+	submitting,
+	submitLabel,
+	submittingLabel = "Saving...",
+	onCancel,
+	start,
+}: FormModalFooterProps) {
+	return (
+		<ModalFooter className={start ? "justify-between" : undefined}>
+			{start}
+			<div className="flex items-center gap-2">
+				<Button
+					type="button"
+					variant="outline"
+					size="sm"
+					onClick={onCancel}
+					disabled={submitting}
+				>
+					Cancel
+				</Button>
+				<Button
+					type="submit"
+					size="sm"
+					disabled={submitting}
+				>
+					{submitting ? submittingLabel : submitLabel}
+				</Button>
+			</div>
+		</ModalFooter>
+	);
+}
+
 export function ModalBody({
 	className,
 	...props

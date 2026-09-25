@@ -51,8 +51,8 @@ const STATUS_DOT: Record<string, string> = {
 
 const PAID_STATUS = new Set(["paid", "settled", "success", "succeeded"]);
 const WAITING_STATUS = new Set(["pending", "unpaid", "waiting"]);
-const FAILED_STATUS = ["failed", "expired", "cancelled", "canceled"];
-const REFUND_STATUS = ["refunded", "refund"];
+const FAILED_STATUS = new Set(["failed", "expired", "cancelled", "canceled"]);
+const REFUND_STATUS = new Set(["refunded", "refund"]);
 
 const AMOUNT_KEY = /(amount|price|total|subtotal|paid|change|discount|tax|fee)/;
 
@@ -73,8 +73,8 @@ export function paymentStatusVariant(status: string | null): BadgeVariant {
 	const normalized = status.toLowerCase();
 	if (PAID_STATUS.has(normalized)) return "valid";
 	if (WAITING_STATUS.has(normalized)) return "warn";
-	if (FAILED_STATUS.includes(normalized)) return "danger";
-	if (REFUND_STATUS.includes(normalized)) return "info";
+	if (FAILED_STATUS.has(normalized)) return "danger";
+	if (REFUND_STATUS.has(normalized)) return "info";
 	return "neutral";
 }
 

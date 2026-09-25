@@ -87,7 +87,11 @@ function LogoutAction() {
 
 function CartAction() {
 	return (
-		<Button variant="ghost" size="icon" aria-label="Keranjang">
+		<Button
+			variant="ghost"
+			size="icon"
+			aria-label="Keranjang"
+		>
 			<ShoppingCart size={16} />
 		</Button>
 	);

@@ -1,248 +1,366 @@
 import {
-	TrendingUpIcon,
-	TrendingDownIcon,
 	DollarSignIcon,
+	FileDownIcon,
+	Loader2,
+	PackageIcon,
 	ShoppingCartIcon,
 	WalletIcon,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useSelector } from "react-redux";
 
 import BarChart from "../../components/charts/bar-chart";
 import DonutChart from "../../components/charts/donut-chart";
+import { categorical } from "../../components/charts/palette";
 import DataTable, {
 	createTableColumnHelper,
 } from "../../components/tables/data-table";
 import Badge from "../../components/ui/badge";
 import Button from "../../components/ui/button";
 import Card, { CardHeader } from "../../components/ui/card";
+import EmptyState from "../../components/ui/empty-state";
+import ErrorBanner from "../../components/ui/error-banner";
 import FilterPills from "../../components/ui/filter-pills";
 import Section from "../../components/ui/section";
-import StatCard from "../../components/ui/stat-card";
+import StatCard, { StatGrid } from "../../components/ui/stat-card";
+import StatTile from "../../components/ui/stat-tile";
+import Toast from "../../components/ui/toast";
+import {
+	formatCompactCurrency,
+	formatCurrency,
+	formatPeriodLabel,
+	TIME_RANGE_ITEMS,
+	toNumber,
+	type TimeRange,
+} from "../../features/reports/format";
+import { useDashboardReports } from "../../features/reports/hooks/useDashboardReports";
+import { loadSalesReportPdfData } from "../../features/reports/pdf/loadSalesReport";
+import { downloadSalesReportPdf } from "../../features/reports/pdf/salesReportPdf";
+import { useFlash } from "../../hooks/useFlash";
+import { formatDate } from "../../libs/format";
+import type { RootState } from "../../store";
 
-const SUMMARY_CARDS = [
-	{
-		id: "revenue",
-		title: "Total Revenue",
-		value: "Rp 128,450,000",
-		period: "vs last month",
-		trend: { value: "+12.5%", good: true },
-		icon: DollarSignIcon,
-		iconBg: "bg-primary-light text-primary",
-	},
-	{
-		id: "transactions",
-		title: "Total Transactions",
-		value: "2,847",
-		period: "vs last month",
-		trend: { value: "+8.2%", good: true },
-		icon: ShoppingCartIcon,
-		iconBg: "bg-valid text-deep-valid",
-	},
-	{
-		id: "avg-order",
-		title: "Avg Order Value",
-		value: "Rp 45,120",
-		period: "vs last month",
-		trend: { value: "+3.1%", good: true },
-		icon: WalletIcon,
-		iconBg: "bg-warn text-deep-warn",
-	},
-];
+interface TopProductRow {
+	id: string;
+	rank: number;
+	name: string;
+	code: string;
+	qty: number;
+	revenue: number;
+}
 
-const SALES_MONTHLY_DATA = [
-	{ label: "Jan", value: 68 },
-	{ label: "Feb", value: 95 },
-	{ label: "Mar", value: 60 },
-	{ label: "Apr", value: 118 },
-	{ label: "May", value: 82 },
-	{ label: "Jun", value: 155 },
-	{ label: "Jul", value: 105 },
-	{ label: "Aug", value: 135 },
-	{ label: "Sep", value: 88 },
-	{ label: "Oct", value: 148 },
-	{ label: "Nov", value: 112 },
-	{ label: "Dec", value: 168 },
-];
+interface CashierRow {
+	id: string;
+	name: string;
+	username: string;
+	role: string;
+	txn: number;
+	revenue: number;
+	avg: number;
+	collected: number;
+	gap: number;
+}
 
-const TOP_PRODUCTS = [
-	{
-		rank: 1,
-		name: "Nasi Goreng Spesial",
-		category: "Rice Dish",
-		qty: "342",
-		revenue: "Rp 17.1M",
-		isUp: true,
-		change: "+14.2%",
-		badgeColor: "bg-primary-light text-primary",
-	},
-	{
-		rank: 2,
-		name: "Ayam Bakar",
-		category: "Grill",
-		qty: "298",
-		revenue: "Rp 14.9M",
-		isUp: true,
-		change: "+8.5%",
-		badgeColor: "bg-valid text-deep-valid",
-	},
-	{
-		rank: 3,
-		name: "Es Teh Manis",
-		category: "Beverage",
-		qty: "521",
-		revenue: "Rp 5.2M",
-		isUp: false,
-		change: "-2.1%",
-		badgeColor: "bg-warn text-deep-warn",
-	},
-	{
-		rank: 4,
-		name: "Mie Goreng",
-		category: "Noodle",
-		qty: "276",
-		revenue: "Rp 9.7M",
-		isUp: true,
-		change: "+5.4%",
-		badgeColor: "bg-purple-100 text-purple-700",
-	},
-	{
-		rank: 5,
-		name: "Soto Ayam",
-		category: "Soup",
-		qty: "198",
-		revenue: "Rp 7.9M",
-		isUp: false,
-		change: "-1.8%",
-		badgeColor: "bg-danger text-deep-danger",
-	},
-];
+const RIGHT_CELL = "text-right font-medium text-text-h";
+const RIGHT_STRONG = "text-right font-bold text-text-h";
 
-const topProduct = createTableColumnHelper<(typeof TOP_PRODUCTS)[number]>();
+const topProductHelper = createTableColumnHelper<TopProductRow>();
 
-const TOP_PRODUCT_COLUMNS = topProduct.columns([
-	topProduct.accessor("rank", {
+const TOP_PRODUCT_COLUMNS = topProductHelper.columns([
+	topProductHelper.accessor("rank", {
 		header: "#",
 		cell: ({ row }) => (
-			<span
-				className={`inline-flex size-6 items-center justify-center rounded-lg text-2xs font-bold ${row.original.badgeColor}`}
-			>
+			<span className="inline-flex size-6 items-center justify-center rounded-lg bg-primary-light text-2xs font-bold text-primary">
 				{row.original.rank}
 			</span>
 		),
 		meta: { headClassName: "w-10" },
 	}),
-	topProduct.accessor("name", {
+	topProductHelper.accessor("name", {
 		header: "Product",
 		cell: ({ row }) => (
 			<>
 				<p className="font-semibold text-text-h">{row.original.name}</p>
-				<p className="text-2xs text-text">{row.original.category}</p>
+				<p className="text-2xs text-text">{row.original.code}</p>
 			</>
 		),
 	}),
-	topProduct.accessor("qty", {
+	topProductHelper.accessor("qty", {
 		header: "Sold",
-		cell: ({ row }) => row.original.qty,
-		meta: {
-			headClassName: "text-right",
-			cellClassName: "text-right font-medium text-text-h",
-		},
+		cell: ({ row }) => row.original.qty.toLocaleString("en-US"),
+		meta: { headClassName: "text-right", cellClassName: RIGHT_CELL },
 	}),
-	topProduct.accessor("revenue", {
+	topProductHelper.accessor("revenue", {
 		header: "Revenue",
-		cell: ({ row }) => row.original.revenue,
-		meta: {
-			headClassName: "text-right",
-			cellClassName: "text-right font-bold text-text-h",
-		},
-	}),
-	topProduct.accessor("change", {
-		header: "Trend",
-		cell: ({ row }) => (
-			<span
-				className={`inline-flex items-center gap-0.5 rounded-lg px-1.5 py-0.5 text-3xs font-semibold ${
-					row.original.isUp
-						? "bg-valid text-deep-valid"
-						: "bg-danger text-deep-danger"
-				}`}
-			>
-				{row.original.isUp ? (
-					<TrendingUpIcon size={10} />
-				) : (
-					<TrendingDownIcon size={10} />
-				)}
-				{row.original.change}
-			</span>
-		),
-		meta: { headClassName: "text-center", cellClassName: "text-center" },
+		cell: ({ row }) => formatCurrency(row.original.revenue),
+		meta: { headClassName: "text-right", cellClassName: RIGHT_STRONG },
 	}),
 ]);
 
-const PAYMENT_METHODS = [
-	{ name: "Cash", pct: 45, count: "1,281", color: "#3b82f6" },
-	{ name: "Transfer", pct: 30, count: "854", color: "#10b981" },
-	{ name: "QRIS", pct: 15, count: "427", color: "#f59e0b" },
-	{ name: "Debit Card", pct: 10, count: "285", color: "#ef4444" },
-];
+const cashierHelper = createTableColumnHelper<CashierRow>();
 
-const DONUT_CHART_DATA = PAYMENT_METHODS.map((item) => ({
-	label: item.name,
-	value: item.pct,
-}));
-
-type TimeRange = "1M" | "3M" | "6M" | "1Y";
+const CASHIER_COLUMNS = cashierHelper.columns([
+	cashierHelper.accessor("name", {
+		header: "Cashier",
+		cell: ({ row }) => (
+			<>
+				<p className="font-semibold text-text-h">{row.original.name}</p>
+				<p className="text-2xs text-text capitalize">
+					@{row.original.username} · {row.original.role}
+				</p>
+			</>
+		),
+	}),
+	cashierHelper.accessor("txn", {
+		header: "Transactions",
+		cell: ({ row }) => row.original.txn.toLocaleString("en-US"),
+		meta: { headClassName: "text-right", cellClassName: RIGHT_CELL },
+	}),
+	cashierHelper.accessor("revenue", {
+		header: "Total Sales",
+		cell: ({ row }) => formatCurrency(row.original.revenue),
+		meta: { headClassName: "text-right", cellClassName: RIGHT_STRONG },
+	}),
+	cashierHelper.accessor("avg", {
+		header: "Avg Order",
+		cell: ({ row }) => formatCurrency(row.original.avg),
+		meta: {
+			headClassName: "text-right",
+			cellClassName: "text-right text-text-h",
+		},
+	}),
+	cashierHelper.accessor("collected", {
+		header: "Collected",
+		cell: ({ row }) => formatCurrency(row.original.collected),
+		meta: {
+			headClassName: "text-right",
+			cellClassName: "text-right text-text-h",
+		},
+	}),
+	cashierHelper.accessor("gap", {
+		header: "Gap",
+		cell: ({ row }) => (
+			<span
+				className={
+					row.original.gap === 0
+						? "font-medium text-deep-valid"
+						: "font-medium text-deep-warn"
+				}
+			>
+				{formatCurrency(row.original.gap)}
+			</span>
+		),
+		meta: { headClassName: "text-right", cellClassName: "text-right" },
+	}),
+]);
 
 export default function MainDashboard() {
-	const [timeRange, setTimeRange] = useState<TimeRange>("1Y");
+	const [timeRange, setTimeRange] = useState<TimeRange>("3M");
+	const [exporting, setExporting] = useState(false);
+	const user = useSelector((state: RootState) => state.auth.user);
+	const { flash, show, clear } = useFlash();
+	const {
+		sales,
+		products,
+		paymentMethods,
+		cashiers,
+		customers,
+		loading,
+		error,
+		reload,
+		range,
+	} = useDashboardReports(timeRange);
+
+	const salesSummary = sales?.summary;
+	const productSummary = products?.summary;
+	const reconciliation = paymentMethods?.summary ?? cashiers?.summary;
+
+	const chartData = useMemo(() => {
+		if (!sales) return [];
+		return sales.rows.toReversed().map((row) => ({
+			label: formatPeriodLabel(row.period_start, sales.period),
+			value: toNumber(row.total_sales),
+		}));
+	}, [sales]);
+
+	const topProducts = useMemo<TopProductRow[]>(() => {
+		return (products?.items ?? []).slice(0, 5).map((item, index) => ({
+			id: item.product_item_id,
+			rank: index + 1,
+			name: item.product_name,
+			code: item.variant_name
+				? `${item.product_code} · ${item.variant_name}`
+				: item.product_code,
+			qty: toNumber(item.units_sold),
+			revenue: toNumber(item.gross_sales),
+		}));
+	}, [products]);
+
+	const methodRows = useMemo(() => {
+		const methods = paymentMethods?.methods ?? [];
+		const total = methods.reduce(
+			(sum, method) => sum + toNumber(method.total_sales),
+			0,
+		);
+		return methods
+			.filter((method) => toNumber(method.total_sales) > 0)
+			.map((method, index) => ({
+				id: method.payment_method_id,
+				name: method.name,
+				count: method.transaction_count,
+				value: toNumber(method.total_sales),
+				pct:
+					total > 0
+						? Math.round((toNumber(method.total_sales) / total) * 100)
+						: 0,
+				color: categorical[index % categorical.length],
+			}));
+	}, [paymentMethods]);
+
+	const donutSlices = methodRows.map((row) => ({
+		label: row.name,
+		value: row.value,
+	}));
+
+	const cashierRows = useMemo<CashierRow[]>(
+		() =>
+			(cashiers?.cashiers ?? []).slice(0, 5).map((cashier) => ({
+				id: cashier.cashier_id,
+				name: cashier.fullname,
+				username: cashier.username,
+				role: cashier.role,
+				txn: toNumber(cashier.transaction_count),
+				revenue: toNumber(cashier.total_sales),
+				avg: toNumber(cashier.average_transaction),
+				collected: toNumber(cashier.collected_amount),
+				gap: toNumber(cashier.payment_gap),
+			})),
+		[cashiers],
+	);
+
+	const handleExport = async () => {
+		setExporting(true);
+		try {
+			const data = await loadSalesReportPdfData({
+				range: timeRange,
+				generatedBy: user?.fullname ?? "Admin",
+			});
+			await downloadSalesReportPdf(data, data.fileName);
+			show("PDF berhasil dibuat.", "success");
+		} catch (exportError) {
+			show(
+				exportError instanceof Error
+					? exportError.message
+					: "Gagal membuat PDF",
+				"error",
+			);
+		} finally {
+			setExporting(false);
+		}
+	};
+
+	const statCards = [
+		{
+			id: "revenue",
+			label: "Total Revenue",
+			value: formatCurrency(salesSummary?.total_sales),
+			note: `${salesSummary?.transaction_count ?? 0} completed transactions`,
+			icon: DollarSignIcon,
+			iconClassName: "bg-primary-light text-primary",
+		},
+		{
+			id: "transactions",
+			label: "Transactions",
+			value: salesSummary?.transaction_count ?? 0,
+			note: `${customers?.summary.active_members ?? 0} active members`,
+			icon: ShoppingCartIcon,
+			iconClassName: "bg-valid text-deep-valid",
+		},
+		{
+			id: "average",
+			label: "Avg Order Value",
+			value: formatCurrency(salesSummary?.average_transaction),
+			note: "Per completed transaction",
+			icon: WalletIcon,
+			iconClassName: "bg-warn text-deep-warn",
+		},
+		{
+			id: "units",
+			label: "Units Sold",
+			value: productSummary?.units_sold ?? 0,
+			note: `${productSummary?.variants ?? 0} product variants`,
+			icon: PackageIcon,
+			iconClassName: "bg-info text-deep-info",
+		},
+	];
 
 	return (
 		<div className="flex flex-col gap-6">
+			<Toast
+				message={flash?.message}
+				variant={flash?.variant}
+				onDismiss={clear}
+			/>
+
 			<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 				<div>
 					<h1 className="text-xl font-bold text-text-h">Dashboard Overview</h1>
 					<p className="text-xs text-text">
-						Monitor sales performance, inventory, and payment distribution.
+						Sales performance, inventory movement, and payment distribution for
+						the selected period.
 					</p>
 				</div>
 				<div className="flex items-center gap-2">
 					<FilterPills
 						label="Time period range filter"
-						items={[
-							{ label: "1M", value: "1M" },
-							{ label: "3M", value: "3M" },
-							{ label: "6M", value: "6M" },
-							{ label: "1Y", value: "1Y" },
-						]}
+						items={TIME_RANGE_ITEMS}
 						value={timeRange}
-						onValueChange={(val) => setTimeRange(val as TimeRange)}
+						onValueChange={setTimeRange}
 					/>
 					<Button
 						variant="outline"
 						size="sm"
+						disabled={exporting}
+						onClick={handleExport}
 					>
-						Export Report
+						{exporting ? (
+							<Loader2
+								size={14}
+								className="animate-spin"
+							/>
+						) : (
+							<FileDownIcon size={14} />
+						)}
+						{exporting ? "Menyiapkan..." : "Export Report"}
 					</Button>
 				</div>
 			</div>
 
+			{error && (
+				<ErrorBanner
+					message={error}
+					onRetry={reload}
+				/>
+			)}
+
 			<Section title="Overview">
-				<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-					{SUMMARY_CARDS.map((card) => {
+				<StatGrid>
+					{statCards.map((card) => {
 						const Icon = card.icon;
 						return (
 							<StatCard
 								key={card.id}
 								accent
-								label={card.title}
+								loading={loading}
+								label={card.label}
 								value={card.value}
-								note={card.period}
-								trend={card.trend}
+								note={card.note}
 								icon={<Icon size={16} />}
-								iconClassName={card.iconBg}
+								iconClassName={card.iconClassName}
 							/>
 						);
 					})}
-				</div>
+				</StatGrid>
 			</Section>
 
 			<Section title="Sales Performance">
@@ -252,26 +370,31 @@ export default function MainDashboard() {
 				>
 					<CardHeader
 						title="Sales Trend"
-						description="Monthly revenue · 2025"
+						description={`${range.period === "day" ? "Daily" : "Monthly"} revenue · ${formatDate(range.from)} – ${formatDate(range.to)}`}
 					>
-						<div className="flex items-center gap-4 text-xs">
-							<div className="flex items-center gap-1.5">
-								<span className="size-2.5 rounded-full bg-primary" />
-								<span className="font-medium text-text-h">Revenue</span>
-							</div>
+						<div className="flex items-center gap-2">
 							<span className="rounded-lg bg-base px-2.5 py-1 text-2xs font-semibold text-text-h">
-								Total: Rp 128.45M
+								Total: {formatCurrency(salesSummary?.total_sales)}
+							</span>
+							<span className="rounded-lg bg-base px-2.5 py-1 text-2xs font-semibold text-text-h">
+								Avg: {formatCurrency(salesSummary?.average_transaction)}
 							</span>
 						</div>
 					</CardHeader>
 
 					<div className="mt-2">
-						<BarChart
-							data={SALES_MONTHLY_DATA}
-							ariaLabel="Monthly sales revenue chart for 2025"
-							height={280}
-							format={(val) => `Rp ${val}M`}
-						/>
+						{loading ? (
+							<div className="h-70 animate-pulse rounded-lg bg-base" />
+						) : chartData.length > 0 ? (
+							<BarChart
+								data={chartData}
+								ariaLabel="Sales revenue trend"
+								height={280}
+								format={formatCompactCurrency}
+							/>
+						) : (
+							<EmptyState>No sales recorded for this period.</EmptyState>
+						)}
 					</div>
 				</Card>
 			</Section>
@@ -281,11 +404,11 @@ export default function MainDashboard() {
 					<DataTable
 						label="Top selling products"
 						columns={TOP_PRODUCT_COLUMNS}
-						rows={TOP_PRODUCTS}
-						rowId={(p) => String(p.rank)}
-						loading={false}
-						loadingLabel=""
-						emptyLabel="No products yet."
+						rows={topProducts}
+						rowId={(row) => row.id}
+						loading={loading}
+						loadingLabel="Memuat produk..."
+						emptyLabel="No product sales for this period."
 						tableClassName="text-xs"
 						cardClassName="lg:col-span-3"
 						header={
@@ -297,7 +420,7 @@ export default function MainDashboard() {
 									variant="primary"
 									size="sm"
 								>
-									5 items
+									{topProducts.length} items
 								</Badge>
 							</CardHeader>
 						}
@@ -309,67 +432,113 @@ export default function MainDashboard() {
 					>
 						<CardHeader
 							title="Payment Methods"
-							description="Transaction distribution"
+							description="Collected amount distribution"
 						/>
 
-						<div className="flex flex-col gap-4">
-							<div className="relative">
+						{loading ? (
+							<div className="h-45 animate-pulse rounded-lg bg-base" />
+						) : donutSlices.length > 0 ? (
+							<div className="flex flex-col gap-4">
 								<DonutChart
-									data={DONUT_CHART_DATA}
-									ariaLabel="Payment methods transaction breakdown"
+									data={donutSlices}
+									ariaLabel="Payment method distribution"
 									height={180}
-									format={(val) => `${val}%`}
+									format={formatCompactCurrency}
 								/>
-							</div>
 
-							<div className="border-t border-base-border pt-3">
-								<h4 className="mb-3 text-xs font-semibold text-text-h">
-									Breakdown
-								</h4>
-								<div className="flex flex-col gap-3">
-									{PAYMENT_METHODS.map((pm) => (
-										<div
-											key={pm.name}
-											className="flex flex-col gap-1"
-										>
-											<div className="flex items-center justify-between text-xs">
-												<div className="flex items-center gap-2">
-													<span
-														className="size-2.5 rounded-full"
-														style={{ backgroundColor: pm.color }}
+								<div className="border-t border-base-border pt-3">
+									<h4 className="mb-3 text-xs font-semibold text-text-h">
+										Breakdown
+									</h4>
+									<div className="flex flex-col gap-3">
+										{methodRows.map((row) => (
+											<div
+												key={row.id}
+												className="flex flex-col gap-1"
+											>
+												<div className="flex items-center justify-between text-xs">
+													<div className="flex items-center gap-2">
+														<span
+															className="size-2.5 rounded-full"
+															style={{ backgroundColor: row.color }}
+														/>
+														<span className="font-medium text-text-h">
+															{row.name}
+														</span>
+													</div>
+													<div className="flex items-center gap-2">
+														<span className="text-2xs font-normal text-text">
+															{row.count} txn
+														</span>
+														<span
+															className="text-xs font-bold"
+															style={{ color: row.color }}
+														>
+															{row.pct}%
+														</span>
+													</div>
+												</div>
+												<div className="h-1.5 w-full overflow-hidden rounded-full bg-base">
+													<div
+														className="h-full rounded-full transition-all duration-300"
+														style={{
+															width: `${row.pct}%`,
+															backgroundColor: row.color,
+														}}
 													/>
-													<span className="font-medium text-text-h">
-														{pm.name}
-													</span>
-												</div>
-												<div className="flex items-center gap-2">
-													<span className="text-2xs font-normal text-text">
-														{pm.count} txn
-													</span>
-													<span
-														className="text-xs font-bold"
-														style={{ color: pm.color }}
-													>
-														{pm.pct}%
-													</span>
 												</div>
 											</div>
-											<div className="h-1.5 w-full overflow-hidden rounded-full bg-base">
-												<div
-													className="h-full rounded-full transition-all duration-300"
-													style={{
-														width: `${pm.pct}%`,
-														backgroundColor: pm.color,
-													}}
-												/>
-											</div>
-										</div>
-									))}
+										))}
+									</div>
 								</div>
 							</div>
-						</div>
+						) : (
+							<EmptyState>No payments collected for this period.</EmptyState>
+						)}
 					</Card>
 				</div>
+			</Section>
+
+			<Section title="Reconciliation">
+				<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+					<StatTile
+						label="Gross Sales"
+						value={loading ? "—" : formatCurrency(reconciliation?.gross_sales)}
+					/>
+					<StatTile
+						label="Discount"
+						value={
+							loading ? "—" : formatCurrency(reconciliation?.discount_amount)
+						}
+					/>
+					<StatTile
+						label="Tax"
+						value={loading ? "—" : formatCurrency(reconciliation?.tax_amount)}
+					/>
+					<StatTile
+						label="Collected"
+						value={
+							loading ? "—" : formatCurrency(reconciliation?.collected_amount)
+						}
+					/>
+					<StatTile
+						label="Payment Gap"
+						value={loading ? "—" : formatCurrency(reconciliation?.payment_gap)}
+					/>
+				</div>
+			</Section>
+
+			<Section title="Cashier Performance">
+				<DataTable
+					label="Cashier performance"
+					columns={CASHIER_COLUMNS}
+					rows={cashierRows}
+					rowId={(row) => row.id}
+					loading={loading}
+					loadingLabel="Memuat kasir..."
+					emptyLabel="No cashier activity for this period."
+					tableClassName="text-xs"
+				/>
 			</Section>
 		</div>
 	);

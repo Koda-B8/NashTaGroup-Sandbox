@@ -13,6 +13,7 @@ interface Props {
 	onEdit?: (item: ProductItem) => void;
 	onDelete?: (item: ProductItem) => void;
 	onAdjustStock?: (item: ProductItem) => void;
+	onViewMovements?: (item: ProductItem) => void;
 }
 
 const formatPrice = (value: number | string) => {
@@ -26,8 +27,11 @@ export default function ProductVariantList({
 	onEdit,
 	onDelete,
 	onAdjustStock,
+	onViewMovements,
 }: Props) {
-	const hasActions = Boolean(onEdit || onDelete || onAdjustStock);
+	const hasActions = Boolean(
+		onEdit || onDelete || onAdjustStock || onViewMovements,
+	);
 
 	return (
 		<div className="flex flex-col gap-3">
@@ -120,6 +124,14 @@ export default function ProductVariantList({
 															{
 																label: "Adjust Stock",
 																onSelect: () => onAdjustStock(item),
+															},
+														]
+													: []),
+												...(onViewMovements
+													? [
+															{
+																label: "Inventory Movement",
+																onSelect: () => onViewMovements(item),
 															},
 														]
 													: []),

@@ -5,7 +5,7 @@ import Button from "../../components/ui/button";
 import DatePicker from "../../components/ui/date-picker";
 import ErrorBanner from "../../components/ui/error-banner";
 import FilterPills from "../../components/ui/filter-pills";
-import Input from "../../components/ui/input";
+import { ListSearch } from "../../components/ui/list-toolbar";
 import Section from "../../components/ui/section";
 import Select from "../../components/ui/select";
 import StatCard, { StatGrid } from "../../components/ui/stat-card";
@@ -159,12 +159,11 @@ export default function InventoriesManagementDashboard() {
 			>
 				<div className="flex flex-col gap-3">
 					<div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
-						<Input
-							size="sm"
+						<ListSearch
+							wide
 							placeholder="Search product, variant, or code..."
 							value={search}
 							onChange={(event) => setSearch(event.currentTarget.value)}
-							className="w-full shrink-0 sm:max-w-[248px]"
 							aria-label="Search inventory movements"
 						/>
 						<FilterPills

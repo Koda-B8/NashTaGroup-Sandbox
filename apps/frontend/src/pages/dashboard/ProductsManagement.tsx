@@ -1,5 +1,6 @@
 import { Plus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 
 import Button from "../../components/ui/button";
 import ErrorBanner from "../../components/ui/error-banner";
@@ -12,6 +13,8 @@ import { ConfirmModal } from "../../components/ui/modal";
 import Section from "../../components/ui/section";
 import Toast from "../../components/ui/toast";
 import AdjustStockModal from "../../features/inventories/components/AdjustStockModal";
+import ProductItemMovementsModal from "../../features/inventories/components/ProductItemMovementsModal";
+import ProductMovementsModal from "../../features/inventories/components/ProductMovementsModal";
 import {
 	type Product,
 	type ProductItem,
@@ -28,9 +31,11 @@ import {
 	type StatusFilter,
 } from "../../features/products/format";
 import { useProductsList } from "../../features/products/hooks/useProductsList";
+import ProductTransactionReportModal from "../../features/reports/components/ProductTransactionReportModal";
 import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 import { useFlash } from "../../hooks/useFlash";
 import { useRowSelection, useSelectedItem } from "../../hooks/useRowSelection";
+import type { RootState } from "../../store";
 
 export default function ProductsManagementDashboard() {
 	const [search, setSearch] = useState("");
@@ -45,11 +50,15 @@ export default function ProductsManagementDashboard() {
 	const [deletingItem, setDeletingItem] = useState(false);
 	const [showAdjust, setShowAdjust] = useState(false);
 	const [adjustItem, setAdjustItem] = useState<ProductItem | null>(null);
+	const [movementItem, setMovementItem] = useState<ProductItem | null>(null);
+	const [movementProduct, setMovementProduct] = useState<Product | null>(null);
+	const [reportProduct, setReportProduct] = useState<Product | null>(null);
 	const [showDelete, setShowDelete] = useState(false);
 	const [deleting, setDeleting] = useState(false);
 	const pageSize = 8;
 
 	const { flash, show, clear } = useFlash();
+	const user = useSelector((state: RootState) => state.auth.user);
 
 	const {
 		products,
@@ -123,6 +132,28 @@ export default function ProductsManagementDashboard() {
 		setShowAdjust(true);
 	}, []);
 
+	const handleViewMovements = useCallback((item: ProductItem) => {
+		setMovementItem(item);
+		setReturnToForm(true);
+		setShowForm(false);
+	}, []);
+
+	const handleViewProductMovements = useCallback((product: Product) => {
+		setMovementProduct(product);
+	}, []);
+
+	const handleProductMovementsOpenChange = useCallback((o: boolean) => {
+		if (!o) setMovementProduct(null);
+	}, []);
+
+	const handleViewReport = useCallback((product: Product) => {
+		setReportProduct(product);
+	}, []);
+
+	const handleReportOpenChange = useCallback((o: boolean) => {
+		if (!o) setReportProduct(null);
+	}, []);
+
 	const reopenForm = useCallback(() => {
 		if (returnToForm) {
 			setReturnToForm(false);
@@ -133,6 +164,14 @@ export default function ProductsManagementDashboard() {
 	const handleAdjustOpenChange = useCallback(
 		(o: boolean) => {
 			setShowAdjust(o);
+			if (!o) reopenForm();
+		},
+		[reopenForm],
+	);
+
+	const handleMovementsOpenChange = useCallback(
+		(o: boolean) => {
+			if (!o) setMovementItem(null);
 			if (!o) reopenForm();
 		},
 		[reopenForm],
@@ -255,6 +294,8 @@ export default function ProductsManagementDashboard() {
 					onOpenDetail={openProductForm}
 					onEdit={openProductForm}
 					onDelete={handleAskDeleteProduct}
+					onViewMovements={handleViewProductMovements}
+					onViewReport={handleViewReport}
 					onToggleAll={toggleAllPage}
 					onToggleOne={toggleOne}
 					totalLabel={`Showing ${paged.length} of ${isServerPaginated ? server.totalItems : sorted.length} products`}
@@ -274,6 +315,7 @@ export default function ProductsManagementDashboard() {
 				}}
 				onDeleteVariant={handleDeleteVariant}
 				onAdjustStock={handleAdjustVariant}
+				onViewMovements={handleViewMovements}
 				onDeleteProduct={handleDeleteProductFromForm}
 			/>
 			<AdjustStockModal
@@ -294,6 +336,48 @@ export default function ProductsManagementDashboard() {
 					);
 					fetchProducts();
 				}}
+			/>
+			<ProductTransactionReportModal
+				open={Boolean(reportProduct)}
+				onOpenChange={handleReportOpenChange}
+				generatedBy={user?.fullname ?? "Admin"}
+				onNotify={show}
+				product={
+					reportProduct
+						? { id: reportProduct.id, name: reportProduct.name }
+						: null
+				}
+			/>
+			<ProductMovementsModal
+				open={Boolean(movementProduct)}
+				onOpenChange={handleProductMovementsOpenChange}
+				generatedBy={user?.fullname ?? "Admin"}
+				onNotify={show}
+				product={
+					movementProduct
+						? {
+								id: movementProduct.id,
+								name: movementProduct.name,
+								code: null,
+								itemIds: (movementProduct.items ?? []).map((item) => item.id),
+							}
+						: null
+				}
+			/>
+			<ProductItemMovementsModal
+				open={Boolean(movementItem)}
+				onOpenChange={handleMovementsOpenChange}
+				generatedBy={user?.fullname ?? "Admin"}
+				onNotify={show}
+				item={
+					movementItem
+						? {
+								id: movementItem.id,
+								label: movementItem.name,
+								code: movementItem.productCode ?? null,
+							}
+						: null
+				}
 			/>
 			<ConfirmModal
 				open={Boolean(itemToDelete)}

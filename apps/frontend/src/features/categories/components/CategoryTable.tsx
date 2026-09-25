@@ -1,7 +1,8 @@
-import PaginationControls from "../../../components/PaginationControls";
+import DataTable, {
+	createTableColumnHelper,
+	type TableMeta,
+} from "../../../components/tables/data-table";
 import ActionMenu from "../../../components/ui/action-menu";
-import Card from "../../../components/ui/card";
-import Checkbox from "../../../components/ui/checkbox";
 import { ActiveBadge } from "../../../components/ui/status-badge";
 import { dotColor, formatDate } from "../../../libs/format";
 import type { Category } from "../api";
@@ -24,7 +25,46 @@ interface Props {
 	totalLabel: string;
 }
 
-const HEAD_CELL = "px-3 py-3 text-xs font-semibold text-text";
+const helper = createTableColumnHelper<Category>();
+
+const COLUMNS = helper.columns([
+	helper.accessor("name", {
+		header: "Name",
+		cell: ({ row, table }) => {
+			const active =
+				(table.options.meta as TableMeta | undefined)?.activeId ===
+				row.original.id;
+			return (
+				<div className="flex items-center gap-2.5">
+					<span
+						className="size-2.5 shrink-0 rounded-full"
+						style={{ backgroundColor: dotColor(row.original.name) }}
+						aria-hidden
+					/>
+					<span
+						className={`text-sm font-medium ${active ? "text-primary" : "text-text-h"}`}
+					>
+						{row.original.name}
+					</span>
+				</div>
+			);
+		},
+	}),
+	helper.accessor("isActive", {
+		header: "Status",
+		cell: ({ row }) => <ActiveBadge isActive={row.original.isActive} />,
+	}),
+	helper.accessor("createdAt", {
+		header: "Created",
+		cell: ({ row }) => formatDate(row.original.createdAt),
+		meta: { cellClassName: "text-sm text-text" },
+	}),
+	helper.accessor("updatedAt", {
+		header: "Last Updated",
+		cell: ({ row }) => formatDate(row.original.updatedAt),
+		meta: { cellClassName: "text-sm text-text" },
+	}),
+]);
 
 export default function CategoryTable({
 	loading,
@@ -44,167 +84,37 @@ export default function CategoryTable({
 	totalLabel,
 }: Props) {
 	return (
-		<Card
-			padding="none"
-			className="overflow-hidden"
-		>
-			<div className="overflow-x-auto">
-				<table
-					className="w-full text-left text-sm"
-					aria-label="Categories"
-				>
-					<thead className="border-b border-base-border bg-base">
-						<tr>
-							<th
-								scope="col"
-								className="w-10 px-3 py-3"
-							>
-								<Checkbox
-									checked={allPageSelected}
-									indeterminate={somePageSelected}
-									onCheckedChange={(c) => onToggleAll(c === true)}
-									aria-label="Select all categories on this page"
-								/>
-							</th>
-							<th
-								scope="col"
-								className={HEAD_CELL}
-							>
-								Name
-							</th>
-							<th
-								scope="col"
-								className={HEAD_CELL}
-							>
-								Status
-							</th>
-							<th
-								scope="col"
-								className={HEAD_CELL}
-							>
-								Created
-							</th>
-							<th
-								scope="col"
-								className={HEAD_CELL}
-							>
-								Last Updated
-							</th>
-							<th
-								scope="col"
-								className="w-10 px-3 py-3"
-								aria-label="Actions"
-							/>
-						</tr>
-					</thead>
-					<tbody className="divide-y divide-base-border">
-						{loading ? (
-							<tr>
-								<td
-									colSpan={6}
-									className="px-4 py-10 text-center text-sm text-text"
-								>
-									Memuat categories...
-								</td>
-							</tr>
-						) : paged.length === 0 ? (
-							<tr>
-								<td
-									colSpan={6}
-									className="px-4 py-10 text-center text-sm text-text"
-								>
-									No categories found.
-								</td>
-							</tr>
-						) : (
-							paged.map((row) => {
-								const isActiveRow = row.id === selectedId;
-								return (
-									<tr
-										key={row.id}
-										onClick={() => onSelect(row.id)}
-										onKeyDown={(e) => {
-											if (e.key === "Enter" || e.key === " ") {
-												e.preventDefault();
-												onSelect(row.id);
-											}
-										}}
-										tabIndex={0}
-										className={`cursor-pointer focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary ${
-											isActiveRow ? "bg-primary-light/50" : "hover:bg-base/60"
-										}`}
-									>
-										<td
-											className="px-3 py-3"
-											onClick={(e) => e.stopPropagation()}
-										>
-											<Checkbox
-												checked={selectedIds.has(row.id)}
-												onCheckedChange={(c) => onToggleOne(row.id, c === true)}
-												aria-label={`Select ${row.name}`}
-											/>
-										</td>
-										<td className="px-3 py-3">
-											<div className="flex items-center gap-2.5">
-												<span
-													className="size-2.5 shrink-0 rounded-full"
-													style={{ backgroundColor: dotColor(row.name) }}
-													aria-hidden
-												/>
-												<span
-													className={`text-sm font-medium ${
-														isActiveRow ? "text-primary" : "text-text-h"
-													}`}
-												>
-													{row.name}
-												</span>
-											</div>
-										</td>
-										<td className="px-3 py-3">
-											<ActiveBadge isActive={row.isActive} />
-										</td>
-										<td className="px-3 py-3 text-sm text-text">
-											{formatDate(row.createdAt)}
-										</td>
-										<td className="px-3 py-3 text-sm text-text">
-											{formatDate(row.updatedAt)}
-										</td>
-										<td
-											className="px-3 py-3"
-											onClick={(e) => e.stopPropagation()}
-										>
-											<ActionMenu
-												label={`Actions for ${row.name}`}
-												items={[
-													{
-														label: "View detail",
-														onSelect: () => onSelect(row.id),
-													},
-													{
-														label: "Edit",
-														onSelect: () => onEdit(row),
-													},
-													{
-														label: "Delete",
-														onSelect: () => onDelete(row),
-														danger: true,
-													},
-												]}
-											/>
-										</td>
-									</tr>
-								);
-							})
-						)}
-					</tbody>
-				</table>
-			</div>
-			<PaginationControls
-				totalLabel={totalLabel}
-				pageCount={pageCount}
-				safePage={safePage}
-				onPageChange={onPageChange}
-			/>
-		</Card>
+		<DataTable
+			label="Categories"
+			columns={COLUMNS}
+			rows={paged}
+			rowId={(row) => row.id}
+			loading={loading}
+			loadingLabel="Memuat categories..."
+			emptyLabel="No categories found."
+			activeId={selectedId}
+			onRowClick={(row) => onSelect(row.id)}
+			selectedIds={selectedIds}
+			allPageSelected={allPageSelected}
+			somePageSelected={somePageSelected}
+			onToggleAll={onToggleAll}
+			onToggleOne={onToggleOne}
+			selectAllLabel="Select all categories on this page"
+			rowSelectLabel={(row) => `Select ${row.name}`}
+			actions={(row) => (
+				<ActionMenu
+					label={`Actions for ${row.name}`}
+					items={[
+						{ label: "View detail", onSelect: () => onSelect(row.id) },
+						{ label: "Edit", onSelect: () => onEdit(row) },
+						{ label: "Delete", onSelect: () => onDelete(row), danger: true },
+					]}
+				/>
+			)}
+			pageCount={pageCount}
+			safePage={safePage}
+			onPageChange={onPageChange}
+			totalLabel={totalLabel}
+		/>
 	);
 }

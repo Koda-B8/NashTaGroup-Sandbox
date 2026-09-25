@@ -6,8 +6,9 @@ import Combobox from "../../../components/ui/combobox";
 import DatePicker, {
 	formatMonthValue,
 } from "../../../components/ui/date-picker";
+import Eyebrow from "../../../components/ui/eyebrow";
 import FilterPills from "../../../components/ui/filter-pills";
-import Input from "../../../components/ui/input";
+import { ListSearch } from "../../../components/ui/list-toolbar";
 import Select from "../../../components/ui/select";
 import {
 	MEMBER_OPTIONS,
@@ -22,11 +23,17 @@ import type { FilterOption } from "../hooks/useTransactionFilterOptions";
 function Field({ label, children }: { label: string; children: ReactNode }) {
 	return (
 		<div className="flex flex-col gap-1">
-			<span className="text-[11px] font-semibold tracking-wider text-text uppercase">
-				{label}
-			</span>
+			<Eyebrow>{label}</Eyebrow>
 			{children}
 		</div>
+	);
+}
+
+function ActiveChip({ children }: { children: ReactNode }) {
+	return (
+		<span className="rounded-full border border-base-border bg-base px-2 py-0.5">
+			{children}
+		</span>
 	);
 }
 
@@ -90,12 +97,11 @@ export default function TransactionFiltersBar({
 	return (
 		<div className="flex flex-col gap-3">
 			<div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
-				<Input
-					size="sm"
+				<ListSearch
+					wide
 					placeholder="Search transaction number..."
 					value={search}
 					onChange={(event) => onSearchChange(event.currentTarget.value)}
-					className="w-full shrink-0 sm:max-w-[248px]"
 					aria-label="Search transaction number"
 				/>
 				<FilterPills
@@ -115,12 +121,12 @@ export default function TransactionFiltersBar({
 				/>
 				<div className="flex shrink-0 items-center gap-2 sm:ml-auto">
 					<Select
-						label="Sort transactions"
+						label="Sort this page of transactions"
 						value={sortBy}
 						onValueChange={onSortChange}
 						items={SORT_OPTIONS}
 						className="h-8 w-40 min-w-0 text-xs"
-						placeholder="Sort"
+						placeholder="Sort page"
 					/>
 					<Button
 						variant="outline"
@@ -199,38 +205,34 @@ export default function TransactionFiltersBar({
 			</div>
 
 			{optionsLoading && (
-				<p className="text-[11px] text-text">Memuat opsi filter...</p>
+				<p className="text-2xs text-text">Memuat opsi filter...</p>
 			)}
 
 			{(month || cashierId || paymentMethodId || customerId) && (
-				<div className="flex flex-wrap items-center gap-1.5 text-[11px] text-text">
+				<div className="flex flex-wrap items-center gap-1.5 text-2xs text-text">
 					<span className="font-semibold tracking-wider uppercase">Active</span>
-					{month && (
-						<span className="rounded-full border border-base-border bg-base px-2 py-0.5">
-							Month: {formatMonthValue(month)}
-						</span>
-					)}
+					{month && <ActiveChip>Month: {formatMonthValue(month)}</ActiveChip>}
 					{cashierId && (
-						<span className="rounded-full border border-base-border bg-base px-2 py-0.5">
+						<ActiveChip>
 							Cashier:{" "}
 							{cashierOptions.find((option) => option.value === cashierId)
 								?.label ?? cashierId.slice(0, 8)}
-						</span>
+						</ActiveChip>
 					)}
 					{paymentMethodId && (
-						<span className="rounded-full border border-base-border bg-base px-2 py-0.5">
+						<ActiveChip>
 							Payment:{" "}
 							{paymentMethodOptions.find(
 								(option) => option.value === paymentMethodId,
 							)?.label ?? paymentMethodId.slice(0, 8)}
-						</span>
+						</ActiveChip>
 					)}
 					{customerId && (
-						<span className="rounded-full border border-base-border bg-base px-2 py-0.5">
+						<ActiveChip>
 							Customer:{" "}
 							{customerOptions.find((option) => option.value === customerId)
 								?.label ?? customerId.slice(0, 8)}
-						</span>
+						</ActiveChip>
 					)}
 				</div>
 			)}

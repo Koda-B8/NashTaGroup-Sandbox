@@ -2,10 +2,10 @@ import { Plus } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import Button from "../../components/ui/button";
+import { DetailLayout } from "../../components/ui/detail-panel";
 import ErrorBanner from "../../components/ui/error-banner";
 import FilterPills from "../../components/ui/filter-pills";
-import Input from "../../components/ui/input";
-import ListToolbar from "../../components/ui/list-toolbar";
+import ListToolbar, { ListSearch } from "../../components/ui/list-toolbar";
 import Section from "../../components/ui/section";
 import Toast from "../../components/ui/toast";
 import RegisterUserModal from "../../features/users/components/RegisterUserModal";
@@ -125,12 +125,10 @@ export default function UserManagementDashboard() {
 				<ListToolbar
 					filters={
 						<>
-							<Input
-								size="sm"
+							<ListSearch
 								placeholder="Search user..."
 								value={search}
 								onChange={(e) => setSearch(e.currentTarget.value)}
-								className="w-full sm:max-w-[240px]"
 								aria-label="Search user"
 							/>
 							<FilterPills
@@ -158,7 +156,7 @@ export default function UserManagementDashboard() {
 					}
 				/>
 
-				<div className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_280px]">
+				<DetailLayout>
 					<UserTable
 						loading={loading}
 						paged={paged}
@@ -175,7 +173,7 @@ export default function UserManagementDashboard() {
 						totalLabel={totalLabel}
 					/>
 					<UserDetailPanel user={selected} />
-				</div>
+				</DetailLayout>
 			</Section>
 
 			<RegisterUserModal

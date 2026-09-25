@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { tv, type VariantProps } from "tailwind-variants";
 
 const inputGroup = tv({
-	base: "relative flex items-center rounded-lg border border-base-border bg-white focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary",
+	base: "relative flex items-center rounded-lg border border-base-border bg-surface focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary",
 	variants: {
 		size: {
 			sm: "h-8",
@@ -85,7 +85,7 @@ export default function Combobox<Value extends string>({
 				/>
 				<BaseCombobox.Trigger
 					aria-label={`${label} — open options`}
-					className="absolute right-1.5 flex size-5 items-center justify-center rounded-md text-text hover:text-text-h focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+					className="absolute right-1.5 flex size-5 items-center justify-center rounded-lg text-text hover:text-text-h focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
 				>
 					<ChevronDownIcon size={16} />
 				</BaseCombobox.Trigger>
@@ -97,7 +97,7 @@ export default function Combobox<Value extends string>({
 					align="start"
 					className="z-10 outline-none"
 				>
-					<BaseCombobox.Popup className="w-[var(--anchor-width)] min-w-52 rounded-lg border border-base-border bg-white py-1 shadow-lg outline-none">
+					<BaseCombobox.Popup className="w-[var(--anchor-width)] min-w-52 rounded-lg border border-base-border bg-surface py-1 shadow-lg outline-none">
 						<BaseCombobox.Empty>
 							<div className="px-3 py-2 text-xs text-text">{emptyMessage}</div>
 						</BaseCombobox.Empty>
@@ -114,7 +114,7 @@ export default function Combobox<Value extends string>({
 									<span className="col-start-2 flex min-w-0 flex-col">
 										<span className="truncate">{item.label}</span>
 										{item.description && (
-											<span className="truncate text-[11px] text-text">
+											<span className="truncate text-2xs text-text">
 												{item.description}
 											</span>
 										)}

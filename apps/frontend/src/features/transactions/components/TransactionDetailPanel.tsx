@@ -3,7 +3,9 @@ import { useMemo } from "react";
 import Avatar from "../../../components/ui/avatar";
 import Badge from "../../../components/ui/badge";
 import Button from "../../../components/ui/button";
-import Card from "../../../components/ui/card";
+import DetailPanel from "../../../components/ui/detail-panel";
+import ErrorBanner from "../../../components/ui/error-banner";
+import Eyebrow from "../../../components/ui/eyebrow";
 import { formatRupiah } from "../../../libs/formatRupiah";
 import type { Transaction } from "../api";
 import {
@@ -67,16 +69,7 @@ export default function TransactionDetailPanel({
 	);
 
 	if (!transaction)
-		return (
-			<Card
-				padding="md"
-				className="flex h-fit flex-col gap-4 xl:sticky xl:top-4"
-			>
-				<p className="py-10 text-center text-sm text-text">
-					Pilih transaksi untuk melihat detail.
-				</p>
-			</Card>
-		);
+		return <DetailPanel empty={"Pilih transaksi untuk melihat detail."} />;
 
 	const items = detail?.items ?? [];
 	const paymentMethod =
@@ -85,10 +78,7 @@ export default function TransactionDetailPanel({
 		asString(detail?.payment?.status) ?? transaction.payment.status;
 
 	return (
-		<Card
-			padding="md"
-			className="flex h-fit flex-col gap-4 xl:sticky xl:top-4"
-		>
+		<DetailPanel>
 			<div className="flex flex-col gap-1">
 				<p
 					className="truncate text-sm font-bold text-text-h"
@@ -96,7 +86,7 @@ export default function TransactionDetailPanel({
 				>
 					{transaction.transactionNumber}
 				</p>
-				<p className="text-[11px] text-text">
+				<p className="text-2xs text-text">
 					{formatDateTime(transaction.createdAt)}
 				</p>
 			</div>
@@ -106,9 +96,7 @@ export default function TransactionDetailPanel({
 			<div className="border-t border-base-border" />
 
 			<div className="flex flex-col gap-2">
-				<p className="text-[11px] font-semibold tracking-wider text-text uppercase">
-					Customer
-				</p>
+				<Eyebrow>Customer</Eyebrow>
 				<div className="flex items-center gap-2.5">
 					<Avatar
 						name={transaction.customer?.name ?? "Non-member"}
@@ -118,7 +106,7 @@ export default function TransactionDetailPanel({
 						<p className="truncate text-sm font-semibold text-text-h">
 							{transaction.customer?.name ?? "Non-member"}
 						</p>
-						<p className="truncate text-[11px] text-text">
+						<p className="truncate text-2xs text-text">
 							{transaction.customer?.phone ?? "Guest checkout"}
 						</p>
 					</div>
@@ -126,9 +114,7 @@ export default function TransactionDetailPanel({
 			</div>
 
 			<div className="flex flex-col gap-2">
-				<p className="text-[11px] font-semibold tracking-wider text-text uppercase">
-					Cashier
-				</p>
+				<Eyebrow>Cashier</Eyebrow>
 				<div className="flex items-center gap-2.5">
 					<Avatar
 						name={transaction.cashier?.fullname ?? "Cashier"}
@@ -138,7 +124,7 @@ export default function TransactionDetailPanel({
 						<p className="truncate text-sm font-semibold text-text-h">
 							{transaction.cashier?.fullname ?? "—"}
 						</p>
-						<p className="text-[11px] text-text">Processed by</p>
+						<p className="text-2xs text-text">Processed by</p>
 					</div>
 				</div>
 			</div>
@@ -146,22 +132,15 @@ export default function TransactionDetailPanel({
 			<div className="border-t border-base-border" />
 
 			<div className="flex flex-col gap-1">
-				<p className="text-[11px] font-semibold tracking-wider text-text uppercase">
-					Items Ordered
-				</p>
+				<Eyebrow>Items Ordered</Eyebrow>
 				{loading ? (
 					<p className="py-6 text-center text-xs text-text">Memuat detail...</p>
 				) : error ? (
-					<div className="flex flex-col gap-2 rounded-lg border border-danger bg-danger px-3 py-2 text-xs text-deep-danger">
-						<span>{error}</span>
-						<button
-							type="button"
-							onClick={fetchDetail}
-							className="self-start font-semibold underline"
-						>
-							Coba lagi
-						</button>
-					</div>
+					<ErrorBanner
+						size="sm"
+						message={error}
+						onRetry={fetchDetail}
+					/>
 				) : items.length === 0 ? (
 					<p className="py-6 text-center text-xs text-text">
 						Tidak ada item pada transaksi ini.
@@ -177,7 +156,7 @@ export default function TransactionDetailPanel({
 									<p className="truncate text-sm text-text-h">
 										{item.productName}
 									</p>
-									<p className="truncate text-[11px] text-text">
+									<p className="truncate text-2xs text-text">
 										{item.productCode ? `${item.productCode} · ` : ""}
 										{item.qty} × {formatRupiah(toNumber(item.unitPrice))}
 									</p>
@@ -195,9 +174,7 @@ export default function TransactionDetailPanel({
 				<>
 					<div className="border-t border-base-border" />
 					<div className="flex flex-col gap-1.5">
-						<p className="text-[11px] font-semibold tracking-wider text-text uppercase">
-							Summary
-						</p>
+						<Eyebrow>Summary</Eyebrow>
 						{summaryRows.map(([key, value]) => {
 							const isTotal = key.toLowerCase() === "total";
 							return (
@@ -233,9 +210,7 @@ export default function TransactionDetailPanel({
 			<div className="border-t border-base-border" />
 
 			<div className="flex flex-col gap-2">
-				<p className="text-[11px] font-semibold tracking-wider text-text uppercase">
-					Payment
-				</p>
+				<Eyebrow>Payment</Eyebrow>
 				<div className="flex flex-wrap items-center gap-2">
 					<Badge
 						variant="neutral"
@@ -283,6 +258,6 @@ export default function TransactionDetailPanel({
 					Refresh
 				</Button>
 			</div>
-		</Card>
+		</DetailPanel>
 	);
 }

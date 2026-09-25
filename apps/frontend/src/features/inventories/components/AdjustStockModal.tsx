@@ -1,9 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 
-import Button from "../../../components/ui/button";
+import ErrorBanner from "../../../components/ui/error-banner";
 import Input from "../../../components/ui/input";
-import Modal, { ModalBody, ModalFooter } from "../../../components/ui/modal";
+import Modal, {
+	FormModalFooter,
+	ModalBody,
+} from "../../../components/ui/modal";
 import Select from "../../../components/ui/select";
+import { StatStrip, StatStripItem } from "../../../components/ui/stat-tile";
 import { type AdjustmentType, adjustStock, type StockAdjustment } from "../api";
 
 const TYPE_OPTIONS: { label: string; value: AdjustmentType }[] = [
@@ -126,12 +130,10 @@ export default function AdjustStockModal({
 			>
 				<ModalBody>
 					{serverError && (
-						<div
-							className="rounded-lg border border-danger bg-danger px-3 py-2 text-xs text-deep-danger"
-							role="alert"
-						>
-							{serverError}
-						</div>
+						<ErrorBanner
+							size="sm"
+							message={serverError}
+						/>
 					)}
 
 					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -146,7 +148,7 @@ export default function AdjustStockModal({
 								onValueChange={(value) => setType(value as AdjustmentType)}
 								className="w-full min-w-0"
 							/>
-							<span className="text-[11px] text-text">{TYPE_HINT[type]}</span>
+							<span className="text-2xs text-text">{TYPE_HINT[type]}</span>
 						</div>
 						<div className="flex flex-col gap-1">
 							<label
@@ -185,25 +187,24 @@ export default function AdjustStockModal({
 						/>
 					</div>
 
-					{error && (
-						<span className="text-[11px] text-deep-danger">{error}</span>
-					)}
+					{error && <span className="text-2xs text-deep-danger">{error}</span>}
 
-					<div className="flex items-center justify-between rounded-lg border border-base-border bg-base px-3 py-2.5">
-						<div className="flex flex-col">
-							<span className="text-[11px] text-text">Current stock</span>
+					<StatStrip>
+						<StatStripItem label="Current stock">
 							<span className="text-sm font-semibold text-text-h">
 								{currentStock}
 							</span>
-						</div>
+						</StatStripItem>
 						<span
 							className="text-text"
 							aria-hidden
 						>
 							→
 						</span>
-						<div className="flex flex-col items-end">
-							<span className="text-[11px] text-text">After</span>
+						<StatStripItem
+							label="After"
+							end
+						>
 							<span
 								className={`text-sm font-bold ${
 									previewStock < 0 ? "text-deep-danger" : "text-text-h"
@@ -211,27 +212,14 @@ export default function AdjustStockModal({
 							>
 								{previewStock}
 							</span>
-						</div>
-					</div>
+						</StatStripItem>
+					</StatStrip>
 				</ModalBody>
-				<ModalFooter>
-					<Button
-						type="button"
-						variant="outline"
-						size="sm"
-						onClick={() => handleOpen(false)}
-						disabled={submitting}
-					>
-						Cancel
-					</Button>
-					<Button
-						type="submit"
-						size="sm"
-						disabled={submitting}
-					>
-						{submitting ? "Saving..." : "Adjust"}
-					</Button>
-				</ModalFooter>
+				<FormModalFooter
+					submitting={submitting}
+					submitLabel="Adjust"
+					onCancel={() => handleOpen(false)}
+				/>
 			</form>
 		</Modal>
 	);

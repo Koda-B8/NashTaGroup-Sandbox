@@ -30,10 +30,10 @@ export function NotFoundContent({
 }: NotFoundProps) {
 	return (
 		<div className="relative z-1 py-16 text-center">
-			<h1 className="mt-4 text-balance text-3xl font-semibold tracking-tight text-primary sm:text-5xl">
+			<h1 className="mt-4 text-3xl font-semibold tracking-tight text-balance text-primary sm:text-5xl">
 				{title}
 			</h1>
-			<p className="mt-4 text-pretty text-base font-medium text-text sm:text-lg">
+			<p className="mt-4 font-medium text-pretty text-base text-text sm:text-lg">
 				{description}
 			</p>
 			<div className="mt-10 flex flex-col items-center justify-center gap-y-3 sm:flex-row sm:gap-x-6">

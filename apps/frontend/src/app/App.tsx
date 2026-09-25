@@ -2,12 +2,20 @@ import { Provider } from "react-redux";
 import { createBrowserRouter, RouterProvider } from "react-router";
 import { PersistGate } from "redux-persist/integration/react";
 
+import {
+	CartPanel,
+	CheckoutSteps,
+	CheckoutSummary,
+	FiltersPanel,
+	StructSteps,
+} from "../components/panels";
 import Home from "../pages";
 import NotFound from "../pages/+404";
 import Layout from "../pages/+Layout";
 import LoginPage from "../pages/auth/Login";
 import Checkout from "../pages/Checkout";
 import {
+	BrandsDashboard,
 	CategoriesDashboard,
 	InventoriesManagementDashboard,
 	MainDashboard,
@@ -25,9 +33,33 @@ const router = createBrowserRouter([
 		path: "/",
 		element: <Layout />,
 		children: [
-			{ index: true, element: <Home /> },
-			{ path: "/checkout", element: <Checkout /> },
-			{ path: "/struct", element: <StructStatus /> },
+			{
+				index: true,
+				element: <Home />,
+				handle: {
+					left: FiltersPanel,
+					right: CartPanel,
+					crumbs: [{ label: "Products" }],
+				},
+			},
+			{
+				path: "/checkout",
+				element: <Checkout />,
+				handle: {
+					left: CheckoutSteps,
+					right: CheckoutSummary,
+					crumbs: [{ label: "Products", to: "/" }, { label: "Checkout" }],
+				},
+			},
+			{
+				path: "/struct",
+				element: <StructStatus />,
+				handle: {
+					left: StructSteps,
+					right: CheckoutSummary,
+					crumbs: [{ label: "Products", to: "/" }, { label: "Struk" }],
+				},
+			},
 			{ path: "*", element: <NotFound /> },
 		],
 	},
@@ -45,22 +77,47 @@ const router = createBrowserRouter([
 					{
 						index: true,
 						element: <MainDashboard />,
+						handle: { crumbs: [{ label: "Home" }] },
 					},
 					{
 						path: "products/inventory",
 						element: <InventoriesManagementDashboard />,
+						handle: {
+							crumbs: [
+								{ label: "Products", to: "/dashboard/products" },
+								{ label: "Inventory" },
+							],
+						},
 					},
 					{
 						path: "products/categories",
 						element: <CategoriesDashboard />,
+						handle: {
+							crumbs: [
+								{ label: "Products", to: "/dashboard/products" },
+								{ label: "Categories" },
+							],
+						},
+					},
+					{
+						path: "products/brands",
+						element: <BrandsDashboard />,
+						handle: {
+							crumbs: [
+								{ label: "Products", to: "/dashboard/products" },
+								{ label: "Brands" },
+							],
+						},
 					},
 					{
 						path: "products",
 						element: <ProductsManagementDashboard />,
+						handle: { crumbs: [{ label: "Products" }] },
 					},
 					{
 						path: "orders",
 						element: <OrdersManagementDashboard />,
+						handle: { crumbs: [{ label: "Transactions" }] },
 					},
 					{
 						element: <ProtectedRoute allowedRoles={["admin"]} />,
@@ -68,6 +125,7 @@ const router = createBrowserRouter([
 							{
 								path: "cashier",
 								element: <UserManagementDashboard />,
+								handle: { crumbs: [{ label: "Cashier" }] },
 							},
 						],
 					},

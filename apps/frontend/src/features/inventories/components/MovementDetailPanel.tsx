@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 
-import Card from "../../../components/ui/card";
+import DetailPanel from "../../../components/ui/detail-panel";
+import Eyebrow from "../../../components/ui/eyebrow";
+import { StatStrip, StatStripItem } from "../../../components/ui/stat-tile";
 import type { InventoryMovement } from "../api";
 import {
 	formatDateTime,
@@ -38,24 +40,12 @@ export default function MovementDetailPanel({
 	movement: InventoryMovement | undefined;
 }) {
 	if (!movement)
-		return (
-			<Card
-				padding="md"
-				className="flex h-fit flex-col gap-4 xl:sticky xl:top-4"
-			>
-				<p className="py-10 text-center text-sm text-text">
-					Pilih pergerakan untuk melihat detail.
-				</p>
-			</Card>
-		);
+		return <DetailPanel empty={"Pilih pergerakan untuk melihat detail."} />;
 
 	return (
-		<Card
-			padding="md"
-			className="flex h-fit flex-col gap-4 xl:sticky xl:top-4"
-		>
+		<DetailPanel>
 			<div className="flex flex-col gap-2">
-				<p className="text-base font-bold text-text-h">
+				<p className="font-bold text-base text-text-h">
 					{movement.productItem.productName}
 				</p>
 				<p
@@ -72,17 +62,18 @@ export default function MovementDetailPanel({
 
 			<div className="border-t border-base-border" />
 
-			<div className="flex items-center justify-between rounded-lg border border-base-border bg-base px-3 py-2.5">
-				<div className="flex flex-col">
-					<span className="text-[11px] text-text">Quantity</span>
+			<StatStrip>
+				<StatStripItem label="Quantity">
 					<span
 						className={`text-lg font-bold ${MOVEMENT_TYPE_TEXT[movement.type]}`}
 					>
 						{formatMovementQuantity(movement.type, movement.quantity)}
 					</span>
-				</div>
-				<div className="flex flex-col items-end">
-					<span className="text-[11px] text-text">Stock</span>
+				</StatStripItem>
+				<StatStripItem
+					label="Stock"
+					end
+				>
 					<span className="text-sm font-semibold text-text-h">
 						{movement.stockBefore}
 						<span
@@ -93,8 +84,8 @@ export default function MovementDetailPanel({
 						</span>
 						{movement.stockAfter}
 					</span>
-				</div>
-			</div>
+				</StatStripItem>
+			</StatStrip>
 
 			<div className="flex flex-col gap-2.5">
 				<DetailRow
@@ -120,13 +111,11 @@ export default function MovementDetailPanel({
 				<>
 					<div className="border-t border-base-border" />
 					<div className="flex flex-col gap-1">
-						<span className="text-[11px] font-semibold tracking-wider text-text uppercase">
-							Note
-						</span>
+						<Eyebrow>Note</Eyebrow>
 						<p className="text-xs text-text-h">{movement.note}</p>
 					</div>
 				</>
 			)}
-		</Card>
+		</DetailPanel>
 	);
 }

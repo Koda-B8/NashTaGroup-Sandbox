@@ -1,5 +1,8 @@
-import Card from "../../../components/ui/card";
-import StatTile from "../../../components/ui/stat-tile";
+import DetailPanel from "../../../components/ui/detail-panel";
+import StatTile, {
+	StatStrip,
+	StatStripItem,
+} from "../../../components/ui/stat-tile";
 import { dotColor } from "../../../libs/format";
 import type { InventoryItem } from "../api";
 import { STOCK_STATUS_LABEL, STOCK_STATUS_TEXT } from "../format";
@@ -11,22 +14,10 @@ export default function InventoryDetailPanel({
 	item: InventoryItem | undefined;
 }) {
 	if (!item)
-		return (
-			<Card
-				padding="md"
-				className="flex h-fit flex-col gap-4 xl:sticky xl:top-4"
-			>
-				<p className="py-10 text-center text-sm text-text">
-					Pilih item inventory untuk melihat detail.
-				</p>
-			</Card>
-		);
+		return <DetailPanel empty={"Pilih item inventory untuk melihat detail."} />;
 
 	return (
-		<Card
-			padding="md"
-			className="flex h-fit flex-col gap-4 xl:sticky xl:top-4"
-		>
+		<DetailPanel>
 			<div className="flex flex-col gap-2">
 				<div className="flex items-center gap-2">
 					<span
@@ -34,7 +25,7 @@ export default function InventoryDetailPanel({
 						style={{ backgroundColor: dotColor(item.category) }}
 						aria-hidden
 					/>
-					<p className="text-base font-bold text-text-h">{item.productName}</p>
+					<p className="font-bold text-base text-text-h">{item.productName}</p>
 				</div>
 				<p
 					className="truncate text-xs text-text"
@@ -68,19 +59,18 @@ export default function InventoryDetailPanel({
 
 			<div className="border-t border-base-border" />
 
-			<div className="flex items-center justify-between rounded-lg border border-base-border bg-base px-3 py-2.5">
-				<div className="flex flex-col">
-					<span className="text-[11px] text-text">Stock on hand</span>
+			<StatStrip>
+				<StatStripItem label="Stock on hand">
 					<span
 						className={`text-lg font-bold ${STOCK_STATUS_TEXT[item.stockStatus]}`}
 					>
 						{item.stock}
 					</span>
-				</div>
-				<span className="text-[11px] font-medium text-text">
+				</StatStripItem>
+				<span className="text-2xs font-medium text-text">
 					{STOCK_STATUS_LABEL[item.stockStatus]}
 				</span>
-			</div>
-		</Card>
+			</StatStrip>
+		</DetailPanel>
 	);
 }

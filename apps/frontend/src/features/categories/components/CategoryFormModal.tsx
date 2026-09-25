@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 
-import Button from "../../../components/ui/button";
 import Checkbox from "../../../components/ui/checkbox";
+import ErrorBanner from "../../../components/ui/error-banner";
 import Input from "../../../components/ui/input";
-import Modal, { ModalBody, ModalFooter } from "../../../components/ui/modal";
+import Modal, {
+	FormModalFooter,
+	ModalBody,
+} from "../../../components/ui/modal";
 import {
 	type Category,
 	type CategoryAttributeInput,
@@ -181,12 +184,10 @@ export default function CategoryFormModal({
 			>
 				<ModalBody>
 					{serverError && (
-						<div
-							className="rounded-lg border border-danger bg-danger px-3 py-2 text-xs text-deep-danger"
-							role="alert"
-						>
-							{serverError}
-						</div>
+						<ErrorBanner
+							size="sm"
+							message={serverError}
+						/>
 					)}
 					<div className="flex flex-col gap-1">
 						<label
@@ -204,9 +205,9 @@ export default function CategoryFormModal({
 							autoComplete="off"
 						/>
 						{nameError ? (
-							<span className="text-[11px] text-deep-danger">{nameError}</span>
+							<span className="text-2xs text-deep-danger">{nameError}</span>
 						) : (
-							<span className="text-[11px] text-text">
+							<span className="text-2xs text-text">
 								Maks 100 karakter, unik
 							</span>
 						)}
@@ -223,7 +224,7 @@ export default function CategoryFormModal({
 								aria-label="Active status"
 							/>
 							<span className="text-xs font-medium">Active</span>
-							<span className="text-[11px] text-text">— isActive</span>
+							<span className="text-2xs text-text">— isActive</span>
 						</label>
 					)}
 
@@ -234,31 +235,18 @@ export default function CategoryFormModal({
 					/>
 					{formError && (
 						<span
-							className="text-[11px] text-deep-danger"
+							className="text-2xs text-deep-danger"
 							role="alert"
 						>
 							{formError}
 						</span>
 					)}
 				</ModalBody>
-				<ModalFooter>
-					<Button
-						type="button"
-						variant="outline"
-						size="sm"
-						onClick={() => handleOpen(false)}
-						disabled={submitting}
-					>
-						Cancel
-					</Button>
-					<Button
-						type="submit"
-						size="sm"
-						disabled={submitting}
-					>
-						{submitting ? "Saving..." : isEdit ? "Save" : "Create"}
-					</Button>
-				</ModalFooter>
+				<FormModalFooter
+					submitting={submitting}
+					submitLabel={isEdit ? "Save" : "Create"}
+					onCancel={() => handleOpen(false)}
+				/>
 			</form>
 		</Modal>
 	);

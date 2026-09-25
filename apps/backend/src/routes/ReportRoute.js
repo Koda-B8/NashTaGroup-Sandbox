@@ -1,13 +1,13 @@
 /* oxlint-disable jsdoc/check-tag-names -- @openapi is consumed by swagger-jsdoc. */
 import { Router } from "express";
 
-import { getCustomerDetailReport } from "../controllers/customer-report.controller.js";
-import { getProductDetailReport } from "../controllers/product-report.controller.js";
 import {
 	exportCustomerDetailReport,
 	exportProductDetailReport,
 	exportReportData,
-} from "../controllers/report-export.controller.js";
+} from "../controllers/all-report.controller.js";
+import { getCustomerDetailReport } from "../controllers/customer-report.controller.js";
+import { getProductDetailReport } from "../controllers/product-report.controller.js";
 import {
 	getCashierReport,
 	getCachedCustomerReport,
@@ -69,6 +69,53 @@ router.get("/:report/export", exportReportData);
  *       403: { description: Admin role required }
  */
 router.get("/customers", getCachedCustomerReport);
+
+/**
+ * @openapi
+ * /api/v1/reports/customers/{customerId}:
+ *   get:
+ *     tags: [Reports]
+ *     summary: Transactions, purchased products, and cashiers for one customer
+ *     description: Only completed transactions for the selected customer in the WIB date range are included. The view parameter selects one paginated list. Summary and transaction totals include discounts and tax; product sales are item subtotals before transaction-level discounts and tax.
+ *     security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+ *     parameters:
+ *       - { in: path, name: customerId, required: true, schema: { type: string, format: uuid } }
+ *       - { in: query, name: view, schema: { type: string, enum: [transactions, products, cashiers], default: transactions } }
+ *       - { in: query, name: from, description: First transaction date inclusive in WIB, schema: { type: string, format: date } }
+ *       - { in: query, name: to, description: Last transaction date inclusive in WIB, schema: { type: string, format: date } }
+ *       - { in: query, name: page, schema: { type: integer, minimum: 1, default: 1 } }
+ *       - { in: query, name: limit, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+ *     responses:
+ *       200: { description: Customer summary and selected paginated list }
+ *       400: { description: Invalid customer ID, view, dates, or pagination }
+ *       401: { description: Authentication required }
+ *       403: { description: Admin role required }
+ *       404: { description: Customer not found }
+ */
+router.get("/customers/:customerId", getCustomerDetailReport);
+
+/**
+ * @openapi
+ * /api/v1/reports/customers/{customerId}/export:
+ *   get:
+ *     tags: [Reports]
+ *     summary: Get all transactions, products, or cashiers for one customer as JSON
+ *     description: Returns the selected view for the specified customer, up to 5000 rows, for frontend PDF generation. Date filters and the view parameter match the customer detail report. Page and limit are ignored.
+ *     security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+ *     parameters:
+ *       - { in: path, name: customerId, required: true, schema: { type: string, format: uuid } }
+ *       - { in: query, name: view, schema: { type: string, enum: [transactions, products, cashiers], default: transactions } }
+ *       - { in: query, name: from, schema: { type: string, format: date } }
+ *       - { in: query, name: to, schema: { type: string, format: date } }
+ *     responses:
+ *       200: { description: Complete selected customer report data as JSON }
+ *       400: { description: Invalid customer ID, view, or dates }
+ *       401: { description: Authentication required }
+ *       403: { description: Admin role required }
+ *       404: { description: Customer not found }
+ *       413: { description: More than 5000 matching rows; narrow the date range }
+ */
+router.get("/customers/:customerId/export", exportCustomerDetailReport);
 
 /**
  * @openapi

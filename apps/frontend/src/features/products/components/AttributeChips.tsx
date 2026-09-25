@@ -30,13 +30,13 @@ export default function AttributeChips({
 	return (
 		<div className="flex items-start gap-3.5">
 			<div className="w-[108px] shrink-0 pt-1">
-				<span className="text-[12.5px] font-semibold text-text-h">
+				<span className="text-xs font-semibold text-text-h">
 					{definition.name}
 				</span>
 				{definition.isRequired && (
 					<span className="ml-0.5 font-bold text-deep-danger">*</span>
 				)}
-				<span className="mt-0.5 block text-[10px] text-text">
+				<span className="mt-0.5 block text-3xs text-text">
 					{definition.isVariant ? "pilih beberapa" : "pilih satu"}
 				</span>
 			</div>
@@ -53,7 +53,7 @@ export default function AttributeChips({
 								"inline-flex h-8 items-center gap-[7px] rounded-lg border px-2.5 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
 								active
 									? "border-primary bg-primary-light text-primary"
-									: "border-base-border bg-white text-text-h hover:bg-base",
+									: "border-base-border bg-surface text-text-h hover:bg-base",
 								invalid && !active && "border-deep-danger",
 							)}
 						>

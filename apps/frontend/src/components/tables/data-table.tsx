@@ -44,10 +44,10 @@ export interface DataTableProps<Row extends RowData> {
 	tableClassName?: string;
 	cardClassName?: string;
 
-	pageCount: number;
-	safePage: number;
-	onPageChange: (page: number) => void;
-	totalLabel: string;
+	pageCount?: number;
+	safePage?: number;
+	onPageChange?: (page: number) => void;
+	totalLabel?: string;
 	pageSize?: number;
 
 	activeId?: string | undefined;
@@ -74,8 +74,8 @@ export default function DataTable<Row extends RowData>({
 	emptyLabel,
 	tableClassName = "",
 	cardClassName = "",
-	pageCount,
-	safePage,
+	pageCount = 1,
+	safePage = 0,
 	onPageChange,
 	totalLabel,
 	pageSize = 10,
@@ -102,7 +102,7 @@ export default function DataTable<Row extends RowData>({
 				typeof updater === "function"
 					? updater({ pageIndex: safePage, pageSize })
 					: updater;
-			onPageChange(next.pageIndex);
+			onPageChange?.(next.pageIndex);
 		},
 		meta: { activeId } satisfies TableMeta,
 	});
@@ -249,16 +249,18 @@ export default function DataTable<Row extends RowData>({
 					</tbody>
 				</table>
 			</div>
-			<PaginationControls
-				totalLabel={totalLabel}
-				pageCount={table.getPageCount()}
-				safePage={table.state.pagination.pageIndex}
-				canPreviousPage={table.getCanPreviousPage()}
-				canNextPage={table.getCanNextPage()}
-				onPrevious={() => table.previousPage()}
-				onNext={() => table.nextPage()}
-				onPageChange={(page) => table.setPageIndex(page)}
-			/>
+			{totalLabel && (
+				<PaginationControls
+					totalLabel={totalLabel}
+					pageCount={table.getPageCount()}
+					safePage={table.state.pagination.pageIndex}
+					canPreviousPage={table.getCanPreviousPage()}
+					canNextPage={table.getCanNextPage()}
+					onPrevious={() => table.previousPage()}
+					onNext={() => table.nextPage()}
+					onPageChange={(page) => table.setPageIndex(page)}
+				/>
+			)}
 		</Card>
 	);
 }

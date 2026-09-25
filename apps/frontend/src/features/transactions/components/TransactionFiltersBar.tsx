@@ -7,7 +7,7 @@ import DatePicker, {
 	formatMonthValue,
 } from "../../../components/ui/date-picker";
 import FilterPills from "../../../components/ui/filter-pills";
-import Input from "../../../components/ui/input";
+import { ListSearch } from "../../../components/ui/list-toolbar";
 import Select from "../../../components/ui/select";
 import {
 	MEMBER_OPTIONS,
@@ -27,6 +27,14 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
 			</span>
 			{children}
 		</div>
+	);
+}
+
+function ActiveChip({ children }: { children: ReactNode }) {
+	return (
+		<span className="rounded-full border border-base-border bg-base px-2 py-0.5">
+			{children}
+		</span>
 	);
 }
 
@@ -90,12 +98,11 @@ export default function TransactionFiltersBar({
 	return (
 		<div className="flex flex-col gap-3">
 			<div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
-				<Input
-					size="sm"
+				<ListSearch
+					wide
 					placeholder="Search transaction number..."
 					value={search}
 					onChange={(event) => onSearchChange(event.currentTarget.value)}
-					className="w-full shrink-0 sm:max-w-[248px]"
 					aria-label="Search transaction number"
 				/>
 				<FilterPills
@@ -205,32 +212,28 @@ export default function TransactionFiltersBar({
 			{(month || cashierId || paymentMethodId || customerId) && (
 				<div className="flex flex-wrap items-center gap-1.5 text-2xs text-text">
 					<span className="font-semibold tracking-wider uppercase">Active</span>
-					{month && (
-						<span className="rounded-full border border-base-border bg-base px-2 py-0.5">
-							Month: {formatMonthValue(month)}
-						</span>
-					)}
+					{month && <ActiveChip>Month: {formatMonthValue(month)}</ActiveChip>}
 					{cashierId && (
-						<span className="rounded-full border border-base-border bg-base px-2 py-0.5">
+						<ActiveChip>
 							Cashier:{" "}
 							{cashierOptions.find((option) => option.value === cashierId)
 								?.label ?? cashierId.slice(0, 8)}
-						</span>
+						</ActiveChip>
 					)}
 					{paymentMethodId && (
-						<span className="rounded-full border border-base-border bg-base px-2 py-0.5">
+						<ActiveChip>
 							Payment:{" "}
 							{paymentMethodOptions.find(
 								(option) => option.value === paymentMethodId,
 							)?.label ?? paymentMethodId.slice(0, 8)}
-						</span>
+						</ActiveChip>
 					)}
 					{customerId && (
-						<span className="rounded-full border border-base-border bg-base px-2 py-0.5">
+						<ActiveChip>
 							Customer:{" "}
 							{customerOptions.find((option) => option.value === customerId)
 								?.label ?? customerId.slice(0, 8)}
-						</span>
+						</ActiveChip>
 					)}
 				</div>
 			)}

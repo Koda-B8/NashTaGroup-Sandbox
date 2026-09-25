@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import DetailPanel from "../../../components/ui/detail-panel";
+import Eyebrow from "../../../components/ui/eyebrow";
 import type { InventoryMovement } from "../api";
 import {
 	formatDateTime,
@@ -108,9 +109,7 @@ export default function MovementDetailPanel({
 				<>
 					<div className="border-t border-base-border" />
 					<div className="flex flex-col gap-1">
-						<span className="text-2xs font-semibold tracking-wider text-text uppercase">
-							Note
-						</span>
+						<Eyebrow>Note</Eyebrow>
 						<p className="text-xs text-text-h">{movement.note}</p>
 					</div>
 				</>

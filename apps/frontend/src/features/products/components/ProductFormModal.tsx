@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Button from "../../../components/ui/button";
 import Checkbox from "../../../components/ui/checkbox";
 import ErrorBanner from "../../../components/ui/error-banner";
+import Eyebrow from "../../../components/ui/eyebrow";
 import Input from "../../../components/ui/input";
 import Modal, { ModalBody, ModalFooter } from "../../../components/ui/modal";
 import Select from "../../../components/ui/select";
@@ -661,9 +662,7 @@ export default function ProductFormModal({
 
 					<div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:items-start">
 						<section className="flex flex-col gap-3 rounded-lg border border-base-border p-4">
-							<p className="text-3xs font-bold tracking-wider text-text uppercase">
-								Details
-							</p>
+							<Eyebrow size="sm">Details</Eyebrow>
 							<div className="flex flex-col gap-1">
 								<label
 									htmlFor="product-name"
@@ -805,9 +804,9 @@ export default function ProductFormModal({
 								{composer && (
 									<div className="flex flex-col gap-4 border-t border-base-border pt-3">
 										<div className="flex items-center justify-between gap-2">
-											<p className="text-3xs font-bold tracking-wider text-text uppercase">
+											<Eyebrow size="sm">
 												{composer.itemId ? "Edit varian" : "Tambah varian"}
-											</p>
+											</Eyebrow>
 											{category && (
 												<span className="text-2xs text-text">
 													dari category {category.name}
@@ -903,9 +902,7 @@ export default function ProductFormModal({
 							<div className="flex flex-col gap-4">
 								<section className="flex flex-col gap-3 rounded-lg border border-base-border p-4">
 									<div className="flex items-center justify-between gap-2">
-										<p className="text-3xs font-bold tracking-wider text-text uppercase">
-											Atribut
-										</p>
+										<Eyebrow size="sm">Atribut</Eyebrow>
 										{category && (
 											<span className="text-2xs text-text">
 												dari category {category.name}

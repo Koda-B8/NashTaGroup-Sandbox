@@ -1,6 +1,7 @@
 import Badge from "../../../components/ui/badge";
 import Button from "../../../components/ui/button";
 import DetailPanel, { DetailLine } from "../../../components/ui/detail-panel";
+import Eyebrow from "../../../components/ui/eyebrow";
 import { ActiveBadge } from "../../../components/ui/status-badge";
 import { dotColor, formatDate } from "../../../libs/format";
 import type { Category, CategoryAttribute } from "../api";
@@ -98,9 +99,7 @@ export default function CategoryDetailPanel({
 
 			<div className="flex flex-col gap-1">
 				<div className="flex items-baseline justify-between gap-2">
-					<p className="text-3xs font-semibold tracking-wider text-text uppercase">
-						Atribut
-					</p>
+					<Eyebrow size="sm">Atribut</Eyebrow>
 					{attributes.length > 0 && (
 						<span className="text-2xs text-text">
 							{attributes.length} atribut

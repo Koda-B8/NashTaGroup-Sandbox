@@ -2,6 +2,7 @@ import { Plus } from "lucide-react";
 
 import ActionMenu from "../../../components/ui/action-menu";
 import Button from "../../../components/ui/button";
+import Eyebrow from "../../../components/ui/eyebrow";
 import { formatRupiah } from "../../../libs/formatRupiah";
 import type { ProductItem } from "../api";
 
@@ -31,9 +32,7 @@ export default function ProductVariantList({
 		<div className="flex flex-col gap-3">
 			<div className="flex items-center justify-between gap-2">
 				<div className="flex items-baseline gap-2">
-					<p className="text-3xs font-bold tracking-wider text-text uppercase">
-						Varian
-					</p>
+					<Eyebrow size="sm">Varian</Eyebrow>
 					<span className="text-2xs text-text">{items.length} varian</span>
 				</div>
 				{onAdd && (

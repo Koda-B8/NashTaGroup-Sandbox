@@ -6,6 +6,7 @@ import Combobox from "../../../components/ui/combobox";
 import DatePicker, {
 	formatMonthValue,
 } from "../../../components/ui/date-picker";
+import Eyebrow from "../../../components/ui/eyebrow";
 import FilterPills from "../../../components/ui/filter-pills";
 import Input from "../../../components/ui/input";
 import Select from "../../../components/ui/select";
@@ -22,9 +23,7 @@ import type { FilterOption } from "../hooks/useTransactionFilterOptions";
 function Field({ label, children }: { label: string; children: ReactNode }) {
 	return (
 		<div className="flex flex-col gap-1">
-			<span className="text-2xs font-semibold tracking-wider text-text uppercase">
-				{label}
-			</span>
+			<Eyebrow>{label}</Eyebrow>
 			{children}
 		</div>
 	);

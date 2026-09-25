@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Button from "../../components/ui/button";
 import DatePicker from "../../components/ui/date-picker";
 import ErrorBanner from "../../components/ui/error-banner";
+import Eyebrow from "../../components/ui/eyebrow";
 import FilterPills from "../../components/ui/filter-pills";
 import Input from "../../components/ui/input";
 import Section from "../../components/ui/section";
@@ -31,9 +32,7 @@ function FilterField({
 }) {
 	return (
 		<div className="flex flex-col gap-1">
-			<span className="text-2xs font-semibold tracking-wider text-text uppercase">
-				{label}
-			</span>
+			<Eyebrow>{label}</Eyebrow>
 			{children}
 		</div>
 	);

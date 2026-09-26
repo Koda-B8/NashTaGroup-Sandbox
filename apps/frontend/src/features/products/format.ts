@@ -185,10 +185,33 @@ const toCodeSegment = (value: string) =>
 		.replaceAll(/[^A-Z0-9]+/g, "-")
 		.replaceAll(/^-+|-+$/g, "");
 
-export function suggestProductCode(label: string, index: number): string {
-	const base = toCodeSegment(label).slice(0, 46).replaceAll(/-+$/g, "");
-	const code = base || `SKU-${index + 1}`;
-	return code.slice(0, 50).replaceAll(/-+$/g, "");
+export const MAX_PRODUCT_CODE_LENGTH = 50;
+
+export function suggestProductCode(
+	label: string,
+	index: number,
+	prefix = "",
+): string {
+	const prefixSegment = toCodeSegment(prefix);
+	const labelSegment = toCodeSegment(label);
+	if (!prefixSegment) {
+		const fallback = labelSegment || `SKU-${index + 1}`;
+		return fallback.slice(0, MAX_PRODUCT_CODE_LENGTH).replaceAll(/-+$/g, "");
+	}
+	const suffix = labelSegment || String(index + 1);
+	const head = prefixSegment
+		.slice(0, Math.max(1, MAX_PRODUCT_CODE_LENGTH - suffix.length - 1))
+		.replaceAll(/-+$/g, "");
+	return `${head}-${suffix}`
+		.slice(0, MAX_PRODUCT_CODE_LENGTH)
+		.replaceAll(/-+$/g, "");
+}
+
+export function selectionKey(selections: AttributeSelection[]): string {
+	return selections
+		.map((selection) => `${selection.attributeId}:${selection.optionId}`)
+		.toSorted()
+		.join("|");
 }
 
 export function validateProductItemDraft(

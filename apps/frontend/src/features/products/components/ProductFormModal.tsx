@@ -39,6 +39,7 @@ import {
 	MAX_COMBINATIONS,
 	type ProductItemDraft,
 	type ProductItemDraftErrors,
+	selectionKey,
 	suggestProductCode,
 	toNumber,
 	validateProductItemDraft,
@@ -54,11 +55,12 @@ interface Props {
 	onSuccess: (message?: string, variant?: "success" | "error") => void;
 	onDeleteVariant?: (item: ProductItem) => void;
 	onAdjustStock?: (item: ProductItem) => void;
+	onViewMovements?: (item: ProductItem) => void;
 	onDeleteProduct?: () => void;
 }
 
 interface ItemEdit {
-	productCode: string;
+	productCode?: string;
 	price: string;
 	stock: string;
 	isActive: boolean;
@@ -83,6 +85,7 @@ export default function ProductFormModal({
 	onSuccess,
 	onDeleteVariant,
 	onAdjustStock,
+	onViewMovements,
 	onDeleteProduct,
 }: Props) {
 	const isEdit = Boolean(product);
@@ -238,7 +241,8 @@ export default function ProductFormModal({
 					label: combination.label,
 					hex: combination.hex,
 					productCode:
-						edit?.productCode ?? suggestProductCode(combination.label, index),
+						edit?.productCode ??
+						suggestProductCode(combination.label, index, name),
 					price: edit?.price ?? "",
 					stock: edit?.stock ?? "0",
 					isActive: edit?.isActive ?? true,
@@ -252,13 +256,65 @@ export default function ProductFormModal({
 				selections: [],
 				label: "",
 				hex: null,
-				productCode: edit?.productCode ?? suggestProductCode("", index),
+				productCode: edit?.productCode ?? suggestProductCode("", index, name),
 				price: edit?.price ?? "",
 				stock: edit?.stock ?? "0",
 				isActive: edit?.isActive ?? true,
 			};
 		});
-	}, [hasVariants, tooManyCombinations, combinations, manualKeys, itemEdits]);
+	}, [
+		hasVariants,
+		tooManyCombinations,
+		combinations,
+		manualKeys,
+		itemEdits,
+		name,
+	]);
+
+	const variantAttributeIds = useMemo(
+		() => new Set(variantDefinitions.map((definition) => definition.id)),
+		[variantDefinitions],
+	);
+
+	const existingVariantsByKey = useMemo(() => {
+		const editingId = composer?.itemId ?? null;
+		const map = new Map<string, ProductItem>();
+		for (const item of product?.items ?? []) {
+			if (item.id === editingId) continue;
+			const selections = (item.attributes ?? []).flatMap((attribute) =>
+				attribute.id &&
+				variantAttributeIds.has(attribute.id) &&
+				attribute.optionId
+					? [{ attributeId: attribute.id, optionId: attribute.optionId }]
+					: [],
+			);
+			if (selections.length === 0) continue;
+			const key = selectionKey(selections);
+			if (!map.has(key)) map.set(key, item);
+		}
+		return map;
+	}, [product, composer, variantAttributeIds]);
+
+	const duplicateItemKeys = useMemo(() => {
+		const duplicates = new Set<string>();
+		if (!composer) return duplicates;
+		for (const item of items) {
+			if (item.selections.length === 0) continue;
+			if (existingVariantsByKey.has(selectionKey(item.selections)))
+				duplicates.add(item.key);
+		}
+		return duplicates;
+	}, [composer, items, existingVariantsByKey]);
+
+	const duplicateExistingVariant = useMemo<ProductItem | null>(() => {
+		if (!composer || duplicateItemKeys.size === 0) return null;
+		for (const item of items) {
+			if (!duplicateItemKeys.has(item.key)) continue;
+			const existing = existingVariantsByKey.get(selectionKey(item.selections));
+			if (existing) return existing;
+		}
+		return null;
+	}, [composer, duplicateItemKeys, items, existingVariantsByKey]);
 
 	const handleOpen = useCallback(
 		(next: boolean) => {
@@ -279,18 +335,23 @@ export default function ProductFormModal({
 		setItemErrors({});
 	}, []);
 
-	const handleItemsChange = useCallback((next: ProductItemDraft[]) => {
-		const nextEdits: Record<string, ItemEdit> = {};
-		for (const item of next) {
-			nextEdits[item.key] = {
-				productCode: item.productCode,
-				price: item.price,
-				stock: item.stock,
-				isActive: item.isActive,
-			};
-		}
-		setItemEdits(nextEdits);
-	}, []);
+	const handleItemsChange = useCallback(
+		(next: ProductItemDraft[]) => {
+			const nextEdits: Record<string, ItemEdit> = {};
+			next.forEach((item, index) => {
+				const suggestion = suggestProductCode(item.label, index, name);
+				nextEdits[item.key] = {
+					productCode:
+						item.productCode === suggestion ? undefined : item.productCode,
+					price: item.price,
+					stock: item.stock,
+					isActive: item.isActive,
+				};
+			});
+			setItemEdits(nextEdits);
+		},
+		[name],
+	);
 
 	const addManualItem = useCallback(() => {
 		manualSeq.current += 1;
@@ -408,6 +469,15 @@ export default function ProductFormModal({
 					: hasVariants
 						? "Pilih opsi atribut untuk membuat varian"
 						: "Tambahkan minimal 1 item",
+			);
+			return;
+		}
+
+		if (duplicateItemKeys.size > 0) {
+			setError(
+				editingId
+					? "Kombinasi ini sudah dipakai varian lain. Pilih opsi berbeda."
+					: "Varian dengan kombinasi atribut ini sudah ada. Edit varian yang sudah ada atau pilih opsi lain.",
 			);
 			return;
 		}
@@ -817,6 +887,7 @@ export default function ProductFormModal({
 									onEdit={startEditingVariant}
 									onDelete={onDeleteVariant}
 									onAdjustStock={onAdjustStock}
+									onViewMovements={onViewMovements}
 								/>
 
 								{composer && (
@@ -881,6 +952,28 @@ export default function ProductFormModal({
 											}
 										/>
 
+										{duplicateItemKeys.size > 0 && (
+											<div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-danger bg-danger px-3 py-2">
+												<p className="text-2xs text-deep-danger">
+													{composer.itemId
+														? "Kombinasi ini sudah dipakai varian lain. Pilih opsi berbeda."
+														: "Kombinasi varian ini sudah ada. Varian yang sudah ada hanya bisa diedit."}
+												</p>
+												{!composer.itemId && duplicateExistingVariant && (
+													<Button
+														type="button"
+														variant="outline"
+														size="sm"
+														onClick={() =>
+															startEditingVariant(duplicateExistingVariant)
+														}
+													>
+														Edit varian ini
+													</Button>
+												)}
+											</div>
+										)}
+
 										<div className="flex items-center justify-end gap-2">
 											<Button
 												type="button"
@@ -895,7 +988,7 @@ export default function ProductFormModal({
 												type="button"
 												size="sm"
 												onClick={handleComposerSubmit}
-												disabled={savingVariant}
+												disabled={savingVariant || duplicateItemKeys.size > 0}
 											>
 												{savingVariant
 													? "Menyimpan..."

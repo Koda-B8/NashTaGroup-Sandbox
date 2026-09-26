@@ -163,6 +163,27 @@ export function monthEnd(month: string): string | undefined {
 	return `${month}-${String(lastDay).padStart(2, "0")}`;
 }
 
+export function monthLabel(month: string): string | undefined {
+	if (!MONTH_PATTERN.test(month)) return undefined;
+	const [year, monthIndex] = month.split("-").map(Number);
+	return new Date(year, monthIndex - 1, 1).toLocaleDateString("en-GB", {
+		month: "short",
+		year: "numeric",
+	});
+}
+
+export function monthRangeLabel(
+	fromMonth: string,
+	toMonth: string,
+): string | undefined {
+	const from = monthLabel(fromMonth);
+	const to = monthLabel(toMonth);
+	if (from && to) return `${from} – ${to}`;
+	if (from) return `From ${from}`;
+	if (to) return `Until ${to}`;
+	return undefined;
+}
+
 export function formatDateTime(iso?: string | null): string {
 	if (!iso) return "—";
 	const date = new Date(iso);

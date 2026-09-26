@@ -8,7 +8,10 @@ import {
 } from "../../../libs/pdf/report";
 import { type MovementSource, type MovementType } from "../api";
 import { MOVEMENT_TYPE_LABEL } from "../format";
-import { fetchAllInventoryMovements } from "../loadMovements";
+import {
+	fetchAllInventoryMovements,
+	fetchLatestMovementStock,
+} from "../loadMovements";
 import type {
 	InventoryMovementPdfData,
 	PdfMovementRow,
@@ -40,29 +43,30 @@ export async function loadInventoryMovementReportPdfData(opts: {
 }): Promise<InventoryMovementPdfData> {
 	const now = opts.now ?? new Date();
 	const scope = opts.scope ?? "item";
-	const movements = await fetchAllInventoryMovements({
-		productItemIds: opts.productItemIds,
-		type: opts.type,
-		from: opts.from,
-		to: opts.to,
-	});
+	const singleItemId = scope === "item" ? opts.productItemIds[0] : undefined;
+
+	const [movements, currentStock] = await Promise.all([
+		fetchAllInventoryMovements({
+			productItemIds: opts.productItemIds,
+			type: opts.type,
+			from: opts.from,
+			to: opts.to,
+		}),
+		singleItemId
+			? fetchLatestMovementStock(singleItemId)
+			: Promise.resolve(null),
+	]);
 
 	const first = movements[0];
 	const productName =
 		first?.productItem.productName || opts.fallbackName || "Product item";
-	const productCode = first?.productItem.productCode || opts.fallbackCode || "";
-	const variantName = first?.productItem.variantName ?? "";
-
-	const variantCount = new Set(
-		movements
-			.map(
-				(movement) =>
-					movement.productItem.variantName ||
-					movement.productItem.productCode ||
-					movement.productItem.id,
-			)
-			.filter(Boolean),
-	).size;
+	const productCode =
+		scope === "item"
+			? first?.productItem.productCode || opts.fallbackCode || ""
+			: (opts.fallbackCode ?? "");
+	const variantName =
+		scope === "item" ? (first?.productItem.variantName ?? "") : "";
+	const variantCount = opts.productItemIds.length;
 
 	const rows: PdfMovementRow[] = movements.map((movement) => ({
 		date: formatStamp(movement.createdAt),
@@ -88,7 +92,7 @@ export async function loadInventoryMovementReportPdfData(opts: {
 		additions: movements.filter((m) => m.type === "addition").length,
 		reductions: movements.filter((m) => m.type === "reduction").length,
 		corrections: movements.filter((m) => m.type === "correction").length,
-		currentStock: scope === "item" ? (movements[0]?.stockAfter ?? null) : null,
+		currentStock: scope === "item" ? currentStock : null,
 	};
 
 	const dates = movements

@@ -55,3 +55,19 @@ export async function fetchAllInventoryMovements(opts: {
 	);
 	return perItem.flat().sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
+
+/**
+ * Latest recorded stock for one product item, ignoring any type/date filter.
+ * The newest movement's `stockAfter` is the item's current stock, so this is
+ * the value to show in a report summary even when the table is filtered.
+ */
+export async function fetchLatestMovementStock(
+	productItemId: string,
+): Promise<number | null> {
+	const { data } = await listInventoryMovements({
+		product_item_id: productItemId,
+		page: 1,
+		limit: 1,
+	});
+	return data[0]?.stockAfter ?? null;
+}

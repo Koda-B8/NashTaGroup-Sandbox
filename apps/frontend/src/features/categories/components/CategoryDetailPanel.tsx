@@ -89,7 +89,7 @@ export default function CategoryDetailPanel({
 					<ActiveBadge isActive={category.isActive} />
 				</div>
 				<p
-					className="truncate font-mono text-xs text-text"
+					className="truncate text-xs text-text"
 					title={category.id}
 				>
 					{category.id}

@@ -8,10 +8,17 @@ import {
 	writeListCache,
 } from "../lib/list-cache.js";
 import { paginate, parsePagination } from "../lib/pagination.js";
+import { parseSorting } from "../lib/sorting.js";
 import db from "../models/index.cjs";
 import { parseSearch } from "../utils/query.js";
 
 const { Customers } = db;
+const CUSTOMER_SORTS = new Map([
+	["created_at_desc", [["createdAt", "DESC"]]],
+	["created_at_asc", [["createdAt", "ASC"]]],
+	["name_asc", [["name", "ASC"]]],
+	["name_desc", [["name", "DESC"]]],
+]);
 
 const toCustomerResponse = (customer) => {
 	const value =
@@ -29,7 +36,18 @@ export async function getCustomers(request, response, next) {
 	try {
 		const { page, limit } = parsePagination(request.query);
 		const search = parseSearch(request.query.q);
-		const cacheKey = await listCacheKey("customers", { search, page, limit });
+		const { sort, order } = parseSorting(request.query, {
+			defaultSort: "created_at_desc",
+			options: CUSTOMER_SORTS,
+			message:
+				"sort must be created_at_desc, created_at_asc, name_asc, or name_desc",
+		});
+		const cacheKey = await listCacheKey("customers", {
+			search,
+			sort,
+			page,
+			limit,
+		});
 		const cached = await readListCache(cacheKey);
 		if (cached) return response.status(constants.HTTP_STATUS_OK).json(cached);
 		const where = {};
@@ -44,7 +62,7 @@ export async function getCustomers(request, response, next) {
 		const { rows, pagination } = await paginate(Customers, request.query, {
 			where,
 			attributes: ["id", "name", "phone", "createdAt"],
-			order: [["createdAt", "DESC"]],
+			order,
 		});
 
 		const body = {

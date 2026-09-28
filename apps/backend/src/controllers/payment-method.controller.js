@@ -1,10 +1,17 @@
 import { constants } from "node:http2";
 
+import { parseSorting } from "../lib/sorting.js";
 import db from "../models/index.cjs";
 import { createHttpError } from "../utils/http-error.js";
 import { parseBoolean } from "../utils/query.js";
 
 const { PaymentMethods } = db;
+const PAYMENT_METHOD_SORTS = new Map([
+	["name_asc", [["name", "ASC"]]],
+	["name_desc", [["name", "DESC"]]],
+	["admin_fee_asc", [["adminFee", "ASC"]]],
+	["admin_fee_desc", [["adminFee", "DESC"]]],
+]);
 
 const toPaymentMethodResponse = (paymentMethod) => {
 	const value =
@@ -23,6 +30,12 @@ const toPaymentMethodResponse = (paymentMethod) => {
 export async function getPaymentMethods(request, response, next) {
 	try {
 		const isActive = parseBoolean(request.query.is_active);
+		const { order } = parseSorting(request.query, {
+			defaultSort: "name_asc",
+			options: PAYMENT_METHOD_SORTS,
+			message:
+				"sort must be name_asc, name_desc, admin_fee_asc, or admin_fee_desc",
+		});
 
 		if (request.query.is_active !== undefined && isActive === undefined) {
 			throw createHttpError(
@@ -33,7 +46,7 @@ export async function getPaymentMethods(request, response, next) {
 
 		const paymentMethods = await PaymentMethods.findAll({
 			where: isActive === undefined ? {} : { isActive },
-			order: [["name", "ASC"]],
+			order,
 		});
 
 		return response.status(constants.HTTP_STATUS_OK).json({

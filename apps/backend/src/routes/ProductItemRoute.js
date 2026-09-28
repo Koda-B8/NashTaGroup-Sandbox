@@ -41,6 +41,13 @@ router.use(authMiddleware);
  *         schema:
  *           type: boolean
  *         description: Filter product items by active status
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: string
+ *           enum: [name_asc, name_desc, product_code_asc, product_code_desc, price_asc, price_desc]
+ *           default: name_asc
+ *         description: Sort the list using a supported field and direction.
  *     responses:
  *       200:
  *         description: Product items retrieved successfully

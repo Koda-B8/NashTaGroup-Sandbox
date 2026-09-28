@@ -24,6 +24,13 @@ router.use(authMiddleware);
  *         schema:
  *           type: boolean
  *         description: Filter payment methods by active status.
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: string
+ *           enum: [name_asc, name_desc, admin_fee_asc, admin_fee_desc]
+ *           default: name_asc
+ *         description: Sort the list using a supported field and direction.
  *     responses:
  *       200:
  *         description: Payment methods retrieved successfully

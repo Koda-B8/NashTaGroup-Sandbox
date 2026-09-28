@@ -14,6 +14,7 @@ import {
 	readProductListCache,
 	writeProductListCache,
 } from "../lib/product-list-cache.js";
+import { parseSorting } from "../lib/sorting.js";
 import db from "../models/index.cjs";
 import { createHttpError } from "../utils/http-error.js";
 import {
@@ -27,6 +28,13 @@ import {
 } from "../utils/product-variant.js";
 import { parseBoolean, parseSearch } from "../utils/query.js";
 import { isUuid, normalizeText } from "../utils/validation.js";
+
+const PRODUCT_SORTS = new Map([
+	["name_asc", [["name", "ASC"]]],
+	["name_desc", [["name", "DESC"]]],
+	["created_at_asc", [["createdAt", "ASC"]]],
+	["created_at_desc", [["createdAt", "DESC"]]],
+]);
 
 const {
 	Brands,
@@ -439,6 +447,12 @@ export async function getProducts(req, res, next) {
 		const brandId =
 			typeof req.query.brandId === "string" ? req.query.brandId.trim() : "";
 		const isActive = parseBoolean(req.query.isActive);
+		const { sort, order } = parseSorting(req.query, {
+			defaultSort: "name_asc",
+			options: PRODUCT_SORTS,
+			message:
+				"sort must be name_asc, name_desc, created_at_asc, or created_at_desc",
+		});
 
 		if (req.query.isActive !== undefined && isActive === undefined) {
 			throw createHttpError(
@@ -466,6 +480,7 @@ export async function getProducts(req, res, next) {
 			categoryId,
 			brandId,
 			isActive,
+			sort,
 			page,
 			limit,
 		});
@@ -487,7 +502,7 @@ export async function getProducts(req, res, next) {
 		const { rows, pagination } = await paginate(Products, req.query, {
 			where,
 			include: productListIncludes,
-			order: [["name", "ASC"]],
+			order,
 			distinct: true,
 		});
 

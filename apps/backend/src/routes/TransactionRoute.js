@@ -77,6 +77,13 @@ router.use(requireRole("admin"));
  *         schema:
  *           type: string
  *         description: Search transactions by transaction number.
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: string
+ *           enum: [created_at_desc, created_at_asc, total_amount_asc, total_amount_desc]
+ *           default: created_at_desc
+ *         description: Sort the list using a supported field and direction.
  *     responses:
  *       200:
  *         description: Transactions retrieved successfully

@@ -34,6 +34,13 @@ router.use(authMiddleware, requireRole("admin"));
  *         schema:
  *           type: string
  *           format: uuid
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: string
+ *           enum: [primary_first, sort_order_asc, sort_order_desc, created_at_desc]
+ *           default: primary_first
+ *         description: Sort the list using a supported field and direction.
  *     responses:
  *       200:
  *         description: Product images retrieved successfully

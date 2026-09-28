@@ -38,6 +38,13 @@ router.use(authMiddleware, requireRole("admin"));
  *         schema:
  *           type: string
  *         description: Case-insensitive search by customer name or phone number.
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: string
+ *           enum: [created_at_desc, created_at_asc, name_asc, name_desc]
+ *           default: created_at_desc
+ *         description: Sort the list using a supported field and direction.
  *     responses:
  *       200:
  *         description: Customers retrieved successfully

@@ -268,7 +268,10 @@ describe("getUsers", () => {
 					attributes: ["id", "name"],
 				},
 			],
-			order: [["fullname", "ASC"]],
+			order: [
+				["fullname", "ASC"],
+				["id", "ASC"],
+			],
 			limit: 20,
 			offset: 0,
 			distinct: true,
@@ -356,6 +359,25 @@ describe("getUsers", () => {
 		);
 	});
 
+	it("sorts users by an allowed field", async () => {
+		db.Users.findAndCountAll.mockResolvedValue({ count: 0, rows: [] });
+
+		await getUsers(
+			{ query: { sort: "created_at_desc" } },
+			createResponse(),
+			vi.fn(),
+		);
+
+		expect(db.Users.findAndCountAll).toHaveBeenCalledWith(
+			expect.objectContaining({
+				order: [
+					["createdAt", "DESC"],
+					["id", "ASC"],
+				],
+			}),
+		);
+	});
+
 	it("forwards database errors", async () => {
 		const error = new Error("database unavailable");
 		db.Users.findAndCountAll.mockRejectedValue(error);
@@ -391,6 +413,21 @@ describe("getUsers", () => {
 			expect.objectContaining({
 				statusCode: constants.HTTP_STATUS_BAD_REQUEST,
 				message: "is_active must be true or false",
+			}),
+		);
+		expect(db.Users.findAndCountAll).not.toHaveBeenCalled();
+	});
+
+	it("rejects an invalid sort option", async () => {
+		const next = vi.fn();
+
+		await getUsers({ query: { sort: "role_asc" } }, createResponse(), next);
+
+		expect(next).toHaveBeenCalledWith(
+			expect.objectContaining({
+				statusCode: constants.HTTP_STATUS_BAD_REQUEST,
+				message:
+					"sort must be fullname_asc, fullname_desc, username_asc, username_desc, created_at_asc, or created_at_desc",
 			}),
 		);
 		expect(db.Users.findAndCountAll).not.toHaveBeenCalled();

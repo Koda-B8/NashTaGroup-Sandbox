@@ -66,6 +66,13 @@ router.use(authMiddleware);
  *           maximum: 100
  *           default: 20
  *         description: Number of records per page.
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: string
+ *           enum: [name_asc, name_desc, created_at_asc, created_at_desc]
+ *           default: name_asc
+ *         description: Sort the list using a supported field and direction.
  *     responses:
  *       200:
  *         description: Products retrieved successfully

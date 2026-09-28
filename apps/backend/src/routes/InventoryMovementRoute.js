@@ -44,6 +44,13 @@ router.use(authMiddleware, requireRole("admin"));
  *         name: to
  *         schema: { type: string, format: date, example: 2026-09-30 }
  *         description: Include movements through this date.
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: string
+ *           enum: [created_at_desc, created_at_asc, quantity_asc, quantity_desc]
+ *           default: created_at_desc
+ *         description: Sort the list using a supported field and direction.
  *     responses:
  *       200:
  *         description: Inventory movements retrieved successfully.

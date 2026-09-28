@@ -35,6 +35,13 @@ router.use(authMiddleware);
  *         schema:
  *           type: boolean
  *         description: Filter brands by active status
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: string
+ *           enum: [name_asc, name_desc, created_at_asc, created_at_desc]
+ *           default: name_asc
+ *         description: Sort the list using a supported field and direction.
  *     responses:
  *       200:
  *         description: Brands retrieved successfully

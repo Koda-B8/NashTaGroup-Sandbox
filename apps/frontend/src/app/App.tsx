@@ -17,6 +17,7 @@ import Checkout from "../pages/Checkout";
 import {
 	BrandsDashboard,
 	CategoriesDashboard,
+	CustomersDashboard,
 	InventoriesManagementDashboard,
 	MainDashboard,
 	UserManagementDashboard,
@@ -78,6 +79,11 @@ const router = createBrowserRouter([
 						index: true,
 						element: <MainDashboard />,
 						handle: { crumbs: [{ label: "Home" }] },
+					},
+					{
+						path: "customers",
+						element: <CustomersDashboard />,
+						handle: { crumbs: [{ label: "Customers" }] },
 					},
 					{
 						path: "products/inventory",

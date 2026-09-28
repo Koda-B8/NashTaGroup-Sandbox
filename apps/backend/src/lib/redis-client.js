@@ -6,11 +6,24 @@ let client;
 let connecting;
 let retryAfter = 0;
 
+// redis@6 throws ClientClosedError when destroy() is called on a client whose
+// socket is already closed (e.g. right after a Redis restart, since
+// reconnectStrategy is false). Teardown must never throw, otherwise cleanup
+// fails and the stale client is never cleared, permanently breaking the cache.
+function destroyQuietly(target) {
+	if (!target) return;
+	try {
+		target.destroy();
+	} catch {
+		// Client already closed; nothing left to clean up.
+	}
+}
+
 async function getClient() {
 	if (!process.env.REDIS_URL || Date.now() < retryAfter) return;
 	if (client?.isReady) return client;
 	if (!connecting) {
-		client?.destroy();
+		destroyQuietly(client);
 		client = undefined;
 		const nextClient = createClient({
 			url: process.env.REDIS_URL,
@@ -27,7 +40,7 @@ async function getClient() {
 				return client;
 			})
 			.catch(() => {
-				nextClient.destroy();
+				destroyQuietly(nextClient);
 				retryAfter = Date.now() + RETRY_DELAY_MS;
 				return;
 			})
@@ -44,7 +57,7 @@ export async function runRedis(operation) {
 		if (!connected) return { ok: false };
 		return { ok: true, value: await operation(connected) };
 	} catch {
-		client?.destroy();
+		destroyQuietly(client);
 		client = undefined;
 		retryAfter = Date.now() + RETRY_DELAY_MS;
 		return { ok: false };

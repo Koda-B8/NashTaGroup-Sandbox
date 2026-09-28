@@ -31,7 +31,7 @@ export default function BrandDetailPanel({
 					<ActiveBadge isActive={brand.isActive} />
 				</div>
 				<p
-					className="truncate font-mono text-xs text-text"
+					className="truncate text-xs text-text"
 					title={brand.id}
 				>
 					{brand.id}

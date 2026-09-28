@@ -1,6 +1,3 @@
-import { EventEmitter } from "node:events";
-// oxlint-disable unicorn/prefer-event-target -- Express responses use EventEmitter.
-
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { invalidateListCache } from "../../src/lib/list-cache.js";
@@ -11,6 +8,15 @@ import listCacheInvalidation, {
 vi.mock("../../src/lib/list-cache.js", () => ({
 	invalidateListCache: vi.fn(),
 }));
+
+const createResponse = (statusCode = 200) => {
+	const response = {
+		statusCode,
+		json: vi.fn(() => response),
+	};
+	response.sendJson = response.json;
+	return response;
+};
 
 beforeEach(() => {
 	vi.clearAllMocks();
@@ -27,27 +33,74 @@ describe("list cache invalidation", () => {
 		["PATCH", "/categories/123", ["products", "categories"]],
 		["DELETE", "/brands/123", ["products", "brands"]],
 		["POST", "/users", ["users"]],
-	])("invalidates after successful %s %s", (method, path, scopes) => {
-		const response = Object.assign(new EventEmitter(), { statusCode: 200 });
-		const next = vi.fn();
-		listCacheInvalidation({ method, path }, response, next);
-		response.emit("finish");
-		expect(next).toHaveBeenCalledOnce();
-		expect(vi.mocked(invalidateListCache).mock.calls).toEqual(
-			scopes.map((scope) => [scope]),
+	])(
+		"invalidates before responding for successful %s %s",
+		async (method, path, scopes) => {
+			const response = createResponse();
+			const next = vi.fn();
+			listCacheInvalidation({ method, path }, response, next);
+			expect(next).toHaveBeenCalledOnce();
+
+			const body = { success: true };
+			await response.json(body);
+
+			expect(vi.mocked(invalidateListCache).mock.calls).toEqual(
+				scopes.map((scope) => [scope]),
+			);
+			// The original response body still goes out untouched.
+			expect(response.sendJson).toHaveBeenCalledWith(body);
+		},
+	);
+
+	it("waits for the version bump before sending the response", async () => {
+		let resolveInvalidation;
+		vi.mocked(invalidateListCache).mockReturnValue(
+			new Promise((resolve) => {
+				resolveInvalidation = resolve;
+			}),
 		);
+
+		// Wrap json before the middleware runs, since it captures the method.
+		const sent = vi.fn();
+		const response = createResponse();
+		const originalJson = response.json;
+		response.json = (body) => {
+			sent();
+			return originalJson(body);
+		};
+
+		listCacheInvalidation(
+			{ method: "POST", path: "/products" },
+			response,
+			vi.fn(),
+		);
+
+		const pending = response.json({ success: true });
+		// The response must not be sent while invalidation is still in flight.
+		await Promise.resolve();
+		expect(sent).not.toHaveBeenCalled();
+
+		resolveInvalidation();
+		await pending;
+		expect(sent).toHaveBeenCalledOnce();
 	});
 
-	it("does not invalidate for failed writes, reads, or unrelated paths", () => {
-		const failed = Object.assign(new EventEmitter(), { statusCode: 400 });
+	it("does not invalidate for failed writes, reads, or unrelated paths", async () => {
+		const failed = createResponse(400);
 		listCacheInvalidation(
 			{ method: "POST", path: "/products" },
 			failed,
 			vi.fn(),
 		);
-		failed.emit("finish");
+		await failed.json({ success: false });
+		expect(invalidateListCache).not.toHaveBeenCalled();
+
 		expect(listScopesForWrite("GET", "/products")).toEqual([]);
 		expect(listScopesForWrite("POST", "/auth/login")).toEqual([]);
+
+		const read = createResponse();
+		listCacheInvalidation({ method: "GET", path: "/products" }, read, vi.fn());
+		await read.json({ success: true });
 		expect(invalidateListCache).not.toHaveBeenCalled();
 	});
 });

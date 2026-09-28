@@ -4,6 +4,7 @@
 @theme {
 	--font-sans:
 		"Inter Variable", "Inter", Helvetica, Arial, ui-sans-serif, sans-serif;
+	--font-sans--font-feature-settings: "ss04", "ss07", "ss08", "cv01", "tnum";
 	--color-text: #94959f;
 	--color-text-h: #121215;
 	--color-primary: #3b82f6;

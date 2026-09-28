@@ -27,6 +27,8 @@ interface Props {
 	onOpenDetail: (product: Product) => void;
 	onEdit: (product: Product) => void;
 	onDelete: (product: Product) => void;
+	onViewMovements?: (product: Product) => void;
+	onViewReport?: (product: Product) => void;
 	onToggleAll: (checked: boolean) => void;
 	onToggleOne: (id: string, checked: boolean) => void;
 	totalLabel: string;
@@ -135,6 +137,8 @@ export default function ProductTable({
 	onOpenDetail,
 	onEdit,
 	onDelete,
+	onViewMovements,
+	onViewReport,
 	onToggleAll,
 	onToggleOne,
 	totalLabel,
@@ -164,6 +168,22 @@ export default function ProductTable({
 				<ActionMenu
 					label={`Actions for ${row.name}`}
 					items={[
+						...(onViewReport
+							? [
+									{
+										label: "Transaction Report",
+										onSelect: () => onViewReport(row),
+									},
+								]
+							: []),
+						...(onViewMovements
+							? [
+									{
+										label: "Inventory Movement",
+										onSelect: () => onViewMovements(row),
+									},
+								]
+							: []),
 						{ label: "Edit", onSelect: () => onEdit(row) },
 						{ label: "Delete", onSelect: () => onDelete(row), danger: true },
 					]}

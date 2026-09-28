@@ -114,37 +114,39 @@ export function FiltersPanel() {
 					{loading ? (
 						<FilterSkel count={4} />
 					) : (
-						filterGroups.map((group) => (
-							<section
-								key={group.title}
-								className="border-b border-base-border py-3"
-							>
-								<p className="text-sm font-semibold">{group.title}</p>
-								<ul className="mt-2 ml-0 flex w-full flex-col gap-1 text-sm">
-									{group?.options?.map((option) => (
-										<li
-											key={option.id}
-											className="flex list-outside items-center justify-start gap-2"
-										>
-											<input
-												onChange={() => chooseFilter(group.param, option.id)}
-												checked={searchParams.get(group.param) === option.id}
-												type="radio"
-												name={group.title}
-												id={option.id}
-												className="peer size-4 shrink-0 accent-primary"
-											/>
-											<label
-												htmlFor={option.id}
-												className="text-sm peer-checked:text-text-h"
+						<div className="max-h-[31rem] overflow-y-scroll">
+							{filterGroups.map((group) => (
+								<section
+									key={group.title}
+									className="border-b border-base-border py-3"
+								>
+									<p className="text-sm font-semibold">{group.title}</p>
+									<ul className="mt-2 ml-0 flex w-full flex-col gap-1 text-sm">
+										{group?.options?.map((option) => (
+											<li
+												key={option.id}
+												className="flex list-outside items-center justify-start gap-2"
 											>
-												{option.name}
-											</label>
-										</li>
-									))}
-								</ul>
-							</section>
-						))
+												<input
+													onChange={() => chooseFilter(group.param, option.id)}
+													checked={searchParams.get(group.param) === option.id}
+													type="radio"
+													name={group.title}
+													id={option.id}
+													className="peer size-4 shrink-0 accent-primary"
+												/>
+												<label
+													htmlFor={option.id}
+													className="text-sm peer-checked:text-text-h"
+												>
+													{option.name}
+												</label>
+											</li>
+										))}
+									</ul>
+								</section>
+							))}
+						</div>
 					)}
 				</div>
 			}
@@ -153,15 +155,9 @@ export function FiltersPanel() {
 					<Button
 						onClick={resetFilters}
 						variant={"outline"}
-						className="px-6"
+						className="w-full px-6"
 					>
 						<p>Reset</p>
-					</Button>
-					<Button
-						variant={"primary"}
-						className="px-6"
-					>
-						Terapkan
 					</Button>
 				</div>
 			}
@@ -249,6 +245,7 @@ interface OrderStepsProps {
 }
 
 function OrderSteps({ current, nextAction }: Readonly<OrderStepsProps>) {
+	const navigate = useNavigate();
 	return (
 		<Aside
 			headerName={"Proses Pesanan"}
@@ -301,16 +298,10 @@ function OrderSteps({ current, nextAction }: Readonly<OrderStepsProps>) {
 				<div className="centerized gap-2">
 					<Button
 						variant={"outline"}
-						className="px-6"
+						onClick={() => navigate("/")}
+						className="w-full px-6"
 					>
 						Batal
-					</Button>
-					<Button
-						onClick={nextAction}
-						variant={"primary"}
-						className="px-6"
-					>
-						<p>Lanjutkan</p>
 					</Button>
 				</div>
 			}
@@ -362,7 +353,7 @@ export function CheckoutSummary() {
 					/>
 				</div>
 			}
-			Footer={<p className="text-center">Aman dan terenskripsi</p>}
+			Footer={<p className="text-center text-xs">Aman dan terenskripsi</p>}
 		/>
 	);
 }

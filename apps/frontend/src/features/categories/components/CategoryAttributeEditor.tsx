@@ -241,7 +241,7 @@ export default function CategoryAttributeEditor({
 																hex: e.currentTarget.value,
 															})
 														}
-														className="w-24 shrink-0 font-mono"
+														className="w-24 shrink-0"
 														aria-label={`Warna opsi ${optionIndex + 1}`}
 														autoComplete="off"
 													/>

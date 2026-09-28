@@ -39,8 +39,7 @@ export default function Navbar() {
 			items={crumbs}
 			actions={
 				<>
-					<SearchBox />
-					<CartAction count={4} />
+					<CartAction />
 					<LogoutAction />
 				</>
 			}
@@ -86,20 +85,14 @@ function LogoutAction() {
 	);
 }
 
-function CartAction({ count }: Readonly<CartActionProps>) {
+function CartAction() {
 	return (
 		<Button
 			variant="ghost"
 			size="icon"
-			aria-label={`Keranjang, ${count} item`}
-			className="relative"
+			aria-label="Keranjang"
 		>
 			<ShoppingCart size={16} />
-			{count > 0 && (
-				<span className="centerized absolute -top-0.5 -right-0.5 size-4 rounded-full bg-primary text-3xs font-semibold text-white">
-					{count}
-				</span>
-			)}
 		</Button>
 	);
 }

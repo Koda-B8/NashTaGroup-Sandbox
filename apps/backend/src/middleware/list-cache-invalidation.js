@@ -25,14 +25,20 @@ export function listScopesForWrite(method, path) {
 
 export default function listCacheInvalidation(request, response, next) {
 	const scopes = listScopesForWrite(request.method, request.path);
-	if (scopes.length > 0) {
-		response.once("finish", () => {
-			if (response.statusCode >= 200 && response.statusCode < 300) {
-				for (const scope of scopes) {
-					invalidateListCache(scope).catch(() => {});
-				}
-			}
-		});
-	}
+	if (scopes.length === 0) return next();
+
+	// Bump the cache version *before* the success response is sent, and make the
+	// response wait for it. Otherwise a refetch right after a create/update could
+	// read the old cached list for up to the cache TTL.
+	const sendJson = response.json.bind(response);
+	response.json = async (body) => {
+		if (response.statusCode >= 200 && response.statusCode < 300) {
+			await Promise.all(
+				scopes.map((scope) => invalidateListCache(scope).catch(() => {})),
+			);
+		}
+		return sendJson(body);
+	};
+
 	return next();
 }

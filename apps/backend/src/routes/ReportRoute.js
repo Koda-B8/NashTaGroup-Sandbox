@@ -10,7 +10,7 @@ import { getCustomerDetailReport } from "../controllers/customer-report.controll
 import { getProductDetailReport } from "../controllers/product-report.controller.js";
 import {
 	getCashierReport,
-	getCustomerReport,
+	getCachedCustomerReport,
 	getInventoryReport,
 	getPaymentMethodReport,
 	getProductReport,
@@ -68,7 +68,7 @@ router.get("/:report/export", exportReportData);
  *       401: { description: Authentication required }
  *       403: { description: Admin role required }
  */
-router.get("/customers", getCustomerReport);
+router.get("/customers", getCachedCustomerReport);
 
 /**
  * @openapi

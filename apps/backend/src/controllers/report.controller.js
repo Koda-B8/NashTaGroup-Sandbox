@@ -4,6 +4,11 @@ import { constants } from "node:http2";
 
 import { QueryTypes } from "sequelize";
 
+import {
+	listCacheKey,
+	readListCache,
+	writeListCache,
+} from "../lib/list-cache.js";
 import db from "../models/index.cjs";
 import { createHttpError } from "../utils/http-error.js";
 
@@ -73,9 +78,14 @@ const respond = (response, data, meta) =>
 		meta,
 	});
 
-export async function getCustomerReport(request, response, next) {
+async function customerReport(request, response, next, useCache) {
 	try {
 		const filters = parseReportFilters(request.query);
+		const cacheKey = useCache
+			? await listCacheKey("customers", filters)
+			: undefined;
+		const cached = await readListCache(cacheKey);
+		if (cached) return response.status(constants.HTTP_STATUS_OK).json(cached);
 		const txWhere = `t.status = 'completed' AND ${period("t")}`;
 		const [summary] = await queryRows(
 			`
@@ -133,9 +143,10 @@ export async function getCustomerReport(request, response, next) {
 			GROUP BY td.product_item_id ORDER BY quantity DESC, subtotal DESC`,
 			filters,
 		);
-		return respond(
-			response,
-			{
+		const body = {
+			success: true,
+			message: "Report retrieved successfully",
+			data: {
 				timezone: "Asia/Jakarta",
 				summary: {
 					...summary,
@@ -146,13 +157,23 @@ export async function getCustomerReport(request, response, next) {
 				members,
 				non_member_products: nonMemberProducts,
 			},
-			// @ts-ignore
-			{ pagination: pagination(filters.page, filters.limit, count.total) },
-		);
+			meta: {
+				// @ts-ignore
+				pagination: pagination(filters.page, filters.limit, count.total),
+			},
+		};
+		await writeListCache(cacheKey, body);
+		return response.status(constants.HTTP_STATUS_OK).json(body);
 	} catch (error) {
 		return next(error);
 	}
 }
+
+export const getCustomerReport = (request, response, next) =>
+	customerReport(request, response, next, false);
+
+export const getCachedCustomerReport = (request, response, next) =>
+	customerReport(request, response, next, true);
 
 const itemStatsSql = () => `
 	WITH sales AS (

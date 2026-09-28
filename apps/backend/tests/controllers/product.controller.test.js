@@ -15,6 +15,11 @@ import {
 	uploadProductImage as uploadCloudinaryImage,
 } from "../../src/lib/cloudinary.js";
 import { paginate } from "../../src/lib/pagination.js";
+import {
+	productListCacheKey,
+	readProductListCache,
+	writeProductListCache,
+} from "../../src/lib/product-list-cache.js";
 import db from "../../src/models/index.cjs";
 
 const databaseMocks = vi.hoisted(() => ({ transaction: vi.fn() }));
@@ -24,7 +29,16 @@ vi.mock("../../src/lib/cloudinary.js", () => ({
 	uploadProductImage: vi.fn(),
 }));
 
-vi.mock("../../src/lib/pagination.js", () => ({ paginate: vi.fn() }));
+vi.mock("../../src/lib/pagination.js", async (importOriginal) => ({
+	...(await importOriginal()),
+	paginate: vi.fn(),
+}));
+
+vi.mock("../../src/lib/product-list-cache.js", () => ({
+	productListCacheKey: vi.fn(),
+	readProductListCache: vi.fn(),
+	writeProductListCache: vi.fn(),
+}));
 
 vi.mock("../../src/models/index.cjs", () => ({
 	default: {
@@ -99,6 +113,9 @@ const createResponse = () => ({
 describe("product controller", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
+		vi.mocked(productListCacheKey).mockResolvedValue("products-key");
+		vi.mocked(readProductListCache).mockResolvedValue();
+		vi.mocked(writeProductListCache).mockResolvedValue();
 
 		db.Categories.findByPk.mockResolvedValue(activeCategory);
 		db.Brands.findByPk.mockResolvedValue(activeBrand);
@@ -110,6 +127,23 @@ describe("product controller", () => {
 		deleteCloudinaryImageMock.mockResolvedValue({ result: "ok" });
 		db.ProductImageCleanups.findOrCreate.mockResolvedValue([]);
 		db.ProductImageCleanups.destroy.mockResolvedValue(1);
+	});
+
+	it("serves a cached product list without querying the database", async () => {
+		const cached = {
+			success: true,
+			message: "Products retrieved successfully",
+			data: [{ id: productId, name: "Cached product" }],
+			meta: {
+				pagination: { page: 1, limit: 20, total_items: 1, total_pages: 1 },
+			},
+		};
+		vi.mocked(readProductListCache).mockResolvedValue(cached);
+		const res = createResponse();
+		await getProducts({ query: {} }, res, vi.fn());
+		expect(res.json).toHaveBeenCalledWith(cached);
+		expect(paginate).not.toHaveBeenCalled();
+		expect(writeProductListCache).not.toHaveBeenCalled();
 	});
 
 	it("retrieves products with search and filters", async () => {

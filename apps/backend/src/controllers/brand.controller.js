@@ -2,6 +2,11 @@ import { constants } from "node:http2";
 
 import { Op, UniqueConstraintError } from "sequelize";
 
+import {
+	listCacheKey,
+	readListCache,
+	writeListCache,
+} from "../lib/list-cache.js";
 import db from "../models/index.cjs";
 import { createHttpError } from "../utils/http-error.js";
 import { parseBoolean, parseSearch } from "../utils/query.js";
@@ -37,6 +42,9 @@ export async function getBrands(req, res, next) {
 				"isActive must be true or false",
 			);
 		}
+		const cacheKey = await listCacheKey("brands", { search, isActive });
+		const cached = await readListCache(cacheKey);
+		if (cached) return res.status(constants.HTTP_STATUS_OK).json(cached);
 
 		const where = {};
 
@@ -53,11 +61,13 @@ export async function getBrands(req, res, next) {
 			order: [["name", "ASC"]],
 		});
 
-		return res.status(constants.HTTP_STATUS_OK).json({
+		const body = {
 			success: true,
 			message: "Brands retrieved successfully",
 			data: brands,
-		});
+		};
+		await writeListCache(cacheKey, body);
+		return res.status(constants.HTTP_STATUS_OK).json(body);
 	} catch (error) {
 		return next(error);
 	}

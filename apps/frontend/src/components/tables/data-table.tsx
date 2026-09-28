@@ -121,7 +121,7 @@ export default function DataTable<Row extends RowData>({
 	return (
 		<Card
 			padding="none"
-			className={`overflow-hidden ${cardClassName}`.trim()}
+			className={`flex h-full flex-col overflow-hidden ${cardClassName}`.trim()}
 		>
 			{header && <div className="px-5 pt-5 pb-4">{header}</div>}
 			<div className="flex flex-1 flex-col overflow-x-auto">

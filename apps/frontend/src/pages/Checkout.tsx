@@ -18,7 +18,6 @@ import Card from "../components/ui/card";
 import Input from "../components/ui/input";
 import Modal from "../components/ui/modal";
 import { apiFetch } from "../libs/api";
-import { APP_NAME } from "../libs/app";
 import { formatRupiah } from "../libs/formatRupiah";
 import type { AppDispatch, RootState } from "../store";
 import {
@@ -233,39 +232,47 @@ export default function Checkout() {
 					<Card padding="sm">
 						<header className="flex items-center justify-between">
 							<h6 className="text-sm font-semibold text-text-h">
-								Pesanan {cart.length} Items
+								Pesanan ({cart.length} item)
 							</h6>
 						</header>
 
 						<main className="mt-2 flex flex-col gap-3">
+							{cart.length === 0 && (
+								<p className="py-6 text-center text-sm font-semibold">
+									Keranjang Kosong
+								</p>
+							)}
 							{cart.map((item) => (
 								<div
 									key={item.id}
-									className="flex items-center justify-between"
+									className="flex items-center justify-between gap-4"
 								>
 									<div className="flex min-w-0 flex-1 gap-3">
-										<div className="h-18 w-16 rounded-lg border border-base-border bg-base">
-											<img
-												src={item.image ?? ""}
-												alt={item.alt}
-											/>
+										<div className="h-18 w-16 shrink-0 overflow-hidden rounded-lg border border-base-border bg-base">
+											{item.image && (
+												<img
+													src={item.image}
+													alt={item.alt}
+													className="size-full object-cover"
+												/>
+											)}
 										</div>
 										<div className="flex flex-col justify-center">
 											<p className="text-sm text-text-h">{item.name}</p>
 											<p className="text-sm">
 												{formatRupiah(item.price)} • {item.qty}x
 											</p>
-											<div className="flex items-center gap-1">
-												<p className="text-sm text-text-h">{item.color}</p>
-												<p>•</p>
-												<p className="text-sm text-text-h">{item.specs}</p>
-											</div>
+											{(item.color || item.specs) && (
+												<p className="text-sm text-text-h">
+													{[item.color, item.specs].filter(Boolean).join(" • ")}
+												</p>
+											)}
 										</div>
 									</div>
 
 									<div className="shrink-0">
 										<div
-											className="flex h-11 w-35 items-center justify-between 
+											className="flex h-11 w-35 items-center justify-between
 												rounded-lg border border-base-border"
 										>
 											<Button
@@ -301,7 +308,7 @@ export default function Checkout() {
 										</div>
 									</div>
 
-									<div className="flex shrink-0 items-center justify-end pr-10 text-right">
+									<div className="flex w-36 shrink-0 items-center justify-end text-right">
 										<p className="font-semibold text-text-h">
 											{formatRupiah(item.total)}
 										</p>
@@ -314,7 +321,7 @@ export default function Checkout() {
 										>
 											<Trash
 												size={18}
-												className="text-deep-danger/70"
+												className="text-deep-danger"
 											/>
 										</Button>
 									</div>
@@ -331,7 +338,7 @@ export default function Checkout() {
 							htmlFor="phone"
 							className="text-xs font-medium text-text-h"
 						>
-							Customer Phone
+							No. Telepon Pelanggan
 						</label>
 						<div className="relative">
 							<Phone
@@ -355,7 +362,7 @@ export default function Checkout() {
 							</h6>
 						</header>
 
-						<main className="mt-2 grid grid-cols-3 gap-3">
+						<main className="mt-2 grid grid-cols-4 gap-3">
 							{paymentMethods?.map((item) => (
 								<label
 									key={item.id}
@@ -375,7 +382,7 @@ export default function Checkout() {
 										type="radio"
 									/>
 									<div
-										className="centerized h-full w-full overflow-hidden rounded-lg border 
+										className="centerized h-full w-full overflow-hidden rounded-lg border
 								border-base-border peer-checked:border-primary peer-checked:bg-primary/10"
 									>
 										<div className="centerized gap-2 text-center text-text-h group-[:has(input:checked)]:text-primary">
@@ -390,8 +397,6 @@ export default function Checkout() {
 							))}
 						</main>
 					</Card>
-
-					<p className="mt-4 text-center text-xs text-text-h">{APP_NAME}</p>
 				</main>
 			</form>
 		</>

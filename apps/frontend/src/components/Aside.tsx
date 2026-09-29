@@ -1,31 +1,53 @@
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
+import { cn } from "tailwind-variants";
 
 import Card from "./ui/card";
-
-interface AsideProps {
-	headerName: string;
-	Attribute?: ReactNode;
-	Content?: ReactNode;
-	Footer?: ReactNode;
-}
+import Separator from "./ui/separator";
 
 export default function Aside({
-	headerName,
-	Attribute,
-	Content,
-	Footer,
-}: Readonly<AsideProps>) {
+	padding = "sm",
+	className,
+	...props
+}: Readonly<ComponentProps<typeof Card>>) {
 	return (
 		<Card
-			padding="sm"
-			className="relative flex h-full w-60 flex-1 flex-col"
-		>
-			<header className="flex items-center justify-between border-b border-b-base-border py-2">
-				<h6 className="text-sm font-semibold text-text-h">{headerName}</h6>
-				{Attribute}
+			padding={padding}
+			className={cn(
+				"relative flex h-full w-60 flex-1 flex-col gap-2",
+				className,
+			)}
+			{...props}
+		/>
+	);
+}
+
+export function AsideHeader({
+	title,
+	children,
+}: Readonly<{ title: string; children?: ReactNode }>) {
+	return (
+		<>
+			<header className="flex items-center justify-between">
+				<h6 className="text-sm font-semibold text-text-h">{title}</h6>
+				<div className="text-xs">{children}</div>
 			</header>
-			<main>{Content}</main>
-			<footer className="mt-auto w-full">{Footer}</footer>
-		</Card>
+			<Separator className="-mx-4" />
+		</>
+	);
+}
+
+export function AsideContent(props: Readonly<ComponentProps<"div">>) {
+	return <div {...props} />;
+}
+
+export function AsideFooter({
+	className,
+	...props
+}: Readonly<ComponentProps<"footer">>) {
+	return (
+		<footer
+			className={cn("mt-auto w-full", className)}
+			{...props}
+		/>
 	);
 }

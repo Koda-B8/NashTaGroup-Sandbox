@@ -234,7 +234,6 @@ export default function RegisterUserModal({
 							aria-label="Active status"
 						/>
 						<span className="text-xs font-medium">Active</span>
-						<span className="text-2xs text-text">— isActive</span>
 					</label>
 				</ModalBody>
 				<FormModalFooter

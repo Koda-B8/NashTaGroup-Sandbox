@@ -54,8 +54,8 @@ export function fitText(doc: jsPDF, text: string, maxWidth: number): string {
  * arrows, en/em dashes, and curly quotes render as garbage. Map them to safe
  * equivalents before drawing so exported text stays readable.
  */
-export function safePdfText(value: string): string {
-	return value
+export function safePdfText(value: string | null | undefined): string {
+	return (value ?? "")
 		.replaceAll("→", "->")
 		.replaceAll("←", "<-")
 		.replaceAll(/[–—]/g, "-")

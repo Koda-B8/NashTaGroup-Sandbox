@@ -1,15 +1,10 @@
 import {
 	SearchIcon,
 	HomeIcon,
-	InboxIcon,
-	BarChart3Icon,
 	PackageIcon,
 	ShoppingCartIcon,
 	CreditCardIcon,
 	UsersIcon,
-	WalletIcon,
-	LayoutDashboardIcon,
-	FileDownIcon,
 	ChevronDownIcon,
 	ChevronsLeftIcon,
 } from "lucide-react";
@@ -60,19 +55,6 @@ const SIDEBAR_NAV_GROUPS: SidebarNavGroup[] = [
 				path: "/dashboard",
 				icon: <HomeIcon size={14} />,
 			},
-			{
-				id: "inbox",
-				label: "Inbox",
-				path: "/dashboard/inbox",
-				icon: <InboxIcon size={14} />,
-				badge: "12",
-			},
-			{
-				id: "analytics",
-				label: "Analytics",
-				path: "/dashboard/analytics",
-				icon: <BarChart3Icon size={14} />,
-			},
 		],
 	},
 	{
@@ -95,10 +77,7 @@ const SIDEBAR_NAV_GROUPS: SidebarNavGroup[] = [
 				label: "Transactions",
 				path: "/dashboard/orders",
 				icon: <ShoppingCartIcon size={14} />,
-				children: [
-					{ label: "All Transactions", path: "/dashboard/orders" },
-					{ label: "Pending", path: "/dashboard/orders/pending" },
-				],
+				children: [{ label: "All Transactions", path: "/dashboard/orders" }],
 			},
 			{
 				id: "cashier",
@@ -112,29 +91,6 @@ const SIDEBAR_NAV_GROUPS: SidebarNavGroup[] = [
 				label: "Customers",
 				path: "/dashboard/customers",
 				icon: <UsersIcon size={14} />,
-			},
-			{
-				id: "finance",
-				label: "Finance",
-				path: "/dashboard/finance",
-				icon: <WalletIcon size={14} />,
-			},
-		],
-	},
-	{
-		heading: "REPORTS",
-		items: [
-			{
-				id: "report-dashboard",
-				label: "Dashboard",
-				path: "/dashboard/reports",
-				icon: <LayoutDashboardIcon size={14} />,
-			},
-			{
-				id: "exports",
-				label: "Exports",
-				path: "/dashboard/exports",
-				icon: <FileDownIcon size={14} />,
 			},
 		],
 	},

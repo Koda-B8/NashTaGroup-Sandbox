@@ -1,4 +1,9 @@
-import { RotateCcwIcon, RefreshCwIcon } from "lucide-react";
+import {
+	FileDownIcon,
+	Loader2,
+	RotateCcwIcon,
+	RefreshCwIcon,
+} from "lucide-react";
 import type { ReactNode } from "react";
 
 import Button from "../../../components/ui/button";
@@ -62,6 +67,8 @@ export interface TransactionFiltersBarProps {
 	onReset: () => void;
 	onRefresh: () => void;
 	refreshing: boolean;
+	onExport: () => void;
+	exporting: boolean;
 }
 
 export default function TransactionFiltersBar({
@@ -89,6 +96,8 @@ export default function TransactionFiltersBar({
 	onReset,
 	onRefresh,
 	refreshing,
+	onExport,
+	exporting,
 }: TransactionFiltersBarProps) {
 	const allCashiers = { label: "All cashiers", value: "" };
 	const allPaymentMethods = { label: "All methods", value: "" };
@@ -139,6 +148,22 @@ export default function TransactionFiltersBar({
 							className={refreshing ? "animate-spin" : ""}
 						/>
 						Refresh
+					</Button>
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={onExport}
+						disabled={exporting}
+					>
+						{exporting ? (
+							<Loader2
+								size={14}
+								className="animate-spin"
+							/>
+						) : (
+							<FileDownIcon size={14} />
+						)}
+						{exporting ? "Menyiapkan..." : "Export PDF"}
 					</Button>
 				</div>
 			</div>

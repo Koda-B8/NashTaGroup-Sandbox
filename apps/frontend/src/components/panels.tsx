@@ -385,8 +385,8 @@ export function BrowseBar() {
 	return (
 		<BottomBar
 			start={`${qty} item di keranjang`}
-			caption="Termasuk diskon"
-			total={cart.length > 0 ? subtotal(cart) - 5000 : 0}
+			caption="Subtotal"
+			total={subtotal(cart)}
 			action={
 				<Button
 					onClick={() => navigate("/checkout")}
@@ -415,8 +415,8 @@ export function CheckoutBar() {
 					Kembali ke Keranjang
 				</Button>
 			}
-			caption="Termasuk pajak & diskon"
-			total={cart.length > 0 ? subtotal(cart) - (5000 - 1000) : 0}
+			caption="Total bayar"
+			total={subtotal(cart)}
 			action={
 				<Button
 					type="submit"
@@ -447,7 +447,7 @@ export function StructBar() {
 				</Button>
 			}
 			caption="Total dibayar"
-			total={items.length > 0 ? subtotal(items) - (5000 - 1000) : 0}
+			total={subtotal(items)}
 			action={
 				<Button onClick={() => navigate("/")}>
 					Pesanan Baru

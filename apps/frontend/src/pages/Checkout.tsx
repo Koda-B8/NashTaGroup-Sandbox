@@ -4,13 +4,11 @@ import {
 	CreditCard,
 	Minus,
 	Plus,
-	SquareArrowRightEnter,
 	CircleCheckBig,
-	RotateCw,
 	Trash,
 	Phone,
 } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router";
 
@@ -44,8 +42,8 @@ export default function Checkout() {
 	const [activeModal, setActiveModal] = useState<boolean>(false);
 	const [activeCashModal, setActiveCashModal] = useState<boolean>(false);
 	const [cashAmount, setCashAmount] = useState<string>("");
-	const [loading, setLoading] = useState<boolean>(false);
 	const navigate = useNavigate();
+	const submitting = useRef(false);
 
 	useEffect(() => {
 		async function getPaymentMethod() {
@@ -117,7 +115,8 @@ export default function Checkout() {
 
 	async function handleSubmit(e) {
 		e.preventDefault();
-		setLoading(true);
+		if (submitting.current) return;
+		submitting.current = true;
 		try {
 			const data = new FormData(e.target);
 			const formated = Object.fromEntries(data.entries());
@@ -162,12 +161,13 @@ export default function Checkout() {
 					});
 					dispatch(clearCart());
 				}, 2500);
+			} else {
+				submitting.current = false;
 			}
 		} catch (error) {
 			console.error(error);
 			setCashAmount("");
-		} finally {
-			setLoading(false);
+			submitting.current = false;
 		}
 	}
 
@@ -223,6 +223,7 @@ export default function Checkout() {
 				</div>
 			</Modal>
 			<form
+				id="checkout"
 				onSubmit={handleSubmit}
 				className="flex w-full flex-col gap-2 px-3"
 			>
@@ -390,28 +391,6 @@ export default function Checkout() {
 						</main>
 					</Card>
 
-					<section>
-						<Button
-							type="submit"
-							disabled={loading}
-							className="flex h-14 w-full items-center font-semibold"
-						>
-							{loading ? (
-								<RotateCw
-									className="animate-spin"
-									size={17}
-								/>
-							) : (
-								<div className="flex items-center gap-2">
-									<SquareArrowRightEnter
-										size={17}
-										strokeWidth={2.5}
-									/>
-									<p>Proses pesanan</p>
-								</div>
-							)}
-						</Button>
-					</section>
 					<p className="mt-4 text-center text-xs text-text-h">{APP_NAME}</p>
 				</main>
 			</form>

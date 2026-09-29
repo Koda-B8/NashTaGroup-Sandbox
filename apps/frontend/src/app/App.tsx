@@ -3,10 +3,13 @@ import { createBrowserRouter, RouterProvider } from "react-router";
 import { PersistGate } from "redux-persist/integration/react";
 
 import {
+	BrowseBar,
 	CartPanel,
+	CheckoutBar,
 	CheckoutSteps,
 	CheckoutSummary,
 	FiltersPanel,
+	StructBar,
 	StructSteps,
 } from "../components/panels";
 import Home from "../pages";
@@ -40,6 +43,7 @@ const router = createBrowserRouter([
 				handle: {
 					left: FiltersPanel,
 					right: CartPanel,
+					bottom: BrowseBar,
 					crumbs: [{ label: "Products" }],
 				},
 			},
@@ -49,6 +53,7 @@ const router = createBrowserRouter([
 				handle: {
 					left: CheckoutSteps,
 					right: CheckoutSummary,
+					bottom: CheckoutBar,
 					crumbs: [{ label: "Products", to: "/" }, { label: "Checkout" }],
 				},
 			},
@@ -58,6 +63,7 @@ const router = createBrowserRouter([
 				handle: {
 					left: StructSteps,
 					right: CheckoutSummary,
+					bottom: StructBar,
 					crumbs: [{ label: "Products", to: "/" }, { label: "Struk" }],
 				},
 			},

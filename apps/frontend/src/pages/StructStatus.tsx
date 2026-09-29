@@ -41,12 +41,14 @@ export default function StructStatus() {
 
 	return (
 		<form className="flex w-full flex-col gap-2 px-3">
-			<OrderStatusBar />
+			<div className="print:hidden">
+				<OrderStatusBar />
+			</div>
 
 			<main className="flex flex-col gap-3">
 				<Card
 					padding="md"
-					className="flex w-full items-center gap-5"
+					className="flex w-full items-center gap-5 print:hidden"
 				>
 					<div className="centerized size-10 rounded-full border border-deep-valid bg-valid">
 						<Check className="text-deep-valid" />

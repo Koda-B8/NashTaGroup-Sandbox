@@ -551,7 +551,8 @@ export default function Home() {
 									</p>
 									<Button
 										onClick={() => addItem(item.id)}
-										className="cursor-pointer  rounded-full"
+										size="icon"
+										className="size-10 shrink-0 cursor-pointer rounded-full"
 									>
 										<Plus
 											strokeWidth={5}

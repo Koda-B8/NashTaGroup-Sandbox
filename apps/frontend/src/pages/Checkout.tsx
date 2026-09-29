@@ -232,7 +232,7 @@ export default function Checkout() {
 					<Card padding="sm">
 						<header className="flex items-center justify-between">
 							<h6 className="text-sm font-semibold text-text-h">
-								Pesanan {cart.length} Items
+								Pesanan ({cart.length} item)
 							</h6>
 						</header>
 
@@ -245,25 +245,28 @@ export default function Checkout() {
 							{cart.map((item) => (
 								<div
 									key={item.id}
-									className="flex items-center justify-between"
+									className="flex items-center justify-between gap-4"
 								>
 									<div className="flex min-w-0 flex-1 gap-3">
-										<div className="h-18 w-16 rounded-lg border border-base-border bg-base">
-											<img
-												src={item.image ?? ""}
-												alt={item.alt}
-											/>
+										<div className="h-18 w-16 shrink-0 overflow-hidden rounded-lg border border-base-border bg-base">
+											{item.image && (
+												<img
+													src={item.image}
+													alt={item.alt}
+													className="size-full object-cover"
+												/>
+											)}
 										</div>
 										<div className="flex flex-col justify-center">
 											<p className="text-sm text-text-h">{item.name}</p>
 											<p className="text-sm">
 												{formatRupiah(item.price)} • {item.qty}x
 											</p>
-											<div className="flex items-center gap-1">
-												<p className="text-sm text-text-h">{item.color}</p>
-												<p>•</p>
-												<p className="text-sm text-text-h">{item.specs}</p>
-											</div>
+											{(item.color || item.specs) && (
+												<p className="text-sm text-text-h">
+													{[item.color, item.specs].filter(Boolean).join(" • ")}
+												</p>
+											)}
 										</div>
 									</div>
 
@@ -305,7 +308,7 @@ export default function Checkout() {
 										</div>
 									</div>
 
-									<div className="flex shrink-0 items-center justify-end pr-10 text-right">
+									<div className="flex w-36 shrink-0 items-center justify-end text-right">
 										<p className="font-semibold text-text-h">
 											{formatRupiah(item.total)}
 										</p>

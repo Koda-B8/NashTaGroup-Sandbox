@@ -7,9 +7,10 @@ import { apiFetch } from "../libs/api";
 import { formatRupiah } from "../libs/formatRupiah";
 import type { AppDispatch, RootState } from "../store";
 import { clearCart, type CartItem } from "../store/slices/cart";
-import Aside from "./Aside";
+import Aside, { AsideContent, AsideFooter, AsideHeader } from "./Aside";
 import FilterSkel from "./FilterSkel";
 import Button from "./ui/button";
+import Separator from "./ui/separator";
 
 interface SummaryProps {
 	rows: [label: string, amount: number][];
@@ -33,25 +34,24 @@ function subtotal(cart: CartItem[]): number {
 
 function Summary({ rows, total }: Readonly<SummaryProps>) {
 	return (
-		<>
-			<section className="min-h-10 border-b border-b-base-border py-3 text-sm">
-				<ul className="flex flex-col gap-1">
-					{rows.map(([label, amount]) => (
-						<li
-							key={label}
-							className="flex items-center justify-between"
-						>
-							<p>{label}</p>
-							<p className="text-text-h">{formatRupiah(amount)}</p>
-						</li>
-					))}
-				</ul>
-			</section>
-			<section className="flex items-center justify-between py-3">
+		<div className="flex flex-col gap-3">
+			<ul className="flex flex-col gap-1 text-sm">
+				{rows.map(([label, amount]) => (
+					<li
+						key={label}
+						className="flex items-center justify-between"
+					>
+						<p>{label}</p>
+						<p className="text-text-h">{formatRupiah(amount)}</p>
+					</li>
+				))}
+			</ul>
+			<Separator className="-mx-4" />
+			<div className="flex items-center justify-between">
 				<p className="font-semibold text-text-h">Total</p>
 				<p className="font-semibold text-text-h">{formatRupiah(total)}</p>
-			</section>
-		</>
+			</div>
+		</div>
 	);
 }
 
@@ -99,29 +99,29 @@ export function FiltersPanel() {
 	}
 
 	return (
-		<Aside
-			headerName={"Filter"}
-			Attribute={
+		<Aside>
+			<AsideHeader title="Filter">
 				<Button
 					onClick={resetFilters}
 					variant={"inverse"}
+					size="sm"
 				>
 					Reset
 				</Button>
-			}
-			Content={
+			</AsideHeader>
+			<AsideContent>
 				<div>
 					{loading ? (
 						<FilterSkel count={4} />
 					) : (
-						<div>
-							{filterGroups.map((group) => (
+						<div className="flex flex-col gap-2">
+							{filterGroups.map((group, index) => (
 								<section
 									key={group.title}
-									className="border-b border-base-border py-3"
+									className="flex flex-col gap-2"
 								>
 									<p className="text-sm font-semibold">{group.title}</p>
-									<ul className="mt-2 ml-0 flex w-full flex-col gap-1 text-sm">
+									<ul className="ml-0 flex w-full flex-col gap-1 text-sm">
 										{group?.options?.map((option) => (
 											<li
 												key={option.id}
@@ -144,13 +144,16 @@ export function FiltersPanel() {
 											</li>
 										))}
 									</ul>
+									{index < filterGroups.length - 1 && (
+										<Separator className="-mx-4" />
+									)}
 								</section>
 							))}
 						</div>
 					)}
 				</div>
-			}
-		/>
+			</AsideContent>
+		</Aside>
 	);
 }
 
@@ -158,20 +161,19 @@ export function CartPanel() {
 	const cart = useSelector((state: RootState) => state.cart.cart);
 
 	return (
-		<Aside
-			headerName={"Keranjang"}
-			Attribute={`${cart?.length} item`}
-			Content={
-				<div>
+		<Aside>
+			<AsideHeader title="Keranjang">{cart?.length} item</AsideHeader>
+			<AsideContent>
+				<div className="flex flex-col gap-4">
 					{cart?.length > 0 ? (
-						<section className="min-h-2 border-b border-base-border py-2">
-							<div className="flex flex-col gap-2">
+						<section>
+							<div className="flex flex-col gap-4">
 								{cart?.map((item) => (
 									<div
 										key={item.id}
 										className="flex items-center justify-between"
 									>
-										<section className="flex items-center gap-3 py-2">
+										<section className="flex items-center gap-3">
 											<div className="relative size-10 rounded-lg bg-base">
 												<div
 													className="centerized absolute top-0 left-0 h-4 min-w-4 rounded-full
@@ -190,7 +192,7 @@ export function CartPanel() {
 							</div>
 						</section>
 					) : (
-						<div className="centerized flex h-66  gap-2 border-b border-base-border py-2">
+						<div className="centerized flex h-66 gap-2">
 							<ShoppingCart
 								strokeWidth={2.5}
 								size={17}
@@ -198,9 +200,10 @@ export function CartPanel() {
 							<p className="text-sm font-semibold">Keranjang Kosong</p>
 						</div>
 					)}
+					<Separator className="-mx-4" />
 				</div>
-			}
-			Footer={
+			</AsideContent>
+			<AsideFooter>
 				<Summary
 					rows={[
 						["Subtotal", subtotal(cart)],
@@ -208,8 +211,8 @@ export function CartPanel() {
 					]}
 					total={cart.length > 0 ? subtotal(cart) - 5000 : 0}
 				/>
-			}
-		/>
+			</AsideFooter>
+		</Aside>
 	);
 }
 
@@ -226,16 +229,15 @@ interface OrderStepsProps {
 
 function OrderSteps({ current, nextAction }: Readonly<OrderStepsProps>) {
 	return (
-		<Aside
-			headerName={"Proses Pesanan"}
-			Attribute={
+		<Aside>
+			<AsideHeader title="Proses Pesanan">
 				<p className="text-xs font-semibold whitespace-nowrap text-primary">
 					Langkah {current}/{ORDER_STEPS.length}
 				</p>
-			}
-			Content={
+			</AsideHeader>
+			<AsideContent>
 				<div>
-					<section className="flex py-3">
+					<section className="flex">
 						<ul className="flex w-full cursor-pointer flex-col items-center gap-4">
 							{ORDER_STEPS.map((step, index) => {
 								const number = index + 1;
@@ -272,8 +274,8 @@ function OrderSteps({ current, nextAction }: Readonly<OrderStepsProps>) {
 						</ul>
 					</section>
 				</div>
-			}
-		/>
+			</AsideContent>
+		</Aside>
 	);
 }
 
@@ -307,9 +309,9 @@ export function CheckoutSummary() {
 	const cart = useSelector((state: RootState) => state.cart.cart);
 
 	return (
-		<Aside
-			headerName={"Ringkasan"}
-			Content={
+		<Aside>
+			<AsideHeader title="Ringkasan" />
+			<AsideContent>
 				<div>
 					<Summary
 						rows={[
@@ -320,9 +322,11 @@ export function CheckoutSummary() {
 						total={cart.length > 0 ? subtotal(cart) - (5000 - 1000) : 0}
 					/>
 				</div>
-			}
-			Footer={<p className="text-center text-xs">Aman dan terenskripsi</p>}
-		/>
+			</AsideContent>
+			<AsideFooter>
+				<p className="text-center text-xs">Aman dan terenskripsi</p>
+			</AsideFooter>
+		</Aside>
 	);
 }
 
@@ -367,7 +371,6 @@ export function BrowseBar() {
 			total={subtotal(cart)}
 			action={
 				<Button
-					className="rounded-full"
 					onClick={() => navigate("/checkout")}
 					disabled={cart.length === 0}
 				>
@@ -388,7 +391,6 @@ export function CheckoutBar() {
 			start={
 				<Button
 					variant="outline"
-					className="rounded-full"
 					onClick={() => navigate("/")}
 				>
 					<ArrowLeft size={15} />
@@ -399,7 +401,6 @@ export function CheckoutBar() {
 			total={subtotal(cart)}
 			action={
 				<Button
-					className="rounded-full"
 					type="submit"
 					form="checkout"
 					disabled={cart.length === 0}
@@ -422,7 +423,6 @@ export function StructBar() {
 			start={
 				<Button
 					variant="outline"
-					className="rounded-full"
 					onClick={() => window.print()}
 				>
 					Cetak Ulang Struk
@@ -431,10 +431,7 @@ export function StructBar() {
 			caption="Total dibayar"
 			total={subtotal(items)}
 			action={
-				<Button
-					className="rounded-full"
-					onClick={() => navigate("/")}
-				>
+				<Button onClick={() => navigate("/")}>
 					Pesanan Baru
 					<ArrowRight size={15} />
 				</Button>

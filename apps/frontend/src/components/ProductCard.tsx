@@ -7,7 +7,7 @@ export function ProductGrid({ children }: Readonly<{ children: ReactNode }>) {
 }
 
 interface ProductCardProps {
-	media?: ReactNode;
+	media?: ReactNode | null;
 	mediaClassName?: string;
 	children: ReactNode;
 }
@@ -23,7 +23,7 @@ export default function ProductCard({
 			className="p-1"
 		>
 			<header
-				className={`centerized h-45 w-full rounded-t-lg bg-base ${mediaClassName}`}
+				className={`centerized h-45 w-full overflow-hidden rounded-t-lg bg-base ${mediaClassName}`}
 			>
 				{media ?? (
 					<span className="text-3xl font-semibold text-base-border">N</span>

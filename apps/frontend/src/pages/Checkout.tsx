@@ -272,7 +272,7 @@ export default function Checkout() {
 
 									<div className="shrink-0">
 										<div
-											className="flex h-11 w-35 items-center justify-between 
+											className="flex h-11 w-35 items-center justify-between
 												rounded-lg border border-base-border"
 										>
 											<Button
@@ -321,7 +321,7 @@ export default function Checkout() {
 										>
 											<Trash
 												size={18}
-												className="text-deep-danger/70"
+												className="text-deep-danger"
 											/>
 										</Button>
 									</div>
@@ -382,7 +382,7 @@ export default function Checkout() {
 										type="radio"
 									/>
 									<div
-										className="centerized h-full w-full overflow-hidden rounded-lg border 
+										className="centerized h-full w-full overflow-hidden rounded-lg border
 								border-base-border peer-checked:border-primary peer-checked:bg-primary/10"
 									>
 										<div className="centerized gap-2 text-center text-text-h group-[:has(input:checked)]:text-primary">

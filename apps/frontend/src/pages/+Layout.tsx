@@ -10,6 +10,7 @@ const Navbar = lazy(() => import("../components/Navbar"));
 export interface PanelHandle extends CrumbHandle {
 	left?: ComponentType;
 	right?: ComponentType;
+	bottom?: ComponentType;
 }
 
 export default function MainLayout() {
@@ -19,6 +20,7 @@ export default function MainLayout() {
 		| undefined;
 	const Left = handle?.left;
 	const Right = handle?.right;
+	const Bottom = handle?.bottom;
 
 	return (
 		<Shell
@@ -41,6 +43,7 @@ export default function MainLayout() {
 					</div>
 				)
 			}
+			footer={Bottom && <Bottom />}
 		>
 			<div className="p-4">
 				<Outlet />

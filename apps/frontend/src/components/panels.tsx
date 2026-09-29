@@ -1,7 +1,7 @@
-import { ArrowRight, Check, ShoppingCart } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ArrowLeft, ArrowRight, Check, ShoppingCart } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useSearchParams } from "react-router";
+import { useLocation, useNavigate, useSearchParams } from "react-router";
 
 import { apiFetch } from "../libs/api";
 import { formatRupiah } from "../libs/formatRupiah";
@@ -166,7 +166,6 @@ export function FiltersPanel() {
 }
 
 export function CartPanel() {
-	const navigate = useNavigate();
 	const cart = useSelector((state: RootState) => state.cart.cart);
 
 	return (
@@ -219,15 +218,6 @@ export function CartPanel() {
 						total={cart.length > 0 ? subtotal(cart) - 5000 : 0}
 					/>
 				</div>
-			}
-			Footer={
-				<Button
-					onClick={() => navigate("/checkout")}
-					className="w-full"
-				>
-					Checkout
-					<ArrowRight size={15} />
-				</Button>
 			}
 		/>
 	);
@@ -354,6 +344,116 @@ export function CheckoutSummary() {
 				</div>
 			}
 			Footer={<p className="text-center text-xs">Aman dan terenskripsi</p>}
+		/>
+	);
+}
+
+interface BottomBarProps {
+	start: ReactNode;
+	caption: string;
+	total: number;
+	action: ReactNode;
+}
+
+function BottomBar({
+	start,
+	caption,
+	total,
+	action,
+}: Readonly<BottomBarProps>) {
+	return (
+		<footer className="flex items-center justify-between border-t border-base-border bg-surface px-4 py-3">
+			<div className="text-sm">{start}</div>
+			<div className="flex items-center gap-4">
+				<div className="flex flex-col text-right">
+					<p className="text-xl font-semibold text-text-h">
+						{formatRupiah(total)}
+					</p>
+					<p className="text-xs">{caption}</p>
+				</div>
+				{action}
+			</div>
+		</footer>
+	);
+}
+
+export function BrowseBar() {
+	const navigate = useNavigate();
+	const cart = useSelector((state: RootState) => state.cart.cart);
+	const qty = cart.reduce((total, item) => total + item.qty, 0);
+
+	return (
+		<BottomBar
+			start={`${qty} item di keranjang`}
+			caption="Termasuk diskon"
+			total={cart.length > 0 ? subtotal(cart) - 5000 : 0}
+			action={
+				<Button
+					onClick={() => navigate("/checkout")}
+					disabled={cart.length === 0}
+				>
+					Lanjut ke Pembayaran
+					<ArrowRight size={15} />
+				</Button>
+			}
+		/>
+	);
+}
+
+export function CheckoutBar() {
+	const navigate = useNavigate();
+	const cart = useSelector((state: RootState) => state.cart.cart);
+
+	return (
+		<BottomBar
+			start={
+				<Button
+					variant="outline"
+					onClick={() => navigate("/")}
+				>
+					<ArrowLeft size={15} />
+					Kembali ke Keranjang
+				</Button>
+			}
+			caption="Termasuk pajak & diskon"
+			total={cart.length > 0 ? subtotal(cart) - (5000 - 1000) : 0}
+			action={
+				<Button
+					type="submit"
+					form="checkout"
+					disabled={cart.length === 0}
+				>
+					Bayar Sekarang
+					<ArrowRight size={15} />
+				</Button>
+			}
+		/>
+	);
+}
+
+export function StructBar() {
+	const navigate = useNavigate();
+	const location = useLocation();
+	const items: CartItem[] = location.state?.items ?? [];
+
+	return (
+		<BottomBar
+			start={
+				<Button
+					variant="outline"
+					onClick={() => window.print()}
+				>
+					Cetak Ulang Struk
+				</Button>
+			}
+			caption="Total dibayar"
+			total={items.length > 0 ? subtotal(items) - (5000 - 1000) : 0}
+			action={
+				<Button onClick={() => navigate("/")}>
+					Pesanan Baru
+					<ArrowRight size={15} />
+				</Button>
+			}
 		/>
 	);
 }

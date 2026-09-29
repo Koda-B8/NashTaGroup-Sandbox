@@ -18,7 +18,6 @@ import Card from "../components/ui/card";
 import Input from "../components/ui/input";
 import Modal from "../components/ui/modal";
 import { apiFetch } from "../libs/api";
-import { APP_NAME } from "../libs/app";
 import { formatRupiah } from "../libs/formatRupiah";
 import type { AppDispatch, RootState } from "../store";
 import {
@@ -238,6 +237,11 @@ export default function Checkout() {
 						</header>
 
 						<main className="mt-2 flex flex-col gap-3">
+							{cart.length === 0 && (
+								<p className="py-6 text-center text-sm font-semibold">
+									Keranjang Kosong
+								</p>
+							)}
 							{cart.map((item) => (
 								<div
 									key={item.id}
@@ -331,7 +335,7 @@ export default function Checkout() {
 							htmlFor="phone"
 							className="text-xs font-medium text-text-h"
 						>
-							Customer Phone
+							No. Telepon Pelanggan
 						</label>
 						<div className="relative">
 							<Phone
@@ -355,7 +359,7 @@ export default function Checkout() {
 							</h6>
 						</header>
 
-						<main className="mt-2 grid grid-cols-3 gap-3">
+						<main className="mt-2 grid grid-cols-4 gap-3">
 							{paymentMethods?.map((item) => (
 								<label
 									key={item.id}
@@ -390,8 +394,6 @@ export default function Checkout() {
 							))}
 						</main>
 					</Card>
-
-					<p className="mt-4 text-center text-xs text-text-h">{APP_NAME}</p>
 				</main>
 			</form>
 		</>

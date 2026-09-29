@@ -185,7 +185,7 @@ export default function Home() {
 				if (brandId) {
 					params.set("brandId", brandId);
 				}
-				params.set("limit", "5");
+				params.set("limit", "6");
 				params.set("page", pageCount);
 
 				const searchValue = searchParams.get("search");
@@ -565,7 +565,7 @@ export default function Home() {
 				)}
 				{!loading && products?.length < 1 && (
 					<div className="centerized h-50">
-						<p className="text-sm text-text">No products found.</p>
+						<p className="text-sm text-text">Produk tidak ditemukan.</p>
 					</div>
 				)}
 				<Pagination
@@ -578,7 +578,7 @@ export default function Home() {
 	);
 }
 
-const SORT_OPTIONS = [{ label: "Popular", value: "popular" }];
+const SORT_OPTIONS = [{ label: "Populer", value: "popular" }];
 
 function ParamsSection({ params }) {
 	const [searchParams, setSearchParams] = useSearchParams();
@@ -605,12 +605,12 @@ function ParamsSection({ params }) {
 					type="text"
 					defaultValue={searchParams.get("search") ?? ""}
 					onChange={handleSearchProduct}
-					placeholder="Search Products.."
+					placeholder="Cari produk.."
 					className="w-70"
 				/>
 
 				<Select
-					label="Sort"
+					label="Urutkan"
 					defaultValue="popular"
 					items={SORT_OPTIONS}
 					className="w-40"
@@ -623,7 +623,7 @@ function ParamsSection({ params }) {
 function Pagination({ products, pagination, setPageCount }) {
 	return (
 		<PaginationControls
-			totalLabel={`Showing ${products?.length} of ${pagination.total_items} products`}
+			totalLabel={`Menampilkan ${products?.length} dari ${pagination.total_items} produk`}
 			pageCount={Math.ceil(pagination.total_items / pagination.limit)}
 			safePage={(pagination?.page ?? 1) - 1}
 			onPageChange={(page) => setPageCount(String(page + 1))}

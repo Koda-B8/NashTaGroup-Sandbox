@@ -1,4 +1,3 @@
-import { ShoppingCart } from "lucide-react";
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router";
@@ -12,15 +11,10 @@ import { clearCredentials } from "../store/slices/auth";
 import { clearCart } from "../store/slices/cart";
 import AppHeader from "./AppHeader";
 import LogoutButton from "./LogoutButton";
-import Button from "./ui/button";
 import Input from "./ui/input";
 
 interface SearchBoxProps {
 	onSearch?: (value: string) => void;
-}
-
-interface CartActionProps {
-	count: number;
 }
 
 export default function Navbar() {
@@ -37,12 +31,7 @@ export default function Navbar() {
 				</Link>
 			}
 			items={crumbs}
-			actions={
-				<>
-					<CartAction />
-					<LogoutAction />
-				</>
-			}
+			actions={<LogoutAction />}
 		/>
 	);
 }
@@ -82,17 +71,5 @@ function LogoutAction() {
 			loading={isLoggingOut}
 			onClick={handleLogout}
 		/>
-	);
-}
-
-function CartAction() {
-	return (
-		<Button
-			variant="ghost"
-			size="icon"
-			aria-label="Keranjang"
-		>
-			<ShoppingCart size={16} />
-		</Button>
 	);
 }

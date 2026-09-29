@@ -100,13 +100,13 @@ export function FiltersPanel() {
 
 	return (
 		<Aside
-			headerName={"Filters"}
+			headerName={"Filter"}
 			Attribute={
 				<Button
 					onClick={resetFilters}
 					variant={"inverse"}
 				>
-					Clear
+					Reset
 				</Button>
 			}
 			Content={
@@ -114,7 +114,7 @@ export function FiltersPanel() {
 					{loading ? (
 						<FilterSkel count={4} />
 					) : (
-						<div className="max-h-[31rem] overflow-y-scroll">
+						<div>
 							{filterGroups.map((group) => (
 								<section
 									key={group.title}
@@ -148,17 +148,6 @@ export function FiltersPanel() {
 							))}
 						</div>
 					)}
-				</div>
-			}
-			Footer={
-				<div className="centerized gap-2">
-					<Button
-						onClick={resetFilters}
-						variant={"outline"}
-						className="w-full px-6"
-					>
-						<p>Reset</p>
-					</Button>
 				</div>
 			}
 		/>
@@ -209,15 +198,16 @@ export function CartPanel() {
 							<p className="text-sm font-semibold">Keranjang Kosong</p>
 						</div>
 					)}
-
-					<Summary
-						rows={[
-							["Subtotal", subtotal(cart)],
-							["Diskon", 5000],
-						]}
-						total={cart.length > 0 ? subtotal(cart) - 5000 : 0}
-					/>
 				</div>
+			}
+			Footer={
+				<Summary
+					rows={[
+						["Subtotal", subtotal(cart)],
+						["Diskon", 5000],
+					]}
+					total={cart.length > 0 ? subtotal(cart) - 5000 : 0}
+				/>
 			}
 		/>
 	);
@@ -235,12 +225,11 @@ interface OrderStepsProps {
 }
 
 function OrderSteps({ current, nextAction }: Readonly<OrderStepsProps>) {
-	const navigate = useNavigate();
 	return (
 		<Aside
 			headerName={"Proses Pesanan"}
 			Attribute={
-				<p className="w-14 text-right text-xs font-semibold text-wrap text-primary">
+				<p className="text-xs font-semibold whitespace-nowrap text-primary">
 					Langkah {current}/{ORDER_STEPS.length}
 				</p>
 			}
@@ -282,17 +271,6 @@ function OrderSteps({ current, nextAction }: Readonly<OrderStepsProps>) {
 							})}
 						</ul>
 					</section>
-				</div>
-			}
-			Footer={
-				<div className="centerized gap-2">
-					<Button
-						variant={"outline"}
-						onClick={() => navigate("/")}
-						className="w-full px-6"
-					>
-						Batal
-					</Button>
 				</div>
 			}
 		/>
@@ -389,6 +367,7 @@ export function BrowseBar() {
 			total={subtotal(cart)}
 			action={
 				<Button
+					className="rounded-full"
 					onClick={() => navigate("/checkout")}
 					disabled={cart.length === 0}
 				>
@@ -409,6 +388,7 @@ export function CheckoutBar() {
 			start={
 				<Button
 					variant="outline"
+					className="rounded-full"
 					onClick={() => navigate("/")}
 				>
 					<ArrowLeft size={15} />
@@ -419,6 +399,7 @@ export function CheckoutBar() {
 			total={subtotal(cart)}
 			action={
 				<Button
+					className="rounded-full"
 					type="submit"
 					form="checkout"
 					disabled={cart.length === 0}
@@ -441,6 +422,7 @@ export function StructBar() {
 			start={
 				<Button
 					variant="outline"
+					className="rounded-full"
 					onClick={() => window.print()}
 				>
 					Cetak Ulang Struk
@@ -449,7 +431,10 @@ export function StructBar() {
 			caption="Total dibayar"
 			total={subtotal(items)}
 			action={
-				<Button onClick={() => navigate("/")}>
+				<Button
+					className="rounded-full"
+					onClick={() => navigate("/")}
+				>
 					Pesanan Baru
 					<ArrowRight size={15} />
 				</Button>

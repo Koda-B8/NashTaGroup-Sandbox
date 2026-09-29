@@ -8,7 +8,7 @@ import {
 	Trash,
 	Phone,
 } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router";
 
@@ -43,6 +43,7 @@ export default function Checkout() {
 	const [activeCashModal, setActiveCashModal] = useState<boolean>(false);
 	const [cashAmount, setCashAmount] = useState<string>("");
 	const navigate = useNavigate();
+	const submitting = useRef(false);
 
 	useEffect(() => {
 		async function getPaymentMethod() {
@@ -114,6 +115,8 @@ export default function Checkout() {
 
 	async function handleSubmit(e) {
 		e.preventDefault();
+		if (submitting.current) return;
+		submitting.current = true;
 		try {
 			const data = new FormData(e.target);
 			const formated = Object.fromEntries(data.entries());
@@ -158,10 +161,13 @@ export default function Checkout() {
 					});
 					dispatch(clearCart());
 				}, 2500);
+			} else {
+				submitting.current = false;
 			}
 		} catch (error) {
 			console.error(error);
 			setCashAmount("");
+			submitting.current = false;
 		}
 	}
 

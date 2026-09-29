@@ -52,7 +52,13 @@ interface Product {
 	deletedAt: string | null;
 	category: Category;
 	brand: Brand;
+	image: Image;
 	items: ProductItem[];
+}
+
+interface Image {
+	alt: string;
+	url: string;
 }
 
 interface Specs {
@@ -523,7 +529,20 @@ export default function Home() {
 				) : (
 					<ProductGrid>
 						{products?.map((item) => (
-							<ProductCard key={item.id}>
+							<ProductCard
+								key={item.id}
+								media={
+									item?.image.url ? (
+										<div className="h-full w-full">
+											<img
+												src={item?.image.url}
+												className="h-full w-full object-cover"
+												alt={item?.image.alt}
+											/>
+										</div>
+									) : null
+								}
+							>
 								<p className="text-sm">{item.brand.name}</p>
 								<p className="font-semibold text-text-h">{item.name}</p>
 								<div className="mt-1 flex items-center justify-between">

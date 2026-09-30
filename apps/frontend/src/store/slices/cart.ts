@@ -2,24 +2,29 @@ import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 export interface CartItem {
 	id: string;
+	productId: string;
+	productItemId: string;
+	productCode: string;
 	name: string;
 	category: string;
 	image: string | null;
 	alt: string;
 	color: string;
+	specs: string;
 	price: number;
 	total: number;
 	qty: number;
-	specs: string;
-	options: FormDataEntryValue[];
+	stock: number;
 }
 
 export interface CartState {
 	cart: CartItem[];
+	submitting: boolean;
 }
 
 const initialState: CartState = {
 	cart: [],
+	submitting: false,
 };
 
 const cart = createSlice({
@@ -28,41 +33,54 @@ const cart = createSlice({
 
 	reducers: {
 		addToCart(state, action: PayloadAction<CartItem>) {
-			const data: CartItem = action.payload;
-			const persisData = state.cart;
-			const isFound = persisData.filter((item) => item.id === data.id);
-			if (isFound.length === 0) {
-				state.cart.push(action.payload);
-			} else {
-				const idx = persisData.findIndex((item) => item.id === data.id);
-				data.qty += isFound[0].qty;
-				state.cart.splice(idx, 1, data);
+			const incoming = action.payload;
+			const index = state.cart.findIndex((item) => item.id === incoming.id);
+
+			if (index === -1) {
+				state.cart.push({
+					...incoming,
+					total: incoming.price * incoming.qty,
+				});
+				return;
 			}
+
+			const existing = state.cart[index];
+			const qty = existing.qty + incoming.qty;
+
+			state.cart[index] = {
+				...existing,
+				...incoming,
+				qty,
+				total: incoming.price * qty,
+			};
 		},
 
-		deleteCartItem(state, action) {
-			const data = state.cart.filter((item) => item.id !== action.payload.id);
-			state.cart = data;
+		deleteCartItem(state, action: PayloadAction<{ id: string }>) {
+			state.cart = state.cart.filter((item) => item.id !== action.payload.id);
 		},
 
-		decrementItem: (state, action) => {
+		decrementItem: (state, action: PayloadAction<{ id: string }>) => {
 			const item = state.cart.find((item) => item.id === action.payload.id);
 			if (item && item.qty > 1) {
 				item.qty -= 1;
-				item.total -= item.price;
+				item.total = item.price * item.qty;
 			}
 		},
 
-		incrementItem: (state, action) => {
+		incrementItem: (state, action: PayloadAction<{ id: string }>) => {
 			const item = state.cart.find((item) => item.id === action.payload.id);
 			if (item) {
 				item.qty += 1;
-				item.total += item.price;
+				item.total = item.price * item.qty;
 			}
 		},
 
 		clearCart(state) {
 			state.cart = [];
+		},
+
+		setSubmitting(state, action: PayloadAction<boolean>) {
+			state.submitting = action.payload;
 		},
 	},
 });
@@ -75,4 +93,5 @@ export const {
 	incrementItem,
 	decrementItem,
 	clearCart,
+	setSubmitting,
 } = cart.actions;

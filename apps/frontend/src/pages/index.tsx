@@ -1,5 +1,5 @@
-import { Plus, X, Minus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Minus, Plus, ShoppingCart, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useSearchParams } from "react-router";
 
@@ -7,23 +7,38 @@ import CardSkel from "../components/CardSkel";
 import PaginationControls from "../components/PaginationControls";
 import ProductCard, { ProductGrid } from "../components/ProductCard";
 import Button from "../components/ui/button";
-import Checkbox from "../components/ui/checkbox";
 import Input from "../components/ui/input";
 import Modal from "../components/ui/modal";
 import Select from "../components/ui/select";
+import Toast from "../components/ui/toast";
+import { useFlash } from "../hooks/useFlash";
 import { apiFetch } from "../libs/api";
 import { formatRupiah } from "../libs/formatRupiah";
 import type { AppDispatch } from "../store";
 import { addToCart, type CartItem } from "../store/slices/cart";
 
-interface Page {
-	page: number;
+interface CategoryOption {
+	id: string;
+	name: string;
+	hex?: string;
+	sortOrder?: number;
+}
+
+interface CategoryAttribute {
+	id: string;
+	name: string;
+	value?: string;
+	isRequired: boolean;
+	isVariant: boolean;
+	sortOrder: number;
+	options: CategoryOption[];
 }
 
 interface Category {
 	id: string;
 	name: string;
 	isActive: boolean;
+	attributes?: CategoryAttribute[];
 }
 
 interface Brand {
@@ -32,12 +47,25 @@ interface Brand {
 	isActive: boolean;
 }
 
+interface VariantAttribute {
+	id: string;
+	name: string;
+	value: string;
+	optionId: string;
+	isRequired: boolean;
+	isVariant: boolean;
+	sortOrder: number;
+}
+
 interface ProductItem {
 	id: string;
 	productCode: string;
 	name: string;
 	price: string;
 	isActive: boolean;
+	attributes?: VariantAttribute[];
+	image: { alt: string; url: string | null };
+	stock: number;
 }
 
 interface Product {
@@ -47,174 +75,365 @@ interface Product {
 	name: string;
 	description: string;
 	isActive: boolean;
-	createdAt: string;
-	updatedAt: string;
-	deletedAt: string | null;
 	category: Category;
 	brand: Brand;
-	image: Image;
 	items: ProductItem[];
-}
-
-interface Image {
-	alt: string;
-	url: string;
-}
-
-interface Specs {
-	id: string;
-	name: string;
-	price: number;
+	image: { alt: string; url: string | null };
 	stock: number;
 }
 
-const optional: Specs[] = [
-	{
-		id: "1",
-		name: "Apple care +2 Tahun",
-		price: 700_000,
-		stock: 2,
-	},
-	{
-		id: "2",
-		name: "Tempered Glass",
-		price: 250_000,
-		stock: 12,
-	},
-	{
-		id: "3",
-		name: "Casing Silicone",
-		price: 670_000,
-		stock: 0,
-	},
-];
+interface Pagination {
+	page: number;
+	limit: number;
+	total_items: number;
+	total_pages: number;
+}
 
-interface Attributes {
+interface VariantOption {
+	key: string;
+	value: string;
+	hex?: string;
+}
+
+interface VariantGroup {
 	id: string;
-	attributes: [];
+	name: string;
+	sortOrder: number;
+	options: VariantOption[];
+}
+
+type Selection = Record<string, string>;
+
+const COLOR_ATTRIBUTE_PATTERN = /(?:color|colour|warna)/i;
+const SORT_OPTIONS = [{ label: "Populer", value: "popular" }];
+
+function activeItems(product: Product | null): ProductItem[] {
+	if (!product) return [];
+	return product.items.filter((item) => item.isActive);
+}
+
+function variantLabel(item: ProductItem): string {
+	return item.name || item.productCode;
+}
+
+function minimumPrice(product: Product): number {
+	const items = activeItems(product);
+	if (items.length === 0) return 0;
+	return Math.min(...items.map((item) => Number(item.price)));
+}
+
+function colorHexLookup(product: Product | null): Map<string, string> {
+	const lookup = new Map<string, string>();
+	for (const attribute of product?.category?.attributes ?? []) {
+		for (const option of attribute.options ?? []) {
+			if (option.hex) lookup.set(option.id, option.hex);
+		}
+	}
+	return lookup;
+}
+
+function groupsFromVariants(
+	items: ProductItem[],
+	hexByOption: Map<string, string>,
+): VariantGroup[] {
+	const groups = new Map<string, VariantGroup>();
+
+	for (const item of items) {
+		for (const attribute of item.attributes ?? []) {
+			const groupId = attribute.id || attribute.name;
+			let group = groups.get(groupId);
+			if (!group) {
+				group = {
+					id: groupId,
+					name: attribute.name,
+					sortOrder: attribute.sortOrder ?? 0,
+					options: [],
+				};
+				groups.set(groupId, group);
+			}
+			const key = attribute.optionId || attribute.value;
+			if (!group.options.some((option) => option.key === key)) {
+				group.options.push({
+					key,
+					value: attribute.value,
+					hex: hexByOption.get(attribute.optionId),
+				});
+			}
+		}
+	}
+
+	return [...groups.values()].sort((a, b) => a.sortOrder - b.sortOrder);
+}
+
+function groupsFromCategory(
+	product: Product | null,
+	items: ProductItem[],
+): VariantGroup[] {
+	return (product?.category?.attributes ?? [])
+		.map((attribute) => ({
+			id: attribute.id,
+			name: attribute.name,
+			sortOrder: attribute.sortOrder ?? 0,
+			options: [...attribute.options]
+				.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+				.map((option) => ({
+					key: option.id,
+					value: option.name,
+					hex: option.hex,
+				})),
+		}))
+		.map((group) => ({
+			...group,
+			options: group.options.filter((option) =>
+				items.some((item) => variantHasOption(item, group, option)),
+			),
+		}))
+		.filter((group) => group.options.length > 0)
+		.sort((a, b) => a.sortOrder - b.sortOrder);
+}
+
+function buildGroups(
+	product: Product | null,
+	items: ProductItem[],
+): VariantGroup[] {
+	const fromVariants = groupsFromVariants(items, colorHexLookup(product));
+	if (fromVariants.length > 0) return fromVariants;
+	return groupsFromCategory(product, items);
+}
+
+function defaultSelection(groups: VariantGroup[]): Selection {
+	const selection: Selection = {};
+	for (const group of groups) {
+		if (group.options.length === 1) selection[group.id] = group.options[0].key;
+	}
+	return selection;
+}
+
+function variantHasOption(
+	item: ProductItem,
+	group: VariantGroup,
+	option: VariantOption,
+): boolean {
+	const attribute = item.attributes?.find(
+		(entry) => entry.id === group.id || entry.name === group.name,
+	);
+	if (attribute) {
+		return (
+			attribute.optionId === option.key ||
+			attribute.value.toLowerCase() === option.value.toLowerCase()
+		);
+	}
+	const haystack = `${item.name} ${item.productCode}`.toLowerCase();
+	return haystack.includes(option.value.toLowerCase());
+}
+
+function matchesSelection(
+	item: ProductItem,
+	groups: VariantGroup[],
+	selection: Selection,
+): boolean {
+	return groups.every((group) => {
+		const chosen = selection[group.id];
+		if (!chosen) return false;
+		const option = group.options.find((candidate) => candidate.key === chosen);
+		if (!option) return false;
+		return variantHasOption(item, group, option);
+	});
+}
+
+function optionAvailable(
+	items: ProductItem[],
+	groups: VariantGroup[],
+	selection: Selection,
+	groupId: string,
+	optionKey: string,
+): boolean {
+	return items.some((item) =>
+		groups.every((group) => {
+			const chosen = group.id === groupId ? optionKey : selection[group.id];
+			if (!chosen) return true;
+			const option = group.options.find(
+				(candidate) => candidate.key === chosen,
+			);
+			if (!option) return false;
+			return variantHasOption(item, group, option);
+		}),
+	);
+}
+
+function attributeValue(item: ProductItem, matches: boolean): string {
+	return (
+		item.attributes?.find(
+			(attribute) => COLOR_ATTRIBUTE_PATTERN.test(attribute.name) === matches,
+		)?.value ?? ""
+	);
+}
+
+function specsValue(item: ProductItem): string {
+	return (item.attributes ?? [])
+		.filter((attribute) => !COLOR_ATTRIBUTE_PATTERN.test(attribute.name))
+		.map((attribute) => attribute.value)
+		.join(" • ");
 }
 
 export default function Home() {
 	const dispatch = useDispatch<AppDispatch>();
-	const [prodQty, setProdQty] = useState<number>(1);
-	const [pagination, setPagination] = useState({});
+	const { flash, show, clear } = useFlash(3000);
+	const [pagination, setPagination] = useState<Pagination>();
 	const [pageCount, setPageCount] = useState<string>("1");
 	const [products, setProducts] = useState<Product[]>([]);
 	const [loading, setLoading] = useState<boolean>(true);
-	const [attributes, setAttributes] = useState<Attributes[]>([]);
-	const [searchParams, _] = useSearchParams();
-	const [dataSubmit, setDataSubmit] = useState({
-		id: "",
-		name: "",
-		image: null,
-		alt: "",
-		category: "",
-		idSpecs: "",
-		specs: "",
-		qty: 1,
-		color: "",
-		price: 0,
-		total: 0,
-	});
+	const [searchParams] = useSearchParams();
+	const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+	const [selection, setSelection] = useState<Selection>({});
+	const [selectedItemId, setSelectedItemId] = useState<string>("");
+	const [qty, setQty] = useState<number>(1);
 	const [activeModal, setActiveModal] = useState<boolean>(false);
+
 	const categoryId = searchParams.get("categoryId") ?? "";
 	const brandId = searchParams.get("brandId") ?? "";
-	const params = new URLSearchParams();
+	const searchValue = searchParams.get("search") ?? "";
 
-	function handleSubmit(e): void {
-		e.preventDefault();
-		try {
-			const data = new FormData(e.target);
-			const form = Object.fromEntries(data.entries());
-			setDataSubmit({ ...dataSubmit });
+	const variants = useMemo(
+		() => activeItems(selectedProduct),
+		[selectedProduct],
+	);
+	const groups = useMemo(
+		() => buildGroups(selectedProduct, variants),
+		[selectedProduct, variants],
+	);
+	const usesGroups = groups.length > 0;
+	const allSelected =
+		groups.length > 0 && groups.every((group) => selection[group.id]);
 
-			const datas: FormDataEntryValue[] = [];
-
-			for (const obj in form) {
-				if (obj.startsWith("optional ")) {
-					datas.push(form[obj]);
-				}
-			}
-
-			const formData: CartItem = { ...dataSubmit, options: datas };
-			dispatch(addToCart(formData));
-			handleModal();
-		} catch (error) {
-			console.error(error);
+	const selectedItem = useMemo(() => {
+		if (variants.length === 0) return null;
+		if (usesGroups) {
+			return (
+				variants.find((item) => matchesSelection(item, groups, selection)) ??
+				null
+			);
 		}
-	}
+		return variants.find((item) => item.id === selectedItemId) ?? null;
+	}, [variants, usesGroups, groups, selection, selectedItemId]);
 
-	function addItem(id: string) {
-		try {
-			const data = products.find((i) => i.id === id);
-			if (!data) throw new Error("Data is unvalid");
+	const unitPrice = selectedItem ? Number(selectedItem.price) : 0;
+	const maxStock = selectedItem?.stock ?? 0;
 
-			setDataSubmit({
-				...dataSubmit,
-				id,
-				name: data.name,
-				image: null,
-				alt: "image",
-				category: data?.category?.name,
-				price: Number.parseInt(data.items[0].price),
-				total: Number.parseInt(data.items[0].price),
-			});
-			handleModal();
-		} catch (error) {
-			console.error(error);
-		}
-	}
+	function openProduct(product: Product): void {
+		const items = activeItems(product);
+		const builtGroups = buildGroups(product, items);
 
-	function handleModal(): void {
-		if (activeModal) {
-			setProdQty(1);
-			setActiveModal(false);
+		setSelectedProduct(product);
+		setQty(1);
+		if (builtGroups.length > 0) {
+			setSelection(defaultSelection(builtGroups));
+			setSelectedItemId("");
 		} else {
-			setProdQty(1);
-			setActiveModal(true);
+			setSelection({});
+			setSelectedItemId(items.length === 1 ? items[0].id : "");
 		}
+		setActiveModal(true);
+	}
+
+	function selectOption(groupId: string, optionKey: string): void {
+		setSelection((prev) => ({ ...prev, [groupId]: optionKey }));
+	}
+
+	function clearOption(groupId: string): void {
+		setSelection((prev) => {
+			const next = { ...prev };
+			delete next[groupId];
+			return next;
+		});
+	}
+
+	function selectedOptionName(group: VariantGroup): string {
+		return (
+			group.options.find((option) => option.key === selection[group.id])
+				?.value ?? ""
+		);
+	}
+
+	function handleAddToCart(e): void {
+		e.preventDefault();
+		if (!selectedProduct || !selectedItem) {
+			show("Pilih varian yang tersedia dulu.", "error");
+			return;
+		}
+		if (selectedItem.stock < 1) {
+			show("Stok varian ini habis.", "error");
+			return;
+		}
+		if (qty > selectedItem.stock) {
+			show(`Stok tersisa ${selectedItem.stock} item.`, "error");
+			return;
+		}
+
+		const colorGroup = groups.find((group) =>
+			COLOR_ATTRIBUTE_PATTERN.test(group.name),
+		);
+		const color = usesGroups
+			? colorGroup
+				? selectedOptionName(colorGroup)
+				: ""
+			: attributeValue(selectedItem, true);
+		const specs = usesGroups
+			? groups
+					.filter((group) => group !== colorGroup)
+					.map((group) => selectedOptionName(group))
+					.filter(Boolean)
+					.join(" • ")
+			: specsValue(selectedItem);
+
+		const cartItem: CartItem = {
+			id: selectedItem.id,
+			productItemId: selectedItem.id,
+			productId: selectedProduct.id,
+			productCode: selectedItem.productCode,
+			name: selectedProduct.name,
+			category: selectedProduct.category?.name ?? "",
+			image: selectedProduct.image?.url ?? null,
+			alt: selectedProduct.image?.alt ?? selectedProduct.name,
+			color,
+			specs,
+			price: Number(selectedItem.price),
+			total: Number(selectedItem.price) * qty,
+			qty,
+			stock: selectedItem.stock,
+		};
+
+		dispatch(addToCart(cartItem));
+		setActiveModal(false);
+		show(`${selectedProduct.name} ditambahkan ke keranjang.`);
 	}
 
 	useEffect(() => {
 		async function getProduct() {
 			setLoading(true);
 			try {
-				if (categoryId) {
-					params.set("categoryId", categoryId);
-				}
-				if (brandId) {
-					params.set("brandId", brandId);
-				}
-				params.set("limit", "6");
+				const params = new URLSearchParams();
+				if (categoryId) params.set("categoryId", categoryId);
+				if (brandId) params.set("brandId", brandId);
+				params.set("limit", "8");
 				params.set("page", pageCount);
+				if (searchValue.length >= 3) params.set("search", searchValue);
 
-				const searchValue = searchParams.get("search");
-				if (searchValue === "") {
-					params.delete("search");
-				} else if (searchValue && searchValue?.length >= 3) {
-					params.set("search", searchValue);
-				}
-
-				const data = await apiFetch(`/api/v1/products?${params.toString()}`);
-				const res = await data.json();
-				setProducts(res.data);
-				setPagination(res.meta.pagination);
-
-				const att = res.data.map((item) => {
-					return {
-						id: item.id,
-						attributes: item.category.attributes,
-					};
-				});
-				setAttributes(att);
+				const response = await apiFetch(
+					`/api/v1/products?${params.toString()}`,
+				);
+				const result = await response.json();
+				setProducts(result.data);
+				setPagination(result.meta.pagination);
 			} catch (error) {
 				console.error(error);
+				show("Gagal memuat produk.", "error");
 			} finally {
 				setLoading(false);
 			}
 		}
 		getProduct();
-	}, [categoryId, brandId, pageCount, searchParams]);
+	}, [categoryId, brandId, pageCount, searchValue, show]);
 
 	return (
 		<>
@@ -222,20 +441,39 @@ export default function Home() {
 				open={activeModal}
 				onOpenChange={setActiveModal}
 				size="xl"
-				label={dataSubmit.name || "Pilih varian produk"}
+				label={selectedProduct?.name ?? "Pilih varian produk"}
 			>
-				<form onSubmit={handleSubmit}>
+				<form
+					onSubmit={handleAddToCart}
+					className="flex flex-col"
+				>
 					<header className="flex w-full flex-col gap-4 border-b border-base-border pb-4">
-						<div className="flex w-full items-start  justify-between">
+						<div className="flex w-full items-start justify-between">
 							<div className="flex items-center gap-4">
-								<section className="h-35 w-30 rounded-lg bg-base"></section>
+								<section className="h-35 w-30 overflow-hidden rounded-lg bg-base">
+									{selectedProduct?.image?.url && (
+										<img
+											src={selectedProduct.image.url}
+											alt={selectedProduct.image.alt}
+											className="size-full object-cover"
+										/>
+									)}
+								</section>
 								<section className="flex flex-col justify-center gap-1">
-									<h6 className="text-sm font-semibold text-text-h">
-										{dataSubmit.name || "iPhone"}
+									<h6 className="font-semibold text-base text-text-h">
+										{selectedProduct?.name ?? "Produk"}
 									</h6>
-									<p>{dataSubmit.category} | Ready stock</p>
-									<p className="text-sm font-semibold text-primary">
-										{formatRupiah(dataSubmit.price)}
+									<p className="text-xs text-text">
+										{selectedProduct?.category?.name} | Ready stock
+									</p>
+									<p className="font-semibold text-base text-primary">
+										{formatRupiah(
+											selectedItem
+												? unitPrice
+												: selectedProduct
+													? minimumPrice(selectedProduct)
+													: 0,
+										)}
 									</p>
 								</section>
 							</div>
@@ -250,280 +488,231 @@ export default function Home() {
 								</Button>
 							</div>
 						</div>
-						<p className="text-sm">Pilih variant dulu sebelum ke Keranjang</p>
+						<p className="text-xs text-text">
+							Pilih varian dulu sebelum ke Keranjang
+						</p>
 					</header>
 
 					<main className="mt-2 flex w-full flex-col gap-2">
-						<section className="flex w-full flex-col py-3  text-sm">
-							<header className="flex h-fit w-full items-center justify-between text-xs">
-								<p className="font-semibold">
-									<span className="mr-3 rounded-lg border-l-5 border-primary bg-primary"></span>{" "}
-									Warna
-								</p>
-								<p className="text-primary">Wajib dipilih</p>
-							</header>
-							<main className="mt-2 flex flex-wrap gap-3">
-								{attributes
-									.find((item) => item.id === dataSubmit.id)
-									?.attributes.find((item) => item.name === "Colors")
-									?.options?.map((item) => (
-										<div key={item.id}>
-											<label
-												htmlFor={`color-${item.id}`}
-												className="flex h-fit w-fit flex-col items-center gap-2"
-											>
-												<input
-													type="radio"
-													id={`color-${item.id}`}
-													value={item.id}
-													onChange={() =>
-														setDataSubmit({ ...dataSubmit, color: item.name })
-													}
-													name="color"
-													className="peer hidden"
-												/>
-												<div
-													className="centerized size-13.5 rounded-full border border-white 
-												peer-checked:border-primary"
-												>
-													<div
-														className={`size-10 rounded-full bg-[${item?.hex}] px-4`}
-													></div>
-												</div>
-												<p className="text-xs font-semibold peer-checked:text-primary">
-													{item.name}
-												</p>
-											</label>
-										</div>
-									))}
-							</main>
-						</section>
+						{usesGroups &&
+							groups.map((group) => {
+								const isColor = COLOR_ATTRIBUTE_PATTERN.test(group.name);
+								return (
+									<section
+										key={group.id}
+										className="flex w-full flex-col py-3 text-sm"
+									>
+										<header className="flex h-fit w-full items-center justify-between">
+											<p className="text-sm font-semibold text-text-h">
+												<span className="mr-3 rounded-lg border-l-5 border-primary bg-primary"></span>
+												{group.name}
+											</p>
+											<p className="text-xs font-medium text-primary">
+												Wajib dipilih
+											</p>
+										</header>
+										<main className="mt-2 flex flex-wrap gap-3">
+											{group.options.map((option) => {
+												const available = optionAvailable(
+													variants,
+													groups,
+													selection,
+													group.id,
+													option.key,
+												);
+												const id = `opt-${group.id}-${option.key}`;
+												return (
+													<label
+														key={option.key}
+														htmlFor={id}
+														aria-label={`${group.name} ${option.value}`}
+														className="group flex cursor-pointer flex-col items-center gap-2"
+													>
+														<input
+															className="peer sr-only"
+															name={group.id}
+															type="radio"
+															id={id}
+															value={option.key}
+															checked={selection[group.id] === option.key}
+															disabled={!available}
+															onClick={() => {
+																if (selection[group.id] === option.key) {
+																	clearOption(group.id);
+																}
+															}}
+															onChange={() =>
+																selectOption(group.id, option.key)
+															}
+														/>
+														{isColor ? (
+															<>
+																<div className="centerized size-13.5 rounded-full border border-white peer-checked:border-primary peer-disabled:opacity-40">
+																	<div
+																		className="size-10 rounded-full"
+																		style={{
+																			backgroundColor: option.hex ?? "#e5e7eb",
+																		}}
+																	></div>
+																</div>
+																<p className="text-xs font-semibold group-[:has(input:checked)]:text-primary">
+																	{option.value}
+																</p>
+															</>
+														) : (
+															<div className="centerized h-12 min-w-24 rounded-lg border border-base-border px-4 peer-checked:border-primary peer-checked:bg-primary/10 peer-disabled:opacity-40">
+																<p className="text-sm font-semibold text-text-h group-[:has(input:checked)]:text-primary">
+																	{option.value}
+																</p>
+															</div>
+														)}
+													</label>
+												);
+											})}
+										</main>
+									</section>
+								);
+							})}
 
-						<section className="flex w-full flex-col py-3  text-sm">
-							<header className="flex h-fit w-full items-center justify-between text-xs">
-								<p className="font-semibold">
-									<span className="mr-3 rounded-lg border-l-5 border-primary bg-primary"></span>
-									Kapasitas
-								</p>
-								<p className="text-primary">Wajib dipilih</p>
-							</header>
-
-							<main className="mt-2 flex flex-wrap gap-3">
-								{attributes
-									.find((item) => item.id === dataSubmit.id)
-									?.attributes.find((items) => items.name === "Spesifikasi")
-									?.options?.map((item) => (
+						{!usesGroups && (
+							<section className="flex w-full flex-col py-3 text-sm">
+								<header className="flex h-fit w-full items-center justify-between">
+									<p className="text-sm font-semibold text-text-h">
+										<span className="mr-3 rounded-lg border-l-5 border-primary bg-primary"></span>
+										Varian
+									</p>
+									<p className="text-xs font-medium text-primary">
+										Wajib dipilih
+									</p>
+								</header>
+								<main className="mt-2 flex flex-col gap-2">
+									{variants.length === 0 && (
+										<p className="py-4 text-center text-sm">
+											Belum ada varian tersedia.
+										</p>
+									)}
+									{variants.map((item) => (
 										<label
 											key={item.id}
-											htmlFor={item.id.toString()}
-											className="group flex h-22 w-37 cursor-pointer flex-col text-white"
+											htmlFor={`variant-${item.id}`}
+											aria-label={variantLabel(item)}
+											className="group flex cursor-pointer flex-col"
 										>
 											<input
 												className="peer sr-only"
-												name="specs"
-												onChange={(e) => {
-													if (e) {
-														if (dataSubmit.idSpecs === item.id) {
-															setDataSubmit((prev) => {
-																return {
-																	...prev,
-																	idSpecs: item.id,
-																	specs: item.name,
-																	total: prev.total - 1_000_000 + 1_000_000,
-																};
-															});
-														} else {
-															setDataSubmit((prev) => {
-																return {
-																	...prev,
-																	idSpecs: dataSubmit.idSpecs,
-																	specs: item.name,
-																	total: prev.total + 1_000_000,
-																};
-															});
-														}
-													} else {
-														setDataSubmit((prev) => {
-															return {
-																...prev,
-																total: prev.total - 1_000_000,
-															};
-														});
-													}
-												}}
-												value={item.name}
-												id={item.id.toString()}
+												name="variant"
 												type="radio"
+												id={`variant-${item.id}`}
+												value={item.id}
+												checked={selectedItemId === item.id}
+												disabled={item.stock < 1}
+												onClick={() => {
+													if (selectedItemId === item.id) setSelectedItemId("");
+												}}
+												onChange={() => setSelectedItemId(item.id)}
 											/>
-											<p className="hidden">.</p>
-											<div className="centerized h-full w-full overflow-hidden rounded-lg border border-base-border peer-checked:border-primary peer-checked:bg-primary/10">
-												<div className="centerized flex-col gap-1 text-center text-text-h group-[:has(input:checked)]:text-primary">
-													<p className="font-semibold group-[:has(input:checked)]:text-primary">
-														{item.name}
+											<div className="centerized h-16 w-full overflow-hidden rounded-lg border border-base-border peer-checked:border-primary peer-checked:bg-primary/10 peer-disabled:opacity-50">
+												<div className="flex w-full items-center justify-between gap-3 px-4">
+													<div className="flex min-w-0 flex-1 flex-col">
+														<p className="text-sm font-medium text-text-h group-[:has(input:checked)]:text-primary">
+															{variantLabel(item)}
+														</p>
+														<p className="text-2xs text-text">
+															{item.productCode}
+														</p>
+													</div>
+													<p className="shrink-0 text-sm font-semibold text-primary">
+														{formatRupiah(Number(item.price))}
 													</p>
-													<p className="text-sm text-primary">
-														+{formatRupiah(1_000_000)}
-													</p>
-													<p className="text-xs text-text group-[:has(input:checked)]:text-deep-danger/80">
-														Stok {item.stock}
+													<p
+														className={`shrink-0 rounded-lg bg-base px-3 py-1.5 text-xs font-semibold ${
+															item.stock > 0
+																? "text-text-h"
+																: "text-deep-danger/80"
+														}`}
+													>
+														{item.stock > 0 ? `Stok ${item.stock}` : "Habis"}
 													</p>
 												</div>
 											</div>
 										</label>
 									))}
-							</main>
-						</section>
+								</main>
+							</section>
+						)}
 
-						<section className="flex w-full flex-col py-3  text-sm">
-							<header className="flex h-fit w-full items-center justify-between text-xs">
-								<p className="font-semibold">
-									<span className="mr-3 rounded-lg border-l-5 border-primary bg-primary"></span>
-									Tambahan
-								</p>
-								<p className="text-primary">Optional</p>
-							</header>
-
-							<main className="mt-2 flex flex-col flex-wrap gap-3">
-								{optional.map((item, index) => (
-									<label
-										key={item.id}
-										htmlFor={`opt${item.id.toString()}`}
-										className="group flex h-14 w-full cursor-pointer flex-col"
-									>
-										<p className="hidden">.</p>
-										<div
-											className="centerized h-full w-full overflow-hidden rounded-lg border border-base-border 
-											group-[:has(input:checked)]:border-primary peer-checked:border-primary peer-checked:bg-primary/10"
+						<footer className="mt-6 flex flex-col gap-3">
+							<div className="flex h-17 w-full flex-col justify-center gap-1 rounded-lg border border-base-border bg-base p-4 text-left">
+								<p className="text-2xs text-text">VARIAN TERPILIH</p>
+								<div className="flex items-center gap-2">
+									<p className="text-sm font-semibold text-text-h">
+										{selectedItem
+											? variantLabel(selectedItem)
+											: allSelected
+												? "Kombinasi tidak tersedia"
+												: "-"}
+									</p>
+									{selectedItem && (
+										<p className="text-2xs text-text">
+											{selectedItem.productCode}
+										</p>
+									)}
+								</div>
+							</div>
+							<div className="flex items-center justify-between">
+								<div className="flex items-center gap-4">
+									<div className="flex h-11 w-35 items-center justify-between rounded-lg border border-base-border">
+										<Button
+											variant="inverse"
+											onClick={() => setQty((prev) => Math.max(1, prev - 1))}
 										>
-											<div
-												className="flex w-full items-center justify-between gap-1 px-3 text-center text-text-h 
-												group-[:has(input:checked)]:text-primary"
-											>
-												<div className="flex min-w-0 flex-1 items-center gap-2">
-													<Checkbox
-														name={`optional ${index + 1}`}
-														value={item.name}
-														onCheckedChange={(e) => {
-															if (e) {
-																setDataSubmit((prev) => {
-																	return {
-																		...prev,
-																		total: prev.total + item.price,
-																	};
-																});
-															} else {
-																setDataSubmit((prev) => {
-																	return {
-																		...prev,
-																		total: prev.total - item.price,
-																	};
-																});
-															}
-														}}
-														disabled={item.stock < 1}
-														id={`opt${item.id.toString()}`}
-														className="peer group"
-													/>
-													<p className="font-semibold group-[:has(input:checked)]:text-primary">
-														{item.name}
-													</p>
-												</div>
-												<div className="centerized shrink-0">
-													<p
-														className={`${item.stock > 0 ? "text-text-h" : "text-deep-danger/80"} rounded-lg bg-base px-3 py-1.5 text-xs font-semibold`}
-													>
-														{item.stock > 0 ? `Stok ${item.stock}` : "Habis"}
-													</p>
-												</div>
-												<p className="shrink-0 text-right text-sm text-primary">
-													+{formatRupiah(item.price)}
-												</p>
-											</div>
-										</div>
-									</label>
-								))}
-							</main>
-							<footer className="mt-10 flex flex-col gap-3">
-								<div
-									className="flex h-17 w-full flex-col justify-center gap-1 rounded-lg 
-									border border-base-border bg-base p-4 text-left"
+											<Minus
+												size={14}
+												strokeWidth={3}
+											/>
+										</Button>
+										<span className="text-sm font-semibold text-text-h">
+											{qty}
+										</span>
+										<Button
+											variant="inverse"
+											disabled={qty >= maxStock}
+											onClick={() =>
+												setQty((prev) =>
+													maxStock > 0 ? Math.min(maxStock, prev + 1) : prev,
+												)
+											}
+										>
+											<Plus
+												size={14}
+												strokeWidth={3}
+											/>
+										</Button>
+									</div>
+									<p className="text-lg font-semibold text-text-h">
+										{formatRupiah(unitPrice * qty)}
+									</p>
+								</div>
+								<Button
+									variant="primary"
+									type="submit"
+									disabled={!selectedItem || maxStock < 1}
 								>
-									<p className="text-xs">KOMBINASI TERPILIH</p>
-									<div className="flex items-center gap-2">
-										<p className="font-semibold text-text-h">
-											{dataSubmit?.color}
-										</p>
-										<p className="font-semibold text-text-h">
-											{dataSubmit?.specs}
-										</p>
-									</div>
-								</div>
-								<div className="flex items-center justify-between">
-									<div className="flex items-center gap-4">
-										<div
-											className="flex h-11 w-35 items-center justify-between 
-													rounded-lg border border-base-border"
-										>
-											<Button
-												variant="inverse"
-												onClick={() => {
-													if (prodQty > 1) {
-														setDataSubmit((prev) => {
-															return {
-																...prev,
-																total: prev.total - prev.price,
-																qty: prev.qty - 1,
-															};
-														});
-														setProdQty((prev) => prev - 1);
-													}
-												}}
-											>
-												<Minus
-													size={14}
-													strokeWidth={3}
-												/>
-											</Button>
-											<span className="font-semibold text-text-h">
-												{prodQty}
-											</span>
-											<Button
-												variant="inverse"
-												onClick={() => {
-													setDataSubmit((prev) => {
-														return {
-															...prev,
-															total: prev.total + prev.price,
-															qty: prev.qty + 1,
-														};
-													});
-													setProdQty((prev) => prev + 1);
-												}}
-											>
-												<Plus
-													size={14}
-													strokeWidth={3}
-												/>
-											</Button>
-										</div>
-										<p className="text-xl font-semibold text-text-h">
-											{formatRupiah(dataSubmit.total)}
-										</p>
-									</div>
-									<Button
-										variant="primary"
-										type="submit"
-									>
-										Tambah Ke Keranjang
-									</Button>
-								</div>
-							</footer>
-						</section>
+									Tambah Ke Keranjang
+								</Button>
+							</div>
+						</footer>
 					</main>
 				</form>
 			</Modal>
-			<div className="flex w-full flex-col px-3 ">
-				<ParamsSection params={params} />
+
+			<div className="flex w-full flex-col px-3">
+				<Toast
+					message={flash?.message}
+					variant={flash?.variant}
+					onDismiss={clear}
+				/>
+				<ParamsSection />
 				{loading ? (
 					<CardSkel count={3} />
 				) : (
@@ -532,31 +721,33 @@ export default function Home() {
 							<ProductCard
 								key={item.id}
 								media={
-									item?.image.url ? (
+									item?.image?.url ? (
 										<div className="h-full w-full">
 											<img
-												src={item?.image.url}
+												src={item.image.url}
 												className="h-full w-full object-cover"
-												alt={item?.image.alt}
+												alt={item.image.alt}
 											/>
 										</div>
 									) : null
 								}
 							>
-								<p className="text-sm">{item.brand.name}</p>
-								<p className="font-semibold text-text-h">{item.name}</p>
-								<div className="mt-1 flex items-center justify-between">
-									<p className="text-xl font-semibold text-text-h">
-										{formatRupiah(Number.parseInt(item.items[0]?.price))}
+								<p className="text-2xs text-text">{item.brand?.name}</p>
+								<p className="line-clamp-2 text-sm font-medium text-text-h">
+									{item.name}
+								</p>
+								<div className="mt-auto flex items-center justify-between pt-1">
+									<p className="font-semibold text-base text-text-h">
+										{formatRupiah(minimumPrice(item))}
 									</p>
 									<Button
-										onClick={() => addItem(item.id)}
+										onClick={() => openProduct(item)}
 										size="icon"
 										className="size-10 shrink-0 cursor-pointer rounded-full"
 									>
-										<Plus
-											strokeWidth={5}
-											size={14}
+										<ShoppingCart
+											size={16}
+											strokeWidth={2}
 										/>
 									</Button>
 								</div>
@@ -569,30 +760,27 @@ export default function Home() {
 						<p className="text-sm text-text">Produk tidak ditemukan.</p>
 					</div>
 				)}
-				<Pagination
-					products={products}
-					pagination={pagination}
-					setPageCount={setPageCount}
-				/>
+				{pagination && (
+					<PaginationControls
+						totalLabel={`Menampilkan ${products?.length} dari ${pagination.total_items} produk`}
+						pageCount={Math.ceil(pagination.total_items / pagination.limit)}
+						safePage={(pagination.page ?? 1) - 1}
+						onPageChange={(page) => setPageCount(String(page + 1))}
+					/>
+				)}
 			</div>
 		</>
 	);
 }
 
-const SORT_OPTIONS = [{ label: "Populer", value: "popular" }];
-
-function ParamsSection({ params }) {
+function ParamsSection() {
 	const [searchParams, setSearchParams] = useSearchParams();
 
 	function handleSearchProduct(e): void {
 		if (e.target.value.length >= 3) {
-			setSearchParams({
-				search: e.target.value,
-			});
+			setSearchParams({ search: e.target.value });
 		} else if (e.target.value.length === 0) {
-			setSearchParams({
-				search: "",
-			});
+			setSearchParams({ search: "" });
 		}
 	}
 
@@ -618,16 +806,5 @@ function ParamsSection({ params }) {
 				/>
 			</form>
 		</div>
-	);
-}
-
-function Pagination({ products, pagination, setPageCount }) {
-	return (
-		<PaginationControls
-			totalLabel={`Menampilkan ${products?.length} dari ${pagination.total_items} produk`}
-			pageCount={Math.ceil(pagination.total_items / pagination.limit)}
-			safePage={(pagination?.page ?? 1) - 1}
-			onPageChange={(page) => setPageCount(String(page + 1))}
-		/>
 	);
 }

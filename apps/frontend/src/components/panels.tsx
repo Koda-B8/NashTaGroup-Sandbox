@@ -1,4 +1,10 @@
-import { ArrowLeft, ArrowRight, Check, ShoppingCart } from "lucide-react";
+import {
+	ArrowLeft,
+	ArrowRight,
+	Check,
+	Image as ImageIcon,
+	ShoppingCart,
+} from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
@@ -88,7 +94,11 @@ export function FiltersPanel() {
 
 	function chooseFilter(param: string, id: string): void {
 		const next = new URLSearchParams(searchParams);
-		next.set(param, id);
+		if (next.get(param) === id) {
+			next.delete(param);
+		} else {
+			next.set(param, id);
+		}
 		setSearchParams(next);
 	}
 
@@ -118,32 +128,48 @@ export function FiltersPanel() {
 							{filterGroups.map((group, index) => (
 								<section
 									key={group.title}
-									className="flex flex-col gap-2"
+									className="flex flex-col gap-1"
 								>
-									<p className="text-sm font-semibold">{group.title}</p>
-									<ul className="ml-0 flex w-full flex-col gap-1 text-sm">
-										{group?.options?.map((option) => (
-											<li
-												key={option.id}
-												className="flex list-outside items-center justify-start gap-2"
-											>
-												<input
-													onChange={() => chooseFilter(group.param, option.id)}
-													checked={searchParams.get(group.param) === option.id}
-													type="radio"
-													name={group.title}
-													id={option.id}
-													className="peer size-4 shrink-0 accent-primary"
-												/>
-												<label
-													htmlFor={option.id}
-													className="text-sm peer-checked:text-text-h"
+									<p className="text-xs font-semibold text-text-h">
+										{group.title}
+									</p>
+									<div className="flex flex-col">
+										{group?.options?.map((option) => {
+											const active =
+												searchParams.get(group.param) === option.id;
+											return (
+												<button
+													key={option.id}
+													type="button"
+													onClick={() => chooseFilter(group.param, option.id)}
+													aria-pressed={active}
+													className={`flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-sm transition-colors ${
+														active
+															? "bg-primary/10 font-medium text-primary"
+															: "text-text hover:bg-base hover:text-text-h"
+													}`}
 												>
-													{option.name}
-												</label>
-											</li>
-										))}
-									</ul>
+													<span
+														className={`centerized size-3.5 shrink-0 rounded-[4px] border transition-colors ${
+															active
+																? "border-primary bg-primary text-white"
+																: "border-base-border"
+														}`}
+													>
+														{active && (
+															<Check
+																size={9}
+																strokeWidth={3.5}
+															/>
+														)}
+													</span>
+													<span className="min-w-0 flex-1 truncate">
+														{option.name}
+													</span>
+												</button>
+											);
+										})}
+									</div>
 									{index < filterGroups.length - 1 && (
 										<Separator className="-mx-4" />
 									)}
@@ -159,57 +185,77 @@ export function FiltersPanel() {
 
 export function CartPanel() {
 	const cart = useSelector((state: RootState) => state.cart.cart);
+	const itemCount = cart.reduce((total, item) => total + item.qty, 0);
 
 	return (
 		<Aside>
-			<AsideHeader title="Keranjang">{cart?.length} item</AsideHeader>
+			<AsideHeader title="Keranjang">{itemCount} item</AsideHeader>
 			<AsideContent>
-				<div className="flex flex-col gap-4">
-					{cart?.length > 0 ? (
-						<section>
-							<div className="flex flex-col gap-4">
-								{cart?.map((item) => (
-									<div
-										key={item.id}
-										className="flex items-center justify-between"
-									>
-										<section className="flex items-center gap-3">
-											<div className="relative size-10 rounded-lg bg-base">
-												<div
-													className="centerized absolute top-0 left-0 h-4 min-w-4 rounded-full
-												bg-primary px-1 text-4xs font-bold text-white"
-												>
-													{item.qty}
-												</div>
-											</div>
-											<div className="flex flex-col justify-center text-left">
-												<p className="text-sm text-text-h">{item.name}</p>
-												<p className="text-sm">{formatRupiah(item.price)}</p>
-											</div>
-										</section>
+				{cart.length > 0 ? (
+					<div className="flex flex-col gap-3">
+						{cart.map((item) => (
+							<div
+								key={item.id}
+								className="flex gap-3"
+							>
+								<div className="relative size-12 shrink-0 overflow-hidden rounded-lg border border-base-border bg-base">
+									{item.image ? (
+										<img
+											src={item.image}
+											alt={item.alt}
+											className="size-full object-cover"
+										/>
+									) : (
+										<div className="centerized size-full text-base-border">
+											<ImageIcon
+												size={16}
+												strokeWidth={1.5}
+											/>
+										</div>
+									)}
+									<div className="centerized absolute right-0 bottom-0 min-w-5 rounded-tl-md bg-primary px-1.5 py-0.5 text-4xs font-bold text-white">
+										{item.qty}
 									</div>
-								))}
+								</div>
+								<div className="flex min-w-0 flex-1 flex-col justify-center gap-0.5">
+									<p className="truncate text-sm font-medium text-text-h">
+										{item.name}
+									</p>
+									{(item.color || item.specs) && (
+										<p className="truncate text-xs text-text">
+											{[item.color, item.specs].filter(Boolean).join(" • ")}
+										</p>
+									)}
+									<p className="text-sm font-semibold text-text-h">
+										{formatRupiah(item.total)}
+									</p>
+								</div>
 							</div>
-						</section>
-					) : (
-						<div className="centerized flex h-66 gap-2">
+						))}
+					</div>
+				) : (
+					<div className="centerized flex flex-col gap-2 py-16 text-center">
+						<div className="centerized size-12 rounded-full bg-base text-text">
 							<ShoppingCart
-								strokeWidth={2.5}
-								size={17}
+								size={20}
+								strokeWidth={2}
 							/>
-							<p className="text-sm font-semibold">Keranjang Kosong</p>
 						</div>
-					)}
-					<Separator className="-mx-4" />
-				</div>
+						<div className="flex flex-col gap-0.5">
+							<p className="text-sm font-medium text-text-h">
+								Keranjang kosong
+							</p>
+							<p className="text-xs text-text">
+								Tambahkan produk untuk memulai.
+							</p>
+						</div>
+					</div>
+				)}
 			</AsideContent>
 			<AsideFooter>
 				<Summary
-					rows={[
-						["Subtotal", subtotal(cart)],
-						["Diskon", 5000],
-					]}
-					total={cart.length > 0 ? subtotal(cart) - 5000 : 0}
+					rows={[["Subtotal", subtotal(cart)]] as [string, number][]}
+					total={cart.length > 0 ? subtotal(cart) : 0}
 				/>
 			</AsideFooter>
 		</Aside>
@@ -314,17 +360,44 @@ export function CheckoutSummary() {
 			<AsideContent>
 				<div>
 					<Summary
-						rows={[
-							["Subtotal", subtotal(cart)],
-							["Pajak", 1000],
-							["Diskon", 1000],
-						]}
-						total={cart.length > 0 ? subtotal(cart) - (5000 - 1000) : 0}
+						rows={[["Subtotal", subtotal(cart)]] as [string, number][]}
+						total={cart.length > 0 ? subtotal(cart) : 0}
 					/>
 				</div>
 			</AsideContent>
 			<AsideFooter>
-				<p className="text-center text-xs">Aman dan terenskripsi</p>
+				<p className="text-center text-xs">Aman dan terenkripsi</p>
+			</AsideFooter>
+		</Aside>
+	);
+}
+
+export function StructSummary() {
+	const location = useLocation();
+	const summary = location.state?.checkout?.summary;
+	const rows: [string, number][] = summary
+		? [
+				["Subtotal", Number(summary.subtotal)],
+				["Diskon", Number(summary.discount_amount)],
+				["Pajak", Number(summary.tax_amount)],
+			]
+		: [];
+
+	return (
+		<Aside>
+			<AsideHeader title="Ringkasan" />
+			<AsideContent>
+				{summary ? (
+					<Summary
+						rows={rows}
+						total={Number(summary.total_amount)}
+					/>
+				) : (
+					<p className="text-sm">Tidak ada data transaksi.</p>
+				)}
+			</AsideContent>
+			<AsideFooter>
+				<p className="text-center text-xs">Aman dan terenkripsi</p>
 			</AsideFooter>
 		</Aside>
 	);
@@ -385,27 +458,29 @@ export function BrowseBar() {
 export function CheckoutBar() {
 	const navigate = useNavigate();
 	const cart = useSelector((state: RootState) => state.cart.cart);
+	const submitting = useSelector((state: RootState) => state.cart.submitting);
 
 	return (
 		<BottomBar
 			start={
 				<Button
 					variant="outline"
+					disabled={submitting}
 					onClick={() => navigate("/")}
 				>
 					<ArrowLeft size={15} />
 					Kembali ke Keranjang
 				</Button>
 			}
-			caption="Total bayar"
+			caption={submitting ? "Memproses pembayaran" : "Total bayar"}
 			total={subtotal(cart)}
 			action={
 				<Button
 					type="submit"
 					form="checkout"
-					disabled={cart.length === 0}
+					disabled={cart.length === 0 || submitting}
 				>
-					Bayar Sekarang
+					{submitting ? "Memproses..." : "Bayar Sekarang"}
 					<ArrowRight size={15} />
 				</Button>
 			}
@@ -416,7 +491,7 @@ export function CheckoutBar() {
 export function StructBar() {
 	const navigate = useNavigate();
 	const location = useLocation();
-	const items: CartItem[] = location.state?.items ?? [];
+	const total = Number(location.state?.checkout?.summary?.total_amount ?? 0);
 
 	return (
 		<BottomBar
@@ -429,7 +504,7 @@ export function StructBar() {
 				</Button>
 			}
 			caption="Total dibayar"
-			total={subtotal(items)}
+			total={total}
 			action={
 				<Button onClick={() => navigate("/")}>
 					Pesanan Baru

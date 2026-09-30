@@ -8,6 +8,7 @@ import cart from "./cart.ts";
 const persistCartConfig = {
 	key: "cart",
 	storage,
+	blacklist: ["submitting"],
 };
 
 const reducer = combineReducers({

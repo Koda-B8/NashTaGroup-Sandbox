@@ -1,9 +1,10 @@
+import { Image as ImageIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
 import Card from "./ui/card";
 
 export function ProductGrid({ children }: Readonly<{ children: ReactNode }>) {
-	return <div className="grid grid-cols-3 gap-3">{children}</div>;
+	return <div className="grid grid-cols-4 gap-3">{children}</div>;
 }
 
 interface ProductCardProps {
@@ -20,16 +21,19 @@ export default function ProductCard({
 	return (
 		<Card
 			padding="none"
-			className="p-1"
+			className="group flex flex-col overflow-hidden transition-colors hover:border-primary/40"
 		>
 			<header
-				className={`centerized h-45 w-full overflow-hidden rounded-t-lg bg-base ${mediaClassName}`}
+				className={`centerized aspect-square w-full overflow-hidden bg-base text-base-border ${mediaClassName}`}
 			>
 				{media ?? (
-					<span className="text-3xl font-semibold text-base-border">N</span>
+					<ImageIcon
+						size={28}
+						strokeWidth={1.5}
+					/>
 				)}
 			</header>
-			<main className="h-25 w-full p-2">{children}</main>
+			<main className="flex flex-1 flex-col gap-1 p-3">{children}</main>
 		</Card>
 	);
 }

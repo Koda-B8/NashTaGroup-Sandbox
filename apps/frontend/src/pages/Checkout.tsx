@@ -26,6 +26,7 @@ import {
 	decrementItem,
 	deleteCartItem,
 	incrementItem,
+	setPendingCheckout,
 	setSubmitting,
 } from "../store/slices/cart";
 
@@ -91,6 +92,9 @@ function newIdempotencyKey(): string {
 export default function Checkout() {
 	const cart = useSelector((state: RootState) => state.cart.cart);
 	const submitting = useSelector((state: RootState) => state.cart.submitting);
+	const pendingCheckout = useSelector(
+		(state: RootState) => state.cart.pendingCheckout,
+	);
 	const dispatch = useDispatch<AppDispatch>();
 	const { flash, show, clear } = useFlash(3500);
 	const navigate = useNavigate();
@@ -196,7 +200,25 @@ export default function Checkout() {
 
 		dispatch(setSubmitting(true));
 		try {
-			const idempotencyKey = newIdempotencyKey();
+			const payload = {
+				payment_method_id: selectedPaymentId,
+				paid_amount: paidAmount.toFixed(2),
+				items: cart.map((item) => ({
+					product_item_id: item.productItemId,
+					qty: item.qty,
+				})),
+			};
+			// Reuse the key after an ambiguous failure so the backend replays instead of charging twice.
+			const fingerprint = JSON.stringify({
+				phone: normalizedPhone,
+				...payload,
+			});
+			const idempotencyKey =
+				pendingCheckout?.fingerprint === fingerprint
+					? pendingCheckout.key
+					: newIdempotencyKey();
+			dispatch(setPendingCheckout({ key: idempotencyKey, fingerprint }));
+
 			const post = async (customerField: Record<string, unknown>) => {
 				const response = await apiFetch("/api/v1/checkout", {
 					method: "POST",
@@ -204,15 +226,7 @@ export default function Checkout() {
 						"Content-Type": "application/json",
 						"Idempotency-Key": idempotencyKey,
 					},
-					body: JSON.stringify({
-						...customerField,
-						payment_method_id: selectedPaymentId,
-						paid_amount: paidAmount.toFixed(2),
-						items: cart.map((item) => ({
-							product_item_id: item.productItemId,
-							qty: item.qty,
-						})),
-					}),
+					body: JSON.stringify({ ...customerField, ...payload }),
 				});
 				const result = await response.json().catch(() => ({}));
 				return { response, result };
@@ -242,6 +256,7 @@ export default function Checkout() {
 				}, 1500);
 				return;
 			}
+			if (response.status < 500) dispatch(setPendingCheckout(null));
 			show(
 				result?.message ?? result?.error ?? "Checkout gagal. Coba lagi.",
 				"error",

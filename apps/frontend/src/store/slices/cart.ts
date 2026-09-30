@@ -17,14 +17,21 @@ export interface CartItem {
 	stock: number;
 }
 
+export interface PendingCheckout {
+	key: string;
+	fingerprint: string;
+}
+
 export interface CartState {
 	cart: CartItem[];
 	submitting: boolean;
+	pendingCheckout: PendingCheckout | null;
 }
 
 const initialState: CartState = {
 	cart: [],
 	submitting: false,
+	pendingCheckout: null,
 };
 
 const cart = createSlice({
@@ -77,10 +84,15 @@ const cart = createSlice({
 
 		clearCart(state) {
 			state.cart = [];
+			state.pendingCheckout = null;
 		},
 
 		setSubmitting(state, action: PayloadAction<boolean>) {
 			state.submitting = action.payload;
+		},
+
+		setPendingCheckout(state, action: PayloadAction<PendingCheckout | null>) {
+			state.pendingCheckout = action.payload;
 		},
 	},
 });
@@ -94,4 +106,5 @@ export const {
 	decrementItem,
 	clearCart,
 	setSubmitting,
+	setPendingCheckout,
 } = cart.actions;

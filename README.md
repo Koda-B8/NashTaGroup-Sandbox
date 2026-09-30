@@ -1,5 +1,37 @@
 # NashTa Group Sandbox
 
+Point of sale system as an npm workspaces monorepo.
+
+| App                                        | Description                                           |
+| ------------------------------------------ | ----------------------------------------------------- |
+| [`apps/backend`](apps/backend/README.md)   | Express REST API with PostgreSQL, Redis and Socket.IO |
+| [`apps/frontend`](apps/frontend/README.md) | React dashboard and cashier app                       |
+
+## Setup
+
+Requires Node.js, npm 11+ and Docker. All environment variables for both apps live in the root `.env`.
+
+```sh
+npm install
+cp .env.example .env
+docker compose -f apps/backend/docker-compose.yml --env-file .env up -d
+npm run db:setup -w backend
+npm run dev
+```
+
+## Scripts
+
+| Script                      | Description                         |
+| --------------------------- | ----------------------------------- |
+| `npm run dev`               | Start backend and frontend together |
+| `npm run dev:be` / `dev:fe` | Start one app                       |
+| `npm test`                  | Run tests                           |
+| `npm run test:coverage`     | Run tests with coverage             |
+| `npm run lint`              | Lint with oxlint                    |
+| `npm run fmt`               | Format with oxfmt                   |
+
+Lefthook runs `fmt` and `lint` on staged files before each commit.
+
 ## ERD
 
 ```mermaid

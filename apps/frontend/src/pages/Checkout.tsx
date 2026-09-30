@@ -245,20 +245,20 @@ export default function Checkout() {
 				setTimeout(() => {
 					setActiveModal(false);
 					dispatch(clearCart());
+					dispatch(setSubmitting(false));
 					navigate("/struct", { state: { checkout } });
 				}, 1500);
-			} else {
-				show(
-					result?.message ?? result?.error ?? "Checkout gagal. Coba lagi.",
-					"error",
-				);
+				return;
 			}
+			show(
+				result?.message ?? result?.error ?? "Checkout gagal. Coba lagi.",
+				"error",
+			);
 		} catch (error) {
 			console.error(error);
 			show("Terjadi kesalahan. Coba lagi.", "error");
-		} finally {
-			dispatch(setSubmitting(false));
 		}
+		dispatch(setSubmitting(false));
 	}
 
 	return (

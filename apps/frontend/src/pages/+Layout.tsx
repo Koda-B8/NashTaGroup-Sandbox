@@ -45,7 +45,7 @@ export default function MainLayout() {
 			}
 			footer={Bottom && <Bottom />}
 		>
-			<div className="p-4">
+			<div className="p-4 print:p-0">
 				<Outlet />
 			</div>
 		</Shell>

@@ -11,6 +11,7 @@ import {
 	FiltersPanel,
 	StructBar,
 	StructSteps,
+	StructSummary,
 } from "../components/panels";
 import Home from "../pages";
 import NotFound from "../pages/+404";
@@ -62,7 +63,7 @@ const router = createBrowserRouter([
 				element: <StructStatus />,
 				handle: {
 					left: StructSteps,
-					right: CheckoutSummary,
+					right: StructSummary,
 					bottom: StructBar,
 					crumbs: [{ label: "Products", to: "/" }, { label: "Struk" }],
 				},

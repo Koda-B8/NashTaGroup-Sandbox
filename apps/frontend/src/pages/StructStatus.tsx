@@ -1,174 +1,268 @@
-import { Check } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Check, Printer } from "lucide-react";
+import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router";
 
-import OrderStatusBar from "../components/OrderStatusBar";
+import Button from "../components/ui/button";
 import Card from "../components/ui/card";
 import { APP_NAME } from "../libs/app";
 import { formatRupiah } from "../libs/formatRupiah";
-import type { CartItem } from "../store/slices/cart";
 
-interface StateData {
-	paymentMethod: string;
-	items: CartItem[];
-	phone: string;
+interface CheckoutItem {
+	product_item_id: string;
+	product_name: string;
+	product_code: string;
+	unit_price: string;
+	qty: number;
+	subtotal: string;
+}
+
+interface CheckoutSummary {
+	subtotal: string;
+	discount_amount: string;
+	tax_amount: string;
+	total_amount: string;
+}
+
+interface CheckoutPayment {
+	method: string;
+	payment_reference: string | null;
+	amount: string;
+	paid_amount: string;
+	change_amount: string;
+	status: string;
+	paid_at: string | null;
+}
+
+interface Checkout {
+	transaction_number: string;
+	status: string;
+	cashier: { id: string; fullname: string };
+	customer: { id: string; name: string | null; phone: string } | null;
+	items: CheckoutItem[];
+	summary: CheckoutSummary;
+	payment: CheckoutPayment;
+	created_at: string;
+}
+
+function formatDateTime(value: string | null | undefined): string {
+	if (!value) return "-";
+	return new Date(value).toLocaleString("en-GB", {
+		day: "2-digit",
+		month: "short",
+		year: "numeric",
+		hour: "2-digit",
+		minute: "2-digit",
+		hour12: false,
+	});
+}
+
+function ReceiptRow({
+	label,
+	value,
+	strong,
+}: Readonly<{ label: string; value: string; strong?: boolean }>) {
+	return (
+		<div className="flex items-center justify-between gap-4">
+			<span className={strong ? "font-semibold text-text-h" : "text-text"}>
+				{label}
+			</span>
+			<span
+				className={
+					strong ? "font-semibold text-text-h" : "font-medium text-text-h"
+				}
+			>
+				{value}
+			</span>
+		</div>
+	);
+}
+
+function ReceiptField({
+	label,
+	value,
+}: Readonly<{ label: string; value: string }>) {
+	return (
+		<div className="flex min-w-40 flex-1 flex-col gap-0.5">
+			<p className="text-2xs text-text">{label}</p>
+			<p className="text-sm font-medium text-text-h">{value}</p>
+		</div>
+	);
 }
 
 export default function StructStatus() {
 	const location = useLocation();
 	const navigate = useNavigate();
-	const [stateData, setStateData] = useState<StateData>({
-		paymentMethod: "",
-		items: [],
-		phone: "",
-	});
+	const checkout: Checkout | undefined = location.state?.checkout;
 
 	useEffect(() => {
-		function dataState() {
-			if (location.state) {
-				const { paymentMethod, items, phone } = location.state;
-				setStateData({
-					paymentMethod,
-					items,
-					phone,
-				});
-			} else {
-				navigate("/");
-			}
-		}
-		dataState();
-	}, [location]);
+		if (!checkout) navigate("/");
+	}, [checkout, navigate]);
+
+	if (!checkout) return null;
+
+	const summary = checkout.summary;
+	const payment = checkout.payment;
 
 	return (
-		<form className="flex w-full flex-col gap-2 px-3">
-			<div className="print:hidden">
-				<OrderStatusBar />
-			</div>
-
-			<main className="flex flex-col gap-3">
-				<Card
-					padding="md"
-					className="flex w-full items-center gap-5 print:hidden"
+		<div className="flex w-full flex-col gap-3 px-3 print:mx-auto print:max-w-sm print:p-6">
+			<Card
+				padding="md"
+				className="flex items-center gap-4 print:hidden"
+			>
+				<div className="centerized size-11 shrink-0 rounded-full border border-deep-valid bg-valid">
+					<Check
+						size={20}
+						className="text-deep-valid"
+					/>
+				</div>
+				<div className="flex min-w-0 flex-1 flex-col gap-0.5">
+					<p className="text-sm font-semibold text-text-h">
+						Pembayaran Berhasil
+					</p>
+					<p className="truncate text-xs text-text">
+						#{checkout.transaction_number} •{" "}
+						{formatDateTime(checkout.created_at)} • Kasir:{" "}
+						{checkout.cashier?.fullname}
+					</p>
+				</div>
+				<div className="hidden shrink-0 flex-col items-end gap-0.5 text-right sm:flex">
+					<p className="text-2xs text-text">Total dibayar</p>
+					<p className="font-semibold text-base text-text-h">
+						{formatRupiah(Number(summary?.total_amount))}
+					</p>
+				</div>
+				<Button
+					variant="primary"
+					className="shrink-0"
+					onClick={() => window.print()}
 				>
-					<div className="centerized size-10 rounded-full border border-deep-valid bg-valid">
-						<Check className="text-deep-valid" />
-					</div>
-					<div className="flex h-full flex-col">
-						<p className="font-semibold text-text-h">
-							Pembayaran Berhasil <span>Lunas</span>
-						</p>
-						<p className="text-sm">#TRX-8421</p>
-						<p className="text-sm">
-							{" "}
-							{new Date().toLocaleString("en-GB", {
-								day: "2-digit",
-								month: "short",
-								year: "numeric",
-								hour: "2-digit",
-								minute: "2-digit",
-								hour12: false,
-							})}{" "}
-							• Kasir: Budi Santoso
+					<Printer size={15} />
+					Cetak Struk
+				</Button>
+			</Card>
+
+			<Card
+				padding="md"
+				className="print:rounded-none print:border-0 print:p-0"
+			>
+				<header className="flex flex-wrap items-start justify-between gap-4 border-b border-base-border pb-4">
+					<div className="flex flex-col gap-0.5">
+						<h6 className="font-semibold text-base text-text-h">{APP_NAME}</h6>
+						<p className="text-xs text-text">
+							Jl. Melati No.12, Malang • 0812-3456-7890
 						</p>
 					</div>
-				</Card>
+					<div className="flex flex-col items-end gap-0.5 text-right">
+						<p className="text-sm font-semibold text-text-h">
+							#{checkout.transaction_number}
+						</p>
+						<p className="text-xs text-text">
+							{formatDateTime(checkout.created_at)}
+						</p>
+					</div>
+				</header>
 
-				<Card padding="md">
-					<header className="flex h-15 flex-col items-center justify-center border-b border-base-border py-2">
-						<h6 className="text-sm font-semibold text-text-h">{APP_NAME}</h6>
-						<p>Jl. Melati No.12, Malang • 0812-3456-7890</p>
-					</header>
+				<section className="flex flex-wrap gap-x-8 gap-y-3 border-b border-base-border py-4">
+					<ReceiptField
+						label="Kasir"
+						value={checkout.cashier?.fullname ?? "-"}
+					/>
+					<ReceiptField
+						label="Pelanggan"
+						value={checkout.customer?.phone ?? "Non-member"}
+					/>
+					<ReceiptField
+						label="Pembayaran"
+						value={payment?.method ?? "-"}
+					/>
+					<ReceiptField
+						label="Status"
+						value="Lunas"
+					/>
+				</section>
 
-					<main className="mt-2 flex flex-col gap-1">
-						<section className="flex items-start justify-between border-b border-base-border py-3">
-							<div className="flex flex-col">
-								<p className="font-semibold text-text-h">#RTX-8731</p>
-								<p>No telp: {stateData?.phone}</p>
-								<p>Pembayaran: {stateData?.paymentMethod}</p>
-							</div>
-							<div className="h-full">
-								<p>
-									{" "}
-									{new Date().toLocaleString("en-GB", {
-										day: "2-digit",
-										month: "short",
-										year: "numeric",
-										hour: "2-digit",
-										minute: "2-digit",
-										hour12: false,
-									})}
-								</p>
-							</div>
-						</section>
-
-						<section className="flex flex-col gap-3 border-b border-base-border py-3">
-							{stateData.items?.map((item) => (
-								<div
-									key={item.id}
-									className="flex items-center justify-between"
+				<section className="border-b border-base-border py-2">
+					<table className="w-full">
+						<thead>
+							<tr className="text-xs text-text">
+								<th className="py-2 text-left font-medium">Item</th>
+								<th className="w-16 py-2 text-right font-medium">Qty</th>
+								<th className="w-32 py-2 text-right font-medium print:hidden">
+									Harga
+								</th>
+								<th className="w-36 py-2 text-right font-medium">Subtotal</th>
+							</tr>
+						</thead>
+						<tbody>
+							{checkout.items?.map((item) => (
+								<tr
+									key={item.product_item_id}
+									className="border-t border-base-border align-top"
 								>
-									<div className="flex flex-col">
-										<p className="text-text-h">{item.name}</p>
-										<div className="flex items-center gap-1">
-											<p className="text-sm ">{item.color}</p>
-											<p className="text-xs">•</p>
-											<p className="text-sm ">{item.specs}</p>
-										</div>
-										<p>
-											{item.qty}x <span>{formatRupiah(item.price)}</span>
+									<td className="py-3 pr-4">
+										<p className="text-sm font-medium text-text-h">
+											{item.product_name}
 										</p>
-									</div>
-									<p className="text-text-h">
-										{formatRupiah(item.price * item.qty)}
-									</p>
-								</div>
+										<p className="text-2xs text-text">{item.product_code}</p>
+									</td>
+									<td className="py-3 text-right text-sm text-text">
+										{item.qty}
+									</td>
+									<td className="py-3 text-right text-sm text-text print:hidden">
+										{formatRupiah(Number(item.unit_price))}
+									</td>
+									<td className="py-3 text-right text-sm font-semibold text-text-h">
+										{formatRupiah(Number(item.subtotal))}
+									</td>
+								</tr>
 							))}
-						</section>
+						</tbody>
+					</table>
+				</section>
 
-						<section className="flex border-b border-base-border py-3">
-							<ul className="flex w-full flex-col">
-								<li className="flex items-center justify-between">
-									<p>Subtotal</p>
-									<p>
-										{formatRupiah(
-											stateData?.items.reduce(
-												(total, curr) => total + curr.total,
-												0,
-											),
-										)}
-									</p>
-								</li>
-								<li className="flex items-center justify-between">
-									<p>Pajak 10%</p>
-									<p>{formatRupiah(1000)}</p>
-								</li>
-								<li className="flex items-center justify-between">
-									<p>Total</p>
-									<p>
-										{formatRupiah(
-											stateData?.items.reduce(
-												(total, curr) => total + curr.total,
-												0,
-											) - 1000,
-										)}
-									</p>
-								</li>
-								<li className="flex items-center justify-between">
-									<p>Tunai</p>
-									<p>{formatRupiah(100_000)}</p>
-								</li>
-								<li className="flex items-center justify-between">
-									<p>Kembalian</p>
-									<p>{formatRupiah(50_000)}</p>
-								</li>
-							</ul>
-						</section>
-						<section className="flex h-10 w-full flex-col items-center justify-center pt-4">
-							<p>Terima kasih — Sampai jumpa lagi!</p>
-						</section>
-					</main>
-				</Card>
-			</main>
-		</form>
+				<section className="flex justify-end border-b border-base-border py-4">
+					<div className="flex w-full max-w-xs flex-col gap-1 text-sm print:max-w-none">
+						<ReceiptRow
+							label="Subtotal"
+							value={formatRupiah(Number(summary?.subtotal))}
+						/>
+						{Number(summary?.discount_amount) > 0 && (
+							<ReceiptRow
+								label="Diskon"
+								value={`-${formatRupiah(Number(summary.discount_amount))}`}
+							/>
+						)}
+						{Number(summary?.tax_amount) > 0 && (
+							<ReceiptRow
+								label="Pajak"
+								value={formatRupiah(Number(summary.tax_amount))}
+							/>
+						)}
+						<ReceiptRow
+							label="Total"
+							value={formatRupiah(Number(summary?.total_amount))}
+							strong
+						/>
+						<ReceiptRow
+							label={payment?.method ?? "Dibayar"}
+							value={formatRupiah(Number(payment?.paid_amount))}
+						/>
+						<ReceiptRow
+							label="Kembalian"
+							value={formatRupiah(Number(payment?.change_amount))}
+						/>
+					</div>
+				</section>
+
+				<footer className="flex flex-col items-center gap-1 pt-4 text-center">
+					<p className="text-sm font-medium text-text-h">
+						Terima kasih — Sampai jumpa lagi!
+					</p>
+					<p className="text-2xs text-text">
+						Struk ini merupakan bukti pembayaran yang sah
+					</p>
+				</footer>
+			</Card>
+		</div>
 	);
 }

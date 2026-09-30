@@ -12,10 +12,7 @@ export default function Aside({
 	return (
 		<Card
 			padding={padding}
-			className={cn(
-				"relative flex h-full w-60 flex-1 flex-col gap-2",
-				className,
-			)}
+			className={cn("relative flex h-full w-64 flex-col gap-2", className)}
 			{...props}
 		/>
 	);

@@ -48,9 +48,12 @@ export function formatGeneratedAt(now: Date, user: string): string {
 	return `Exported ${stamp} WIB · ${user}`;
 }
 
-export function sanitize(value: string, fallback = "REPORT"): string {
+export function sanitize(
+	value: string | null | undefined,
+	fallback = "REPORT",
+): string {
 	return (
-		value
+		(value ?? "")
 			.trim()
 			.toUpperCase()
 			.replaceAll(/[^A-Z0-9]+/g, "-")

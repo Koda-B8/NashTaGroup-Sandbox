@@ -81,9 +81,10 @@ export async function listUsers(
 export async function createUser(
 	payload: CreateUserPayload,
 ): Promise<{ message?: string }> {
+	const { isActive, ...rest } = payload;
 	const res = await apiFetch("/api/v1/users", {
 		method: "POST",
-		body: JSON.stringify(payload),
+		body: JSON.stringify({ ...rest, is_active: isActive }),
 	});
 	const data = await res.json().catch(() => ({}));
 	if (!res.ok)

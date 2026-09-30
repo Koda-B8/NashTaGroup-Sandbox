@@ -87,7 +87,7 @@ function buildRows(
 
 export async function loadCustomerReportPdfData(opts: {
 	customerId: string;
-	customerName: string;
+	customerName: string | null;
 	view: CustomerDetailView;
 	from?: string;
 	to?: string;
@@ -111,12 +111,20 @@ export async function loadCustomerReportPdfData(opts: {
 		opts.rangeLabel ??
 		(report.customer ? `All time · ${VIEW_LABEL[opts.view]}` : "All time");
 
-	const fileCode = sanitize(opts.customerName);
+	const fileCode = sanitize(
+		opts.customerName?.trim() ||
+			report.customer?.phone?.trim() ||
+			"Unnamed Customer",
+	);
 
 	return {
 		fileName: `customer-transaction-${fileCode}-${opts.view}.pdf`,
 		title: "Customer Transaction Report",
-		customerName: safePdfText(opts.customerName),
+		customerName: safePdfText(
+			opts.customerName?.trim() ||
+				report.customer?.phone?.trim() ||
+				"Unnamed Customer",
+		),
 		viewLabel: VIEW_LABEL[opts.view],
 		periodLabel: safePdfText(periodLabel),
 		generatedLabel: safePdfText(formatGeneratedAt(now, opts.generatedBy)),

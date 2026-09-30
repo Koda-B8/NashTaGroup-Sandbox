@@ -12,6 +12,7 @@ export default defineConfig({
 	},
 	rules: {
 		"typescript/no-non-null-assertion": "off",
+		"unicorn/number-literal-case": "off",
 		"unicorn/filename-case": [
 			"warn",
 			{

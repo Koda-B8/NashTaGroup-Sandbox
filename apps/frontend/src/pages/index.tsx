@@ -1,6 +1,6 @@
 import { Minus, Plus, ShoppingCart, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useSearchParams } from "react-router";
 
 import CardSkel from "../components/CardSkel";
@@ -14,7 +14,7 @@ import Toast from "../components/ui/toast";
 import { useFlash } from "../hooks/useFlash";
 import { apiFetch } from "../libs/api";
 import { formatRupiah } from "../libs/formatRupiah";
-import type { AppDispatch } from "../store";
+import type { AppDispatch, RootState } from "../store";
 import { addToCart, type CartItem } from "../store/slices/cart";
 
 interface CategoryOption {
@@ -278,6 +278,7 @@ function specsValue(item: ProductItem): string {
 
 export default function Home() {
 	const dispatch = useDispatch<AppDispatch>();
+	const cart = useSelector((state: RootState) => state.cart.cart);
 	const { flash, show, clear } = useFlash(3000);
 	const [pagination, setPagination] = useState<Pagination>();
 	const [pageCount, setPageCount] = useState<string>("1");
@@ -365,8 +366,12 @@ export default function Home() {
 			show("Stok varian ini habis.", "error");
 			return;
 		}
-		if (qty > selectedItem.stock) {
-			show(`Stok tersisa ${selectedItem.stock} item.`, "error");
+		const inCart = cart.find((item) => item.id === selectedItem.id)?.qty ?? 0;
+		if (qty + inCart > selectedItem.stock) {
+			show(
+				`Stok tersisa ${selectedItem.stock} item, ${inCart} sudah di keranjang.`,
+				"error",
+			);
 			return;
 		}
 

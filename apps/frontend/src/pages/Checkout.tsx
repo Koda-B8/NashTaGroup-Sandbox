@@ -26,6 +26,7 @@ import {
 	decrementItem,
 	deleteCartItem,
 	incrementItem,
+	setPendingCheckout,
 	setSubmitting,
 } from "../store/slices/cart";
 
@@ -78,30 +79,22 @@ function paymentIcon(type: string): ReactNode {
 	}
 }
 
-async function resolveCustomerField(
-	normalizedPhone: string,
-): Promise<Record<string, unknown>> {
-	if (!normalizedPhone) return {};
-	try {
-		const response = await apiFetch(
-			`/api/v1/customers?q=${encodeURIComponent(normalizedPhone)}&limit=5`,
-		);
-		if (response.ok) {
-			const result = await response.json();
-			const match = (result?.data ?? []).find(
-				(customer) => customer.phone === normalizedPhone,
-			);
-			if (match) return { customer_phone: normalizedPhone };
-		}
-	} catch (error) {
-		console.error(error);
-	}
-	return { customer: { phone: normalizedPhone } };
+// crypto.randomUUID is only exposed in secure contexts; the POS may run over plain HTTP on the LAN.
+function newIdempotencyKey(): string {
+	if (crypto.randomUUID) return crypto.randomUUID();
+	const bytes = crypto.getRandomValues(new Uint8Array(16));
+	bytes[6] = (bytes[6] & 0x0f) | 0x40;
+	bytes[8] = (bytes[8] & 0x3f) | 0x80;
+	const hex = [...bytes].map((byte) => byte.toString(16).padStart(2, "0"));
+	return `${hex.slice(0, 4).join("")}-${hex.slice(4, 6).join("")}-${hex.slice(6, 8).join("")}-${hex.slice(8, 10).join("")}-${hex.slice(10).join("")}`;
 }
 
 export default function Checkout() {
 	const cart = useSelector((state: RootState) => state.cart.cart);
 	const submitting = useSelector((state: RootState) => state.cart.submitting);
+	const pendingCheckout = useSelector(
+		(state: RootState) => state.cart.pendingCheckout,
+	);
 	const dispatch = useDispatch<AppDispatch>();
 	const { flash, show, clear } = useFlash(3500);
 	const navigate = useNavigate();
@@ -119,13 +112,14 @@ export default function Checkout() {
 	);
 	const isCash = selectedMethod?.type === "cash";
 	const change = isCash ? Number(cashAmount || 0) - total : 0;
-	const quickAmounts = [...new Set([total, ...[
-	5e4,
-	1e5,
-	5e5,
-	1e6,
-	5e6
-].map((step) => Math.ceil(total / step) * step)])].slice(0, 4);
+	const quickAmounts = [
+		...new Set([
+			total,
+			...[5e4, 1e5, 5e5, 1e6, 5e6].map(
+				(step) => Math.ceil(total / step) * step,
+			),
+		]),
+	].slice(0, 4);
 
 	useEffect(() => {
 		async function getPaymentMethod() {
@@ -206,9 +200,7 @@ export default function Checkout() {
 
 		dispatch(setSubmitting(true));
 		try {
-			const customerField = await resolveCustomerField(normalizedPhone);
-			const body = {
-				...customerField,
+			const payload = {
 				payment_method_id: selectedPaymentId,
 				paid_amount: paidAmount.toFixed(2),
 				items: cart.map((item) => ({
@@ -216,17 +208,42 @@ export default function Checkout() {
 					qty: item.qty,
 				})),
 			};
-
-			const response = await apiFetch("/api/v1/checkout", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					"Idempotency-Key": crypto.randomUUID(),
-				},
-				body: JSON.stringify(body),
+			// Reuse the key after an ambiguous failure so the backend replays instead of charging twice.
+			const fingerprint = JSON.stringify({
+				phone: normalizedPhone,
+				...payload,
 			});
+			const idempotencyKey =
+				pendingCheckout?.fingerprint === fingerprint
+					? pendingCheckout.key
+					: newIdempotencyKey();
+			dispatch(setPendingCheckout({ key: idempotencyKey, fingerprint }));
 
-			const result = await response.json().catch(() => ({}));
+			const post = async (customerField: Record<string, unknown>) => {
+				const response = await apiFetch("/api/v1/checkout", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						"Idempotency-Key": idempotencyKey,
+					},
+					body: JSON.stringify({ ...customerField, ...payload }),
+				});
+				const result = await response.json().catch(() => ({}));
+				return { response, result };
+			};
+
+			let { response, result } = await post(
+				normalizedPhone ? { customer_phone: normalizedPhone } : {},
+			);
+			if (
+				normalizedPhone &&
+				response.status === 404 &&
+				result?.message === "Customer not found"
+			) {
+				({ response, result } = await post({
+					customer: { phone: normalizedPhone },
+				}));
+			}
 
 			if (response.ok && result.success) {
 				setActiveModal(true);
@@ -234,20 +251,21 @@ export default function Checkout() {
 				setTimeout(() => {
 					setActiveModal(false);
 					dispatch(clearCart());
+					dispatch(setSubmitting(false));
 					navigate("/struct", { state: { checkout } });
 				}, 1500);
-			} else {
-				show(
-					result?.message ?? result?.error ?? "Checkout gagal. Coba lagi.",
-					"error",
-				);
+				return;
 			}
+			if (response.status < 500) dispatch(setPendingCheckout(null));
+			show(
+				result?.message ?? result?.error ?? "Checkout gagal. Coba lagi.",
+				"error",
+			);
 		} catch (error) {
 			console.error(error);
 			show("Terjadi kesalahan. Coba lagi.", "error");
-		} finally {
-			dispatch(setSubmitting(false));
 		}
+		dispatch(setSubmitting(false));
 	}
 
 	return (

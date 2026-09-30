@@ -2,7 +2,7 @@
 const path = require("node:path");
 
 try {
-	process.loadEnvFile(path.resolve(__dirname, "../.env"));
+	process.loadEnvFile(path.resolve(__dirname, "../../../.env"));
 } catch (error) {
 	const errorCode =
 		error && typeof error === "object" && "code" in error

@@ -1,5 +1,5 @@
 import { combineReducers } from "@reduxjs/toolkit";
-import { persistReducer } from "redux-persist";
+import { createMigrate, persistReducer } from "redux-persist";
 import storage from "redux-persist/es/storage";
 
 import auth from "./auth.ts";
@@ -9,6 +9,10 @@ const persistCartConfig = {
 	key: "cart",
 	storage,
 	blacklist: ["submitting"],
+	version: 1,
+	migrate: createMigrate({
+		1: (state) => ({ ...state, cart: [] }),
+	}),
 };
 
 const reducer = combineReducers({

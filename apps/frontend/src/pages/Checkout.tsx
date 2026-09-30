@@ -78,27 +78,6 @@ function paymentIcon(type: string): ReactNode {
 	}
 }
 
-async function resolveCustomerField(
-	normalizedPhone: string,
-): Promise<Record<string, unknown>> {
-	if (!normalizedPhone) return {};
-	try {
-		const response = await apiFetch(
-			`/api/v1/customers?q=${encodeURIComponent(normalizedPhone)}&limit=5`,
-		);
-		if (response.ok) {
-			const result = await response.json();
-			const match = (result?.data ?? []).find(
-				(customer) => customer.phone === normalizedPhone,
-			);
-			if (match) return { customer_phone: normalizedPhone };
-		}
-	} catch (error) {
-		console.error(error);
-	}
-	return { customer: { phone: normalizedPhone } };
-}
-
 // crypto.randomUUID is only exposed in secure contexts; the POS may run over plain HTTP on the LAN.
 function newIdempotencyKey(): string {
 	if (crypto.randomUUID) return crypto.randomUUID();
@@ -217,27 +196,40 @@ export default function Checkout() {
 
 		dispatch(setSubmitting(true));
 		try {
-			const customerField = await resolveCustomerField(normalizedPhone);
-			const body = {
-				...customerField,
-				payment_method_id: selectedPaymentId,
-				paid_amount: paidAmount.toFixed(2),
-				items: cart.map((item) => ({
-					product_item_id: item.productItemId,
-					qty: item.qty,
-				})),
+			const idempotencyKey = newIdempotencyKey();
+			const post = async (customerField: Record<string, unknown>) => {
+				const response = await apiFetch("/api/v1/checkout", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						"Idempotency-Key": idempotencyKey,
+					},
+					body: JSON.stringify({
+						...customerField,
+						payment_method_id: selectedPaymentId,
+						paid_amount: paidAmount.toFixed(2),
+						items: cart.map((item) => ({
+							product_item_id: item.productItemId,
+							qty: item.qty,
+						})),
+					}),
+				});
+				const result = await response.json().catch(() => ({}));
+				return { response, result };
 			};
 
-			const response = await apiFetch("/api/v1/checkout", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					"Idempotency-Key": newIdempotencyKey(),
-				},
-				body: JSON.stringify(body),
-			});
-
-			const result = await response.json().catch(() => ({}));
+			let { response, result } = await post(
+				normalizedPhone ? { customer_phone: normalizedPhone } : {},
+			);
+			if (
+				normalizedPhone &&
+				response.status === 404 &&
+				result?.message === "Customer not found"
+			) {
+				({ response, result } = await post({
+					customer: { phone: normalizedPhone },
+				}));
+			}
 
 			if (response.ok && result.success) {
 				setActiveModal(true);

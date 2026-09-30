@@ -99,6 +99,16 @@ async function resolveCustomerField(
 	return { customer: { phone: normalizedPhone } };
 }
 
+// crypto.randomUUID is only exposed in secure contexts; the POS may run over plain HTTP on the LAN.
+function newIdempotencyKey(): string {
+	if (crypto.randomUUID) return crypto.randomUUID();
+	const bytes = crypto.getRandomValues(new Uint8Array(16));
+	bytes[6] = (bytes[6] & 0x0F) | 0x40;
+	bytes[8] = (bytes[8] & 0x3F) | 0x80;
+	const hex = [...bytes].map((byte) => byte.toString(16).padStart(2, "0"));
+	return `${hex.slice(0, 4).join("")}-${hex.slice(4, 6).join("")}-${hex.slice(6, 8).join("")}-${hex.slice(8, 10).join("")}-${hex.slice(10).join("")}`;
+}
+
 export default function Checkout() {
 	const cart = useSelector((state: RootState) => state.cart.cart);
 	const submitting = useSelector((state: RootState) => state.cart.submitting);
@@ -119,13 +129,14 @@ export default function Checkout() {
 	);
 	const isCash = selectedMethod?.type === "cash";
 	const change = isCash ? Number(cashAmount || 0) - total : 0;
-	const quickAmounts = [...new Set([total, ...[
-	5e4,
-	1e5,
-	5e5,
-	1e6,
-	5e6
-].map((step) => Math.ceil(total / step) * step)])].slice(0, 4);
+	const quickAmounts = [
+		...new Set([
+			total,
+			...[5e4, 1e5, 5e5, 1e6, 5e6].map(
+				(step) => Math.ceil(total / step) * step,
+			),
+		]),
+	].slice(0, 4);
 
 	useEffect(() => {
 		async function getPaymentMethod() {
@@ -221,7 +232,7 @@ export default function Checkout() {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
-					"Idempotency-Key": crypto.randomUUID(),
+					"Idempotency-Key": newIdempotencyKey(),
 				},
 				body: JSON.stringify(body),
 			});

@@ -122,11 +122,11 @@ export default function Checkout() {
 
 			const res = {
 				payment_method_id: formated.Payment,
-				paid_amount:
-					cashAmount ??
-					cart
-						.reduce((total, curr) => total + curr.price * curr.qty, 0)
-						.toString(),
+				paid_amount: cashAmount
+					? cashAmount
+					: cart
+							.reduce((total, curr) => total + curr.price * curr.qty, 0)
+							.toString(),
 				items: cart.map((item) => {
 					return {
 						product_item_id: "c6f10de9-8005-4636-925b-6295537d0805",
@@ -148,9 +148,9 @@ export default function Checkout() {
 			const result = await respose.json();
 			if (result.success) {
 				setActiveModal(true);
-				setTimeout(() => {
+				setTimeout(async () => {
 					setActiveModal(false);
-					navigate("/struct", {
+					await navigate("/struct", {
 						state: {
 							paymentMethod: result.data.payment.method,
 
